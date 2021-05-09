@@ -1,0 +1,20 @@
+:root {
+	--error: #EE6183;
+	--piss: #C482ED;
+	--blue: #454DFE;
+	--mint: #A8EEEE;
+	--gruble: #5DE9AE;
+
+	--c900: #EBEEF9;
+	--c800: #AEB7DA;
+	--c700: #707BA6;
+	--c400: #2D344F;
+	--c300: #171D33;
+	--c200: #07071C;
+	--c100: #01010D;
+
+	--bg: var(--c200);
+	--fg: var(--c900);
+	background-color: var(--bg);
+}
+
