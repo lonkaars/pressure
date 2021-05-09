@@ -1,7 +1,8 @@
 import Head from 'next/head';
 
-import '../styles/globals.css';
 import '../styles/colors.css';
+import '../styles/globals.css';
+import '../styles/paper.css';
 
 export default function Blog({ Component, pageProps }) {
 	return <>

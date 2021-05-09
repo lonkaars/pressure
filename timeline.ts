@@ -1,23 +1,25 @@
-interface slide {
+export type keyframeTypes = 'default' | 'delay' | 'speedChange' | 'loop';
+
+export interface slide {
 	frame: number;
 	clickThroughBehaviour: 'ImmediatelySkip' | 'PlayOut';
-	type: 'default' | 'delay' | 'speedChange' | 'loop';
+	type: keyframeTypes;
 }
 
-interface delaySlide extends slide {
+export interface delaySlide extends slide {
 	delay: number;
 }
 
-interface speedChangeSlide extends slide {
+export interface speedChangeSlide extends slide {
 	newFramerate: number;
 }
 
-interface loopSlide extends slide {
+export interface loopSlide extends slide {
 	endFrame: number;
 	playbackType: 'PingPong' | 'Normal';
 }
 
-interface timeline {
+export interface timeline {
 	slides: slide[];
 	framecount: number;
 	framerate: number;

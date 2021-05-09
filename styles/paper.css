@@ -1,0 +1,8 @@
+.MuiAppBar-root.MuiAppBar-colorTransparent {
+	background-color: var(--c300);
+}
+
+.MuiAppBar-root.MuiAppBar-colorTransparent h1 {
+	color: var(--mint);
+	margin-left: 16px;
+}

@@ -8,3 +8,9 @@ html, body {
 	font-family: "Inter", sans-serif;
 }
 
+.keyframe { fill: var(--gruble); }
+
+h1 { font-size: 1.25rem; }
+h2 { font-size: 1.125rem; }
+h3 { font-size: 1rem; }
+
