@@ -1,8 +1,9 @@
 .loop .connector {
+	display: inline-block;
 	height: 16px;
 	background-color: var(--gruble);
 	opacity: .25;
-	width: calc(100% - 48px);
+	width: calc(100% - 26px);
 	margin: 4px -11px;
 }
 
