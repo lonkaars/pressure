@@ -1,7 +1,8 @@
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 
-import { PressureIcon, SlideKeyframe } from '../components/icons';
+import { PressureIcon } from '../components/icons';
+import Loop from '../components/loop';
 
 export default function Index() {
 	return <>
@@ -11,5 +12,6 @@ export default function Index() {
 				<h1>pressure</h1>
 			</Toolbar>
 		</AppBar>
+		<Loop width={100} />
 	</>;
 }
