@@ -2,13 +2,18 @@
 	background-color: var(--c100);
 }
 
+.presentation {
+	--aspect-ratio-h: 16;
+	--aspect-ratio-v: 9;
+}
+
 .slideWrapper {
 	margin: 0 auto;
-	max-width: calc(16 / 9 * 100vh);
+	max-width: calc(var(--aspect-ratio-h) / var(--aspect-ratio-v) * 100vh);
 }
 
 .slideWrapper .slide {
-	padding-top: calc(9 / 16 * 100%);
+	padding-top: calc(var(--aspect-ratio-v) / var(--aspect-ratio-h) * 100%);
 	background-color: var(--c200);
 }
 

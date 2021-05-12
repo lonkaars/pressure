@@ -15,11 +15,11 @@ export interface speedChangeSlide extends slide {
 }
 
 export interface loopSlide extends slide {
-	endFrame: number;
+	beginFrame: number;
 	playbackType: 'PingPong' | 'Normal';
 }
 
-export interface timeline {
+export default interface timeline {
 	slides: slide[];
 	framecount: number;
 	framerate: number;

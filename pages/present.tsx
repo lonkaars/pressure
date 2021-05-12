@@ -1,5 +1,8 @@
 import Button from '@material-ui/core/Button';
 import { useEffect, useState } from 'react';
+import { timeline } from '../timeline';
+import * as timelineSchema from '../timeline.schema.json';
+import Ajv from 'ajv';
 
 import ExitToAppRoundedIcon from '@material-ui/icons/ExitToAppRounded';
 import PlayArrowRoundedIcon from '@material-ui/icons/PlayArrowRounded';
@@ -9,12 +12,71 @@ import SettingsRoundedIcon from '@material-ui/icons/SettingsRounded';
 import CodeRoundedIcon from '@material-ui/icons/CodeRounded';
 import MovieRoundedIcon from '@material-ui/icons/MovieRounded';
 
-function previous() {
-	console.log('previous slide');
-}
+class TimedVideoPlayer {
+	slide: number;
+	timeline: timeline;
+	precision: number;
+	player: HTMLVideoElement;
+	video: string;
 
-function next() {
-	console.log('next slide');
+	constructor(public framerate: number) {
+		this.slide = 0;
+		this.precision = 3;
+	}
+
+	timestampToFrame(timestamp: number): number {
+		return Math.round((timestamp * 1e3) / (1e3 / this.framerate));
+	}
+
+	frameToTimestamp(frame: number): number {
+		return frame / this.framerate;
+	}
+
+	registerPlayer(player: HTMLVideoElement) {
+		this.player = player;
+		if (this.video) this.player.src = this.video;
+		this.registerEventListeners();
+	}
+
+	registerEventListeners() {
+		if(!this.video ||
+		   !this.player ||
+		   !this.timeline ) return;
+		console.log('we\'re good to go!');
+	}
+
+	loadVideo(base64Video: string) {
+		this.video = base64Video;
+		if (this.player) this.player.src = this.video;
+		this.registerEventListeners();
+	}
+
+	loadSlides(jsonString: string) {
+		try {
+			var timeline = JSON.parse(jsonString);
+		} catch (e) {
+			console.log("invalid json object!" + e);
+			return;
+		}
+		var ajv = new Ajv({ allErrors: true });
+		var validate = ajv.compile(timelineSchema);
+		if (!validate(timeline)) {
+			console.log("schema not passed!")
+			return;
+		}
+
+		this.timeline = timeline;
+
+		this.registerEventListeners();
+	}
+	
+	next() {
+		console.log('next slide');
+	}
+
+	previous() {
+		console.log('previous slide');
+	}
 }
 
 export default function Present() {
@@ -24,42 +86,39 @@ export default function Present() {
 		}, 500);
 	}, []);
 
-	var [videoSRC, setVideoSRC] = useState('');
-	var [slides, setSlides] = useState();
-
-	var precision = 3;
-	var framerate = 60;
+	var player = new TimedVideoPlayer(60);
 
 	useEffect(() => {
 		var videoEL = document.getElementById('player') as HTMLVideoElement;
-		videoEL.addEventListener('loadeddata', () => {
-			console.log('initial load');
-		});
-		videoEL.addEventListener('canplaythrough', () => {
-			videoEL.play();
-		});
+		player.registerPlayer(videoEL);
+		/* videoEL.addEventListener('loadeddata', () => { */
+		/* 	console.log('initial load'); */
+		/* }); */
+		/* videoEL.addEventListener('canplaythrough', () => { */
+		/* 	console.log('full load') */
+		/* }); */
 
-		setInterval(() => {
-			if (videoEL.paused) return;
-			var frame = Math.round((videoEL.currentTime * 1e3) / (1e3 / framerate));
-			document.getElementById('frame').innerText = frame.toString();
-			if (frame >= framerate) {
-				videoEL.pause();
-				console.log(videoEL.currentTime);
-			}
-		}, 1e3 / (precision * framerate));
+		/* setInterval(() => { */
+		/* 	if (videoEL.paused) return; */
+		/* 	var frame = TimedVideoPlayer.timestampToFrame(videoEL.currentTime, framerate); */
+		/* 	document.getElementById('frame').innerText = frame.toString(); */
+		/* 	if (frame >= framerate) { */
+		/* 		videoEL.pause(); */
+		/* 		console.log(videoEL.currentTime); */
+		/* 	} */
+		/* }, 1e3 / (precision * framerate)); */
 	}, []);
 
 	return <div className='presentation posfix a0 h100vh'>
 		<div className='slideWrapper abscenterv posrel'>
 			<div className='slide posrel'>
 				<div className='innner posabs a0'>
-					<video src={videoSRC} id='player' className='fullwidth' />
+					<video id='player' className='fullwidth' />
 				</div>
 			</div>
 		</div>
 		<div className='fullscreenControls posabs a0'>
-			<div className='control previous' onClick={previous}>
+			<div className='control previous' onClick={player.previous}>
 				<span id='frame'>0</span>
 			</div>
 			<div
@@ -68,7 +127,7 @@ export default function Present() {
 					document.getElementById('menu').classList.add('active');
 				}}
 			/>
-			<div className='control next' onClick={next} />
+			<div className='control next' onClick={player.next} />
 		</div>
 		<div className='menu posabs a0' id='menu'>
 			<div
@@ -119,7 +178,7 @@ export default function Present() {
 								});
 								reader.addEventListener('load', ev => {
 									console.log('reader done!');
-									setVideoSRC(ev.target.result as string);
+									player.loadVideo(ev.target.result as string);
 								});
 								reader.addEventListener('progress', (progEv) => {
 									console.log(progEv.loaded);
@@ -146,7 +205,7 @@ export default function Present() {
 								});
 								reader.addEventListener('load', ev => {
 									console.log('reader done!');
-									setSlides(JSON.parse(ev.target.result as string));
+									player.loadSlides(ev.target.result as string);
 								});
 								reader.addEventListener('progress', (progEv) => {
 									console.log(progEv.loaded);
@@ -154,20 +213,20 @@ export default function Present() {
 								reader.readAsText(file);
 							}}
 						/>
-						{!videoSRC && <Button
+						<Button
 							variant='contained'
 							color='default'
 							children='Load video'
 							startIcon={<MovieRoundedIcon />}
 							onClick={() => document.getElementById('vidUpload').click()}
-						/>}
-						{!slides && <Button
+						/>
+						<Button
 							variant='contained'
 							color='default'
 							children='Load json'
 							startIcon={<CodeRoundedIcon />}
 							onClick={() => document.getElementById('jsonUpload').click()}
-						/>}
+						/>
 						{false && <Button
 							variant='contained'
 							color='default'
