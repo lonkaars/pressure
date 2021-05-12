@@ -1,5 +1,5 @@
 import Button from '@material-ui/core/Button';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import ExitToAppRoundedIcon from '@material-ui/icons/ExitToAppRounded';
 import PlayArrowRoundedIcon from '@material-ui/icons/PlayArrowRounded';
@@ -21,12 +21,68 @@ export default function Present() {
 		}, 500);
 	}, []);
 
+	var [ videoSRC, setVideoSRC ] = useState("");
+
+	useEffect(() => {
+		var videoEL = document.getElementById("player") as HTMLVideoElement;
+		videoEL.addEventListener('loadeddata', () => {
+			console.log("initial load")
+		})
+		videoEL.addEventListener('canplaythrough', () => {
+			console.log("full load")
+			videoEL.play();
+		})
+	}, []);
+
 	return <div className='presentation posfix a0 h100vh'>
 		<div className='slideWrapper abscenterv posrel'>
-			<div className='slide'></div>
+			<div className='slide posrel'>
+				<div className="innner posabs a0">
+					<video src={videoSRC} id="player" className="fullwidth"/>
+				</div>
+			</div>
 		</div>
 		<div className='fullscreenControls posabs a0'>
-			<div className='control previous' onClick={previous} />
+			<div className='control previous' onClick={previous} >
+				<input
+					type='file'
+					id='vidUpload'
+					accept='video/*'
+					className="dispnone"
+					onChange={event => {
+						var file = event.target.files[0];
+						console.log(event.target.files)
+						if (!file) return;
+						console.log('new fileReader!')
+						var reader = new FileReader();
+						reader.addEventListener('error', () => {
+							console.log("reader error");
+						})
+						reader.addEventListener('abort', () => {
+							console.log("reader abortus");
+						})
+						reader.addEventListener('load', ev => {
+							console.log("reader done!")
+							setVideoSRC(ev.target.result as string);
+						})
+						reader.addEventListener('progress', (progEv) => {
+							console.log(progEv.loaded)
+						})
+						reader.readAsDataURL(file);
+					}}
+				/>
+				<Button
+					variant='contained'
+					color='default'
+					children='load video'
+					onClick={() => document.getElementById("vidUpload").click()}
+				/>
+				<Button
+					variant='contained'
+					color='default'
+					children='load json'
+				/>
+			</div>
 			<div
 				className='control menu'
 				onClick={() => {
