@@ -4,8 +4,8 @@ import '../styles/colors.css';
 import '../styles/globals.css';
 import '../styles/keyframes.css';
 import '../styles/paper.css';
-import '../styles/util.css';
 import '../styles/presentation.css';
+import '../styles/util.css';
 
 export default function Blog({ Component, pageProps }) {
 	return <>

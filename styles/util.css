@@ -51,6 +51,11 @@
 .floatr { float: right; }
 .floatl { float: left; }
 .floatn { float: none; }
+.floatb {
+	display: flex;
+	justify-content: flex-end;
+	flex-direction: column;
+}
 
 .w1fr { width: 1fr; }
 
@@ -58,6 +63,8 @@
 
 .w100vw { width: 100vw; }
 .h100vh { height: 100vh; }
+
+.nobr { white-space: nowrap; }
 
 .fullwidth {
 	width: 100%;
@@ -101,5 +108,9 @@
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
+}
+
+.numbers {
+	font-feature-settings: 'tnum' on, 'lnum' on, 'ss01' on, 'cv01' on;
 }
 

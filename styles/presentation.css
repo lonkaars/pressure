@@ -1,13 +1,73 @@
-.presentation {
-	background-color: #000;
-}
-
 .slideWrapper {
 	margin: 0 auto;
 	max-width: calc(16 / 9 * 100vh);
 }
 
-.slide {
+.slideWrapper .slide {
 	padding-top: calc(9 / 16 * 100%);
 	background-color: #ff00ff;
 }
+
+.fullscreenControls {
+	--menu-size: 25;
+	display: grid;
+	grid-template-columns: 1fr calc(var(--menu-size) * 1vw) 1fr;
+}
+
+#menu {
+	pointer-events: none;
+	transition: opacity .3s;
+	opacity: 0;
+}
+
+#menu.active {
+	pointer-events: unset;
+	opacity: 1;
+}
+
+#menu .background {
+	background: linear-gradient(180deg,
+								rgba(1, 1, 13, 0.46) 50%,
+								rgba(1, 1, 13, 1.00) 100%);
+}
+
+#menu .info {
+	margin: 32px;
+	grid-template-columns: auto 1fr auto;
+}
+
+#menu .info .timetitle,
+#menu .info .slide {
+	line-height: 1;
+}
+
+#menu .info .timetitle *,
+#menu .info .slide * {
+	margin: 0;
+}
+
+#menu .info h3 {
+	color: var(--c700);
+	font-weight: 400;
+	font-size: 50px;
+}
+
+#menu .info h1 {
+	font-weight: 600;
+	font-size: 70px;
+}
+
+#menu .MuiButton-root {
+	background-color: var(--piss);
+}
+
+#menu .MuiButton-root.bg-err {
+	background-color: var(--error);
+}
+
+#menu .info .buttons .inner .MuiButton-root {
+	margin: 0;
+	margin-right: 16px;
+	margin-top: 16px;
+}
+
