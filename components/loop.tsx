@@ -5,7 +5,7 @@ export default function Loop(props: {
 }) {
 	return <div style={{ width: props.width }} className='loop'>
 		<SlideKeyframe type='loop' />
-		<div className='connector' />
+		<div className='connector dispinbl' />
 		<SlideKeyframe type='loop' loopEnd />
 	</div>;
 }
