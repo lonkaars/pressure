@@ -1,3 +1,7 @@
+:root {
+	background-color: var(--c100);
+}
+
 .slideWrapper {
 	margin: 0 auto;
 	max-width: calc(16 / 9 * 100vh);
@@ -5,7 +9,7 @@
 
 .slideWrapper .slide {
 	padding-top: calc(9 / 16 * 100%);
-	background-color: #ff00ff;
+	background-color: var(--c200);
 }
 
 .fullscreenControls {
@@ -49,12 +53,12 @@
 #menu .info h3 {
 	color: var(--c700);
 	font-weight: 400;
-	font-size: 50px;
+	font-size: min(50px, 3vw);
 }
 
 #menu .info h1 {
 	font-weight: 600;
-	font-size: 70px;
+	font-size: min(70px, 4.2vw);
 }
 
 #menu .MuiButton-root {
