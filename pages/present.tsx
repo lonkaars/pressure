@@ -22,6 +22,10 @@ export default function Present() {
 	}, []);
 
 	var [ videoSRC, setVideoSRC ] = useState("");
+	var [ slides, setSlides ] = useState();
+
+	var precision = 3;
+	var framerate = 60;
 
 	useEffect(() => {
 		var videoEL = document.getElementById("player") as HTMLVideoElement;
@@ -29,9 +33,18 @@ export default function Present() {
 			console.log("initial load")
 		})
 		videoEL.addEventListener('canplaythrough', () => {
-			console.log("full load")
 			videoEL.play();
 		})
+
+		setInterval(() => {
+			if(videoEL.paused) return;
+			var frame = Math.round((videoEL.currentTime * 1e3) / (1e3 / framerate));
+			document.getElementById('frame').innerText = frame.toString();
+			if (frame >= framerate) {
+				videoEL.pause()
+				console.log(videoEL.currentTime)
+			};
+		}, 1e3 / (precision * framerate));
 	}, []);
 
 	return <div className='presentation posfix a0 h100vh'>
@@ -71,17 +84,46 @@ export default function Present() {
 						reader.readAsDataURL(file);
 					}}
 				/>
-				<Button
+				<input
+					type='file'
+					id='jsonUpload'
+					accept='application/json'
+					className="dispnone"
+					onChange={event => {
+						var file = event.target.files[0];
+						console.log(event.target.files)
+						if (!file) return;
+						console.log('new fileReader!')
+						var reader = new FileReader();
+						reader.addEventListener('error', () => {
+							console.log("reader error");
+						})
+						reader.addEventListener('abort', () => {
+							console.log("reader abortus");
+						})
+						reader.addEventListener('load', ev => {
+							console.log("reader done!")
+							setSlides(JSON.parse(ev.target.result as string));
+						})
+						reader.addEventListener('progress', (progEv) => {
+							console.log(progEv.loaded)
+						})
+						reader.readAsText(file);
+					}}
+				/>
+				{ !videoSRC && <Button
 					variant='contained'
 					color='default'
 					children='load video'
 					onClick={() => document.getElementById("vidUpload").click()}
-				/>
-				<Button
+				/> }
+				{ !slides && <Button
 					variant='contained'
 					color='default'
 					children='load json'
-				/>
+					onClick={() => document.getElementById("jsonUpload").click()}
+				/> }
+				<span id="frame">0</span>
 			</div>
 			<div
 				className='control menu'
