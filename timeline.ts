@@ -20,7 +20,7 @@ export interface loopSlide extends slide {
 }
 
 export default interface timeline {
-	slides: slide[];
+	slides: Array<slide | delaySlide | speedChangeSlide | loopSlide>;
 	framecount: number;
 	framerate: number;
 }

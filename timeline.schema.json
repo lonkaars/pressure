@@ -2,6 +2,34 @@
 	"$ref": "#/definitions/timeline",
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"definitions": {
+		"delaySlide": {
+			"additionalProperties": false,
+			"properties": {
+				"clickThroughBehaviour": {
+					"enum": [
+						"ImmediatelySkip",
+						"PlayOut"
+					],
+					"type": "string"
+				},
+				"delay": {
+					"type": "number"
+				},
+				"frame": {
+					"type": "number"
+				},
+				"type": {
+					"$ref": "#/definitions/keyframeTypes"
+				}
+			},
+			"required": [
+				"clickThroughBehaviour",
+				"delay",
+				"frame",
+				"type"
+			],
+			"type": "object"
+		},
 		"keyframeTypes": {
 			"enum": [
 				"default",
@@ -10,6 +38,42 @@
 				"loop"
 			],
 			"type": "string"
+		},
+		"loopSlide": {
+			"additionalProperties": false,
+			"properties": {
+				"beginFrame": {
+					"type": "number"
+				},
+				"clickThroughBehaviour": {
+					"enum": [
+						"ImmediatelySkip",
+						"PlayOut"
+					],
+					"type": "string"
+				},
+				"frame": {
+					"type": "number"
+				},
+				"playbackType": {
+					"enum": [
+						"PingPong",
+						"Normal"
+					],
+					"type": "string"
+				},
+				"type": {
+					"$ref": "#/definitions/keyframeTypes"
+				}
+			},
+			"required": [
+				"beginFrame",
+				"clickThroughBehaviour",
+				"frame",
+				"playbackType",
+				"type"
+			],
+			"type": "object"
 		},
 		"slide": {
 			"additionalProperties": false,
@@ -35,6 +99,34 @@
 			],
 			"type": "object"
 		},
+		"speedChangeSlide": {
+			"additionalProperties": false,
+			"properties": {
+				"clickThroughBehaviour": {
+					"enum": [
+						"ImmediatelySkip",
+						"PlayOut"
+					],
+					"type": "string"
+				},
+				"frame": {
+					"type": "number"
+				},
+				"newFramerate": {
+					"type": "number"
+				},
+				"type": {
+					"$ref": "#/definitions/keyframeTypes"
+				}
+			},
+			"required": [
+				"clickThroughBehaviour",
+				"frame",
+				"newFramerate",
+				"type"
+			],
+			"type": "object"
+		},
 		"timeline": {
 			"additionalProperties": false,
 			"properties": {
@@ -46,7 +138,20 @@
 				},
 				"slides": {
 					"items": {
-						"$ref": "#/definitions/slide"
+						"anyOf": [
+							{
+								"$ref": "#/definitions/slide"
+							},
+							{
+								"$ref": "#/definitions/delaySlide"
+							},
+							{
+								"$ref": "#/definitions/speedChangeSlide"
+							},
+							{
+								"$ref": "#/definitions/loopSlide"
+							}
+						]
 					},
 					"type": "array"
 				}
