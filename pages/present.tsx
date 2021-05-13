@@ -1,8 +1,8 @@
 import Button from '@material-ui/core/Button';
-import { useEffect, useState } from 'react';
-import { timeline } from '../timeline';
-import * as timelineSchema from '../timeline.schema.json';
 import Ajv from 'ajv';
+import { useEffect, useState } from 'react';
+import timeline, { slide } from '../timeline';
+import * as timelineSchema from '../timeline.schema.json';
 
 import ExitToAppRoundedIcon from '@material-ui/icons/ExitToAppRounded';
 import PlayArrowRoundedIcon from '@material-ui/icons/PlayArrowRounded';
@@ -20,7 +20,7 @@ class TimedVideoPlayer {
 	video: string;
 
 	constructor(public framerate: number) {
-		this.slide = 0;
+		this.slide = -1;
 		this.precision = 3;
 	}
 
@@ -38,11 +38,38 @@ class TimedVideoPlayer {
 		this.registerEventListeners();
 	}
 
+	jumpToFrame(frame: number) {
+		this.player.currentTime = this.frameToTimestamp(frame);
+	}
+
+	handleSlide(slide: slide) {
+		this.jumpToFrame(slide.frame);
+		this.player.pause();
+	}
+
 	registerEventListeners() {
-		if(!this.video ||
-		   !this.player ||
-		   !this.timeline ) return;
-		console.log('we\'re good to go!');
+		if (
+			!this.video
+			|| !this.player
+			|| !this.timeline
+		) {
+			return;
+		}
+
+		setInterval(() => {
+			if (this.player.paused) return;
+			var frame = this.timestampToFrame(this.player.currentTime);
+
+			// debug
+			document.getElementById('frame').innerText = frame.toString();
+
+			var slide = this.timeline.slides[this.slide];
+			if (!slide) return;
+
+			if (frame >= slide.frame) {
+				this.handleSlide(slide);
+			}
+		}, 1e3 / (this.precision * this.framerate));
 	}
 
 	loadVideo(base64Video: string) {
@@ -55,23 +82,24 @@ class TimedVideoPlayer {
 		try {
 			var timeline = JSON.parse(jsonString);
 		} catch (e) {
-			console.log("invalid json object!" + e);
+			console.log('invalid json object!' + e);
 			return;
 		}
 		var ajv = new Ajv({ allErrors: true });
 		var validate = ajv.compile(timelineSchema);
 		if (!validate(timeline)) {
-			console.log("schema not passed!")
+			console.log('schema not passed!');
 			return;
 		}
 
-		this.timeline = timeline;
+		this.timeline = timeline as timeline;
 
 		this.registerEventListeners();
 	}
-	
+
 	next() {
-		console.log('next slide');
+		this.slide++;
+		this.player.play();
 	}
 
 	previous() {
@@ -97,16 +125,6 @@ export default function Present() {
 		/* videoEL.addEventListener('canplaythrough', () => { */
 		/* 	console.log('full load') */
 		/* }); */
-
-		/* setInterval(() => { */
-		/* 	if (videoEL.paused) return; */
-		/* 	var frame = TimedVideoPlayer.timestampToFrame(videoEL.currentTime, framerate); */
-		/* 	document.getElementById('frame').innerText = frame.toString(); */
-		/* 	if (frame >= framerate) { */
-		/* 		videoEL.pause(); */
-		/* 		console.log(videoEL.currentTime); */
-		/* 	} */
-		/* }, 1e3 / (precision * framerate)); */
 	}, []);
 
 	return <div className='presentation posfix a0 h100vh'>
@@ -127,7 +145,7 @@ export default function Present() {
 					document.getElementById('menu').classList.add('active');
 				}}
 			/>
-			<div className='control next' onClick={player.next} />
+			<div className='control next' onClick={() => player.next()} />
 		</div>
 		<div className='menu posabs a0' id='menu'>
 			<div
