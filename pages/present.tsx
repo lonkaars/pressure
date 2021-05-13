@@ -1,7 +1,7 @@
 import Button from '@material-ui/core/Button';
 import Ajv from 'ajv';
-import { useEffect } from 'react';
-import timeline, { slide, anySlide } from '../timeline';
+import { useEffect, useState } from 'react';
+import timeline, { delaySlide, loopSlide, slide, speedChangeSlide } from '../timeline';
 import * as timelineSchema from '../timeline.schema.json';
 
 import ExitToAppRoundedIcon from '@material-ui/icons/ExitToAppRounded';
@@ -54,10 +54,10 @@ class TimedVideoPlayer {
 		this.player.pause();
 	}
 
-	handleSlide(slide: anySlide) {
-		switch(slide.type) {
+	handleSlide(slide: slide) {
+		switch (slide.type) {
 			case 'loop': {
-				this.jumpToFrame(slide.beginFrame);
+				this.jumpToFrame((slide as loopSlide).beginFrame);
 				break;
 			}
 			case 'delay': {
@@ -65,12 +65,12 @@ class TimedVideoPlayer {
 				this.slide++;
 				setTimeout(() => {
 					this.player.play();
-				}, slide.delay);
+				}, (slide as delaySlide).delay);
 				break;
 			}
 			case 'speedChange': {
 				this.slide++;
-				this.player.playbackRate = this.framerate / slide.newFramerate;
+				this.player.playbackRate = this.framerate / (slide as speedChangeSlide).newFramerate;
 				break;
 			}
 			default: {
@@ -97,8 +97,9 @@ class TimedVideoPlayer {
 			var slide = this.timeline.slides[this.slide];
 			if (!slide) return;
 
-			if (this.frame >= slide.frame)
+			if (this.frame >= slide.frame) {
 				this.handleSlide(slide);
+			}
 		}, 1e3 / (this.precision * this.framerate));
 
 		this.registeredEventListeners = true;
@@ -169,13 +170,15 @@ class TimedVideoPlayer {
 }
 
 export default function Present() {
+	var [dummy, setDummy] = useState(false);
+	var rerender = () => setDummy(!dummy);
+	var [player, setPlayer] = useState(new TimedVideoPlayer());
+
 	useEffect(() => {
 		setInterval(() => {
 			document.getElementById('time').innerText = new Date().toLocaleTimeString();
 		}, 500);
 	}, []);
-
-	var player = new TimedVideoPlayer();
 
 	useEffect(() => {
 		var videoEL = document.getElementById('player') as HTMLVideoElement;
@@ -191,14 +194,26 @@ export default function Present() {
 			</div>
 		</div>
 		<div className='fullscreenControls posabs a0'>
-			<div className='control previous' onClick={() => player.previous()}/>
+			<div
+				className='control previous'
+				onClick={() => {
+					player.previous();
+					rerender();
+				}}
+			/>
 			<div
 				className='control menu'
 				onClick={() => {
 					document.getElementById('menu').classList.add('active');
 				}}
 			/>
-			<div className='control next' onClick={() => player.next()} />
+			<div
+				className='control next'
+				onClick={() => {
+					player.next();
+					rerender();
+				}}
+			/>
 		</div>
 		<div className='menu posabs a0' id='menu'>
 			<div
@@ -256,6 +271,7 @@ export default function Present() {
 								var reader = new FileReader();
 								reader.addEventListener('load', ev => {
 									player.loadSlides(ev.target.result as string);
+									rerender();
 								});
 								reader.readAsText(file);
 							}}
@@ -289,7 +305,9 @@ export default function Present() {
 					</div>
 				</div>
 				<div className='slide posrel floatb'>
-					<h3 className='time numbers nobr posrel'>slide 1/15</h3>
+					<h3 className='time numbers nobr posrel'>
+						slide {player.slide + 1}/{player.timeline?.slides.length || 0}
+					</h3>
 				</div>
 			</div>
 		</div>
