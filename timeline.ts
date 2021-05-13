@@ -19,8 +19,10 @@ export interface loopSlide extends slide {
 	playbackType: 'PingPong' | 'Normal';
 }
 
+type anySlide = slide | delaySlide | speedChangeSlide | loopSlide;
+
 export default interface timeline {
-	slides: Array<slide | delaySlide | speedChangeSlide | loopSlide>;
+	slides: Array<anySlide>;
 	framecount: number;
 	framerate: number;
 }

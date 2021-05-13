@@ -1,7 +1,7 @@
 import Button from '@material-ui/core/Button';
 import Ajv from 'ajv';
 import { useEffect } from 'react';
-import timeline, { slide } from '../timeline';
+import timeline, { slide, anySlide } from '../timeline';
 import * as timelineSchema from '../timeline.schema.json';
 
 import ExitToAppRoundedIcon from '@material-ui/icons/ExitToAppRounded';
@@ -27,12 +27,11 @@ class TimedVideoPlayer {
 		this.precision = 3;
 		this.frame = 0;
 		this.framerate = 0;
-		this.offset = 0;
 		this.registeredEventListeners = false;
 	}
 
 	timestampToFrame(timestamp: number): number {
-		return Math.round((timestamp * 1e3) / (1e3 / this.framerate));
+		return Math.ceil((timestamp * 1e3) / (1e3 / this.framerate));
 	}
 
 	frameToTimestamp(frame: number): number {
@@ -55,6 +54,32 @@ class TimedVideoPlayer {
 		this.player.pause();
 	}
 
+	handleSlide(slide: anySlide) {
+		switch(slide.type) {
+			case 'loop': {
+				this.jumpToFrame(slide.beginFrame);
+				break;
+			}
+			case 'delay': {
+				this.jumpToSlide(slide);
+				this.slide++;
+				setTimeout(() => {
+					this.player.play();
+				}, slide.delay);
+				break;
+			}
+			case 'speedChange': {
+				this.slide++;
+				this.player.playbackRate = this.framerate / slide.newFramerate;
+				break;
+			}
+			default: {
+				this.jumpToSlide(slide);
+				break;
+			}
+		}
+	}
+
 	registerEventListeners() {
 		if (
 			!this.video
@@ -69,15 +94,11 @@ class TimedVideoPlayer {
 			if (this.player.paused) return;
 			this.frame = this.timestampToFrame(this.player.currentTime);
 
-			// debug
-			document.getElementById('frame').innerText = this.frame.toString();
-
 			var slide = this.timeline.slides[this.slide];
 			if (!slide) return;
 
-			if (this.frame >= slide.frame) {
-				this.jumpToSlide(slide);
-			}
+			if (this.frame >= slide.frame)
+				this.handleSlide(slide);
 		}, 1e3 / (this.precision * this.framerate));
 
 		this.registeredEventListeners = true;
@@ -116,23 +137,22 @@ class TimedVideoPlayer {
 	}
 
 	skip() {
-		var slide = this.timeline.slides[this.slide];
+		var slide = this.timeline.slides[this.slide - 1];
 		if (slide.clickThroughBehaviour == 'ImmediatelySkip') this.jumpToSlide(slide);
 	}
 
 	next() {
 		if (!this.registeredEventListeners) return;
 
-		var slide = this.timeline.slides[this.slide + 1];
+		this.slide++;
+
+		var slide = this.timeline.slides[this.slide];
 
 		if (!this.player.paused && this.frame < slide?.frame) {
 			this.skip();
 		}
 
-		this.slide++;
-
 		this.player.play();
-		console.log(this.slide);
 	}
 
 	previous() {
@@ -160,12 +180,6 @@ export default function Present() {
 	useEffect(() => {
 		var videoEL = document.getElementById('player') as HTMLVideoElement;
 		player.registerPlayer(videoEL);
-		/* videoEL.addEventListener('loadeddata', () => { */
-		/* 	console.log('initial load'); */
-		/* }); */
-		/* videoEL.addEventListener('canplaythrough', () => { */
-		/* 	console.log('full load') */
-		/* }); */
 	}, []);
 
 	return <div className='presentation posfix a0 h100vh'>
@@ -177,9 +191,7 @@ export default function Present() {
 			</div>
 		</div>
 		<div className='fullscreenControls posabs a0'>
-			<div className='control previous' onClick={() => player.previous()}>
-				<span id='frame'>0</span>
-			</div>
+			<div className='control previous' onClick={() => player.previous()}/>
 			<div
 				className='control menu'
 				onClick={() => {
