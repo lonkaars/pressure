@@ -15,6 +15,20 @@ love, and present it to the world with ease.
 - [ ] remote control with phone
 - [ ] presenter view
 
+## integration
+
+I'm not sure if these integrations are even possible, but i'll update these
+when I'm working on them/are finished:
+
+- **PowerPoint plugin/embed**  
+  Would allow embedding a slideshow-style video inside your existing PowerPoint
+  presentation.
+- **Adobe After Effects plugin**  
+  Would allow adding markers in your composition timeline that export to a
+  timeline.json file. Maybe also a feature where you could import recorded
+  presentation timings for adding a voice-over and re-exporting the video as a
+  standalone video.
+
 ## designs
 
 See
