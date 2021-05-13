@@ -18,10 +18,14 @@ class TimedVideoPlayer {
 	precision: number;
 	player: HTMLVideoElement;
 	video: string;
+	registeredEventListeners: boolean;
+	frame: number;
 
 	constructor(public framerate: number) {
 		this.slide = -1;
 		this.precision = 3;
+		this.frame = 0;
+		this.registeredEventListeners = false;
 	}
 
 	timestampToFrame(timestamp: number): number {
@@ -40,9 +44,10 @@ class TimedVideoPlayer {
 
 	jumpToFrame(frame: number) {
 		this.player.currentTime = this.frameToTimestamp(frame);
+		this.frame = frame;
 	}
 
-	handleSlide(slide: slide) {
+	jumpToSlide(slide: slide) {
 		this.jumpToFrame(slide.frame);
 		this.player.pause();
 	}
@@ -52,24 +57,27 @@ class TimedVideoPlayer {
 			!this.video
 			|| !this.player
 			|| !this.timeline
+			|| this.registeredEventListeners
 		) {
 			return;
 		}
 
 		setInterval(() => {
 			if (this.player.paused) return;
-			var frame = this.timestampToFrame(this.player.currentTime);
+			this.frame = this.timestampToFrame(this.player.currentTime);
 
 			// debug
-			document.getElementById('frame').innerText = frame.toString();
+			document.getElementById('frame').innerText = this.frame.toString();
 
 			var slide = this.timeline.slides[this.slide];
 			if (!slide) return;
 
-			if (frame >= slide.frame) {
-				this.handleSlide(slide);
+			if (this.frame >= slide.frame) {
+				this.jumpToSlide(slide);
 			}
 		}, 1e3 / (this.precision * this.framerate));
+
+		this.registeredEventListeners = true;
 	}
 
 	loadVideo(base64Video: string) {
@@ -94,16 +102,45 @@ class TimedVideoPlayer {
 
 		this.timeline = timeline as timeline;
 
+		this.timeline.slides[-1] = {
+			frame: 0,
+			type: 'default',
+			clickThroughBehaviour: 'ImmediatelySkip',
+		};
+
 		this.registerEventListeners();
 	}
 
+	skip() {
+		var slide = this.timeline.slides[this.slide];
+		if (slide.clickThroughBehaviour == 'ImmediatelySkip') this.jumpToSlide(slide);
+	}
+
 	next() {
+		if (!this.registeredEventListeners) return;
+
+		var slide = this.timeline.slides[this.slide + 1];
+
+		if (!this.player.paused && this.frame < slide?.frame) {
+			this.skip();
+		}
+
 		this.slide++;
+
 		this.player.play();
+		console.log(this.slide);
 	}
 
 	previous() {
-		console.log('previous slide');
+		if (!this.registeredEventListeners) return;
+
+		this.slide = Math.max(this.slide - 1, -1);
+
+		var slide = this.timeline.slides[this.slide];
+		if (!slide) return;
+
+		this.jumpToSlide(slide);
+		console.log(this.slide, slide);
 	}
 }
 
@@ -136,7 +173,7 @@ export default function Present() {
 			</div>
 		</div>
 		<div className='fullscreenControls posabs a0'>
-			<div className='control previous' onClick={player.previous}>
+			<div className='control previous' onClick={() => player.previous()}>
 				<span id='frame'>0</span>
 			</div>
 			<div
@@ -184,22 +221,10 @@ export default function Present() {
 							className='dispnone'
 							onChange={event => {
 								var file = event.target.files[0];
-								console.log(event.target.files);
 								if (!file) return;
-								console.log('new fileReader!');
 								var reader = new FileReader();
-								reader.addEventListener('error', () => {
-									console.log('reader error');
-								});
-								reader.addEventListener('abort', () => {
-									console.log('reader abortus');
-								});
 								reader.addEventListener('load', ev => {
-									console.log('reader done!');
 									player.loadVideo(ev.target.result as string);
-								});
-								reader.addEventListener('progress', (progEv) => {
-									console.log(progEv.loaded);
 								});
 								reader.readAsDataURL(file);
 							}}
@@ -211,22 +236,10 @@ export default function Present() {
 							className='dispnone'
 							onChange={event => {
 								var file = event.target.files[0];
-								console.log(event.target.files);
 								if (!file) return;
-								console.log('new fileReader!');
 								var reader = new FileReader();
-								reader.addEventListener('error', () => {
-									console.log('reader error');
-								});
-								reader.addEventListener('abort', () => {
-									console.log('reader abortus');
-								});
 								reader.addEventListener('load', ev => {
-									console.log('reader done!');
 									player.loadSlides(ev.target.result as string);
-								});
-								reader.addEventListener('progress', (progEv) => {
-									console.log(progEv.loaded);
 								});
 								reader.readAsText(file);
 							}}

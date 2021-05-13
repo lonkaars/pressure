@@ -9,7 +9,7 @@ love, and present it to the world with ease.
 
 ## roadmap
 
-- [ ] working demo
+- [x] working demo
 - [ ] standalone web editor
 - [ ] backend in rust
 - [ ] remote control with phone
