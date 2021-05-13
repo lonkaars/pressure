@@ -225,7 +225,7 @@ export default function Present() {
 			<div className='info sidebyside posabs h0 b0'>
 				<div className='timetitle floatb'>
 					<h3 className='time numbers nobr' id='time'>14:00:41</h3>
-					<h1 className='title nobr'>PWS Presentatie</h1>
+					<h1 className='title nobr'>{player.timeline?.name || '???'}</h1>
 				</div>
 				<div className='buttons floatb'>
 					<div className='inner center'>

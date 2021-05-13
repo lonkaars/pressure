@@ -75,6 +75,19 @@
 			],
 			"type": "object"
 		},
+		"presentationSettings": {
+			"additionalProperties": false,
+			"properties": {
+				"controlType": {
+					"const": "FullScreen",
+					"type": "string"
+				}
+			},
+			"required": [
+				"controlType"
+			],
+			"type": "object"
+		},
 		"slide": {
 			"additionalProperties": false,
 			"properties": {
@@ -136,6 +149,12 @@
 				"framerate": {
 					"type": "number"
 				},
+				"name": {
+					"type": "string"
+				},
+				"settings": {
+					"$ref": "#/definitions/presentationSettings"
+				},
 				"slides": {
 					"items": {
 						"anyOf": [
@@ -159,7 +178,9 @@
 			"required": [
 				"slides",
 				"framecount",
-				"framerate"
+				"framerate",
+				"name",
+				"settings"
 			],
 			"type": "object"
 		}

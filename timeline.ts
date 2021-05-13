@@ -19,8 +19,14 @@ export interface loopSlide extends slide {
 	playbackType: 'PingPong' | 'Normal';
 }
 
+export interface presentationSettings {
+	controlType: 'FullScreen';
+}
+
 export default interface timeline {
 	slides: Array<slide | delaySlide | speedChangeSlide | loopSlide>;
 	framecount: number;
 	framerate: number;
+	name: string;
+	settings: presentationSettings;
 }

@@ -34,6 +34,3 @@ yarn-error.log*
 # vercel
 .vercel
 
-# typescript-json-validator
-timeline.validator.ts
-
