@@ -1,6 +1,6 @@
 import Button from '@material-ui/core/Button';
 import Ajv from 'ajv';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import timeline, { slide } from '../timeline';
 import * as timelineSchema from '../timeline.schema.json';
 
@@ -20,11 +20,14 @@ class TimedVideoPlayer {
 	video: string;
 	registeredEventListeners: boolean;
 	frame: number;
+	framerate: number;
 
-	constructor(public framerate: number) {
+	constructor() {
 		this.slide = -1;
 		this.precision = 3;
 		this.frame = 0;
+		this.framerate = 0;
+		this.offset = 0;
 		this.registeredEventListeners = false;
 	}
 
@@ -101,6 +104,7 @@ class TimedVideoPlayer {
 		}
 
 		this.timeline = timeline as timeline;
+		this.framerate = this.timeline.framerate;
 
 		this.timeline.slides[-1] = {
 			frame: 0,
@@ -151,7 +155,7 @@ export default function Present() {
 		}, 500);
 	}, []);
 
-	var player = new TimedVideoPlayer(60);
+	var player = new TimedVideoPlayer();
 
 	useEffect(() => {
 		var videoEL = document.getElementById('player') as HTMLVideoElement;
