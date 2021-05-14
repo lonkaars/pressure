@@ -21,7 +21,10 @@ export default function Index() {
 			</AppBar>
 			<div className='settings'></div>
 			<div className='viewer'>
-				<div className='player'></div>
+				<div className='player posrel'>
+					<div className='outer posabs abscenter'>
+					</div>
+				</div>
 				<div className='controls'>
 					<div className='posabs abscenter'>
 						<Fab size='small' children={<SkipPreviousRoundedIcon />} />

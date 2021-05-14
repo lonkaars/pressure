@@ -8,6 +8,7 @@
 	display: grid;
 	grid-template-columns: 240px 1fr;
 	grid-template-rows: auto 1fr 210px;
+	overflow: hidden;
 }
 
 .appGrid header {
@@ -42,6 +43,28 @@
 .appGrid .viewer {
 	display: grid;
 	grid-template-rows: 1fr 80px;
+}
+
+.appGrid .viewer .player {
+	margin: 16px;
+	margin-bottom: 0px;
+}
+
+.appGrid .viewer .player .outer {
+	border: 8px solid var(--piss);
+	border-radius: 8px;
+}
+
+.appGrid .viewer .player {
+	--aspect-ratio-h: 16;
+	--aspect-ratio-v: 9;
+}
+
+.appGrid .viewer .player .outer {
+	aspect-ratio: 16 / 9;
+	max-width: 100%;
+	max-height: 100%;
+	width: 100%;
 }
 
 .appGrid .viewer .controls {
