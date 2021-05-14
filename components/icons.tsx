@@ -2,8 +2,14 @@ import { keyframeTypes } from '../timeline';
 
 export function PressureIcon() {
 	return <svg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'>
-		<path d='M18 30L14 44H18L22 30H18Z' fill='url(#paint0_linear)' />
-		<path d='M30 44L26 30H30L34 44H30Z' fill='url(#paint1_linear)' />
+		<path
+			d='M18 30L14.7004 41.5487C14.3494 42.7771 15.2718 44 16.5494 44V44C17.408 44 18.1626 43.4308 18.3985 42.6053L22 30H18Z'
+			fill='url(#paint0_linear)'
+		/>
+		<path
+			d='M31.4506 44C30.592 44 29.8374 43.4308 29.6015 42.6053L26 30H30L33.2996 41.5487C33.6506 42.7771 32.7282 44 31.4506 44V44Z'
+			fill='url(#paint1_linear)'
+		/>
 		<path
 			d='M28 6C28 8.20914 26.2091 10 24 10C21.7909 10 20 8.20914 20 6C20 3.79086 21.7909 2 24 2C26.2091 2 28 3.79086 28 6Z'
 			fill='url(#paint2_linear)'
@@ -14,13 +20,25 @@ export function PressureIcon() {
 		/>
 		<path d='M38 10H10V28H34V22C34 20 36 18 38 18V10Z' fill='url(#paint4_linear)' />
 		<g filter='url(#filter0_d)'>
-			<path d='M6 6H42V18H38V10H10V28H34V32H6V6Z' fill='url(#paint5_linear)' />
-			<path d='M30 14L34 18V20L30 24H28V14H30Z' fill='url(#paint6_linear)' />
-			<path d='M20 14H24V24H20V14Z' fill='url(#paint7_linear)' />
-			<path d='M14 14H18V24H14V14Z' fill='url(#paint8_linear)' />
+			<path
+				d='M6 10C6 7.79086 7.79086 6 10 6H38C40.2091 6 42 7.79086 42 10V18H38V12C38 10.8954 37.1046 10 36 10H12C10.8954 10 10 10.8954 10 12V26C10 27.1046 10.8954 28 12 28H34V32H10C7.79086 32 6 30.2091 6 28V10Z'
+				fill='url(#paint5_linear)'
+			/>
+			<path
+				d='M29.4142 14C29.7893 14 30.149 14.149 30.4142 14.4142L33.2929 17.2929C33.7456 17.7456 34 18.3597 34 19V19C34 19.6403 33.7456 20.2544 33.2929 20.7071L30.4142 23.5858C30.149 23.851 29.7893 24 29.4142 24V24C28.6332 24 28 23.3668 28 22.5858V15.4142C28 14.6332 28.6332 14 29.4142 14V14Z'
+				fill='url(#paint6_linear)'
+			/>
+			<path
+				d='M20 16C20 14.8954 20.8954 14 22 14V14C23.1046 14 24 14.8954 24 16V22C24 23.1046 23.1046 24 22 24V24C20.8954 24 20 23.1046 20 22V16Z'
+				fill='url(#paint7_linear)'
+			/>
+			<path
+				d='M14 16C14 14.8954 14.8954 14 16 14V14C17.1046 14 18 14.8954 18 16V22C18 23.1046 17.1046 24 16 24V24C14.8954 24 14 23.1046 14 22V16Z'
+				fill='url(#paint8_linear)'
+			/>
 		</g>
 		<g filter='url(#filter1_d)'>
-			<rect x='4' y='6' width='40' height='4' fill='#5DE9AE' />
+			<rect x='4' y='6' width='40' height='4' rx='2' fill='#5DE9AE' />
 		</g>
 		<defs>
 			<filter
