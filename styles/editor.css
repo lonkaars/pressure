@@ -1,0 +1,40 @@
+.appGridWrapper {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+}
+
+.appGrid {
+	display: grid;
+	grid-template-columns: 240px 1fr;
+	grid-template-rows: auto 1fr 210px;
+}
+
+.appGrid header {
+	grid-row: 1;
+	grid-column: 1/3;
+}
+
+.appGrid .settings {
+	grid-column: 1;
+	grid-row: 2;
+	background-color: var(--c400);
+}
+
+.appGrid .viewer {
+	grid-column: 2;
+	grid-row: 2;
+	background-color: var(--c200);
+}
+
+.appGrid .tools {
+	grid-column: 1;
+	grid-row: 3;
+	background-color: var(--c300);
+}
+
+.appGrid .timeline {
+	grid-column: 2;
+	grid-row: 3;
+	background-color: var(--c100);
+}

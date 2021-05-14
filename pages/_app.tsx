@@ -1,6 +1,7 @@
 import Head from 'next/head';
 
 import '../styles/colors.css';
+import '../styles/editor.css';
 import '../styles/globals.css';
 import '../styles/keyframes.css';
 import '../styles/paper.css';
