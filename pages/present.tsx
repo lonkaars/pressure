@@ -51,8 +51,19 @@ class TimedVideoPlayer {
 
 	jumpToSlide(slide: slide) {
 		this.jumpToFrame(slide.frame);
-		this.player.playbackRate = this.framerate / ((slide as speedChangeSlide).newFramerate || this.framerate);
+		this.player.playbackRate = this.getPlaybackSpeed(this.slide);
 		this.player.pause();
+	}
+
+	getPlaybackSpeed(slide: number) {
+		for (var i = slide; i > -1; i--) {
+			var previousSlide = this.timeline.slides[i];
+			if (previousSlide.type != 'speedChange') {
+				continue;
+			}
+			return this.framerate / (previousSlide as speedChangeSlide).newFramerate;
+		}
+		return 1;
 	}
 
 	handleSlide(slide: slide) {
@@ -62,10 +73,10 @@ class TimedVideoPlayer {
 				break;
 			}
 			case 'delay': {
-				this.jumpToSlide(slide);
+				this.player.playbackRate = 0;
 				this.slide++;
 				setTimeout(() => {
-					this.player.play();
+					this.player.playbackRate = this.getPlaybackSpeed(this.slide - 1);
 				}, (slide as delaySlide).delay);
 				break;
 			}
