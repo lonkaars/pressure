@@ -51,6 +51,7 @@ class TimedVideoPlayer {
 
 	jumpToSlide(slide: slide) {
 		this.jumpToFrame(slide.frame);
+		this.player.playbackRate = this.framerate / ((slide as speedChangeSlide).newFramerate || this.framerate);
 		this.player.pause();
 	}
 
@@ -165,7 +166,6 @@ class TimedVideoPlayer {
 		if (!slide) return;
 
 		this.jumpToSlide(slide);
-		console.log(this.slide, slide);
 	}
 }
 

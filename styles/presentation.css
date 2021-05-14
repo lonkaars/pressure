@@ -74,9 +74,6 @@
 	background-color: var(--error);
 }
 
-#menu .info .buttons .inner .MuiButton-root {
-	margin: 0;
-	margin-right: 16px;
-	margin-top: 16px;
-}
+#menu .info .buttons .inner .MuiButton-root { margin: 8px; }
+#menu .info .buttons .inner { margin: -8px; }
 
