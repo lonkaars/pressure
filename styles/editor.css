@@ -38,3 +38,34 @@
 	grid-row: 3;
 	background-color: var(--c100);
 }
+
+.appGrid .viewer {
+	display: grid;
+	grid-template-rows: 1fr 80px;
+}
+
+.appGrid .viewer .controls {
+	position: relative;
+}
+
+.appGrid .viewer .controls .abscenter {
+	margin-left: 24px;
+}
+
+.appGrid .viewer .controls .r0 {
+	margin-right: 16px;
+}
+
+.appGrid .viewer .controls .MuiFab-root.playPause {
+	background-color: var(--blue);
+}
+
+.appGrid .viewer .controls .MuiFab-root {
+	color: var(--fg);
+}
+
+.appGrid .viewer .controls .MuiFab-root:not(.playPause) {
+	background-color: var(--transparent);
+	box-shadow: none;
+	margin: 4px;
+}
