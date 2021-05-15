@@ -2055,6 +2055,11 @@ symbol-observable@1.2.0:
   resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-1.2.0.tgz#c22688aed4eab3cdc2dfeacbb561660560a00804"
   integrity sha512-e900nM8RRtGhlV36KGEU9k65K3mPb1WV70OdjfxlG2EAuM1noi/E/BaW/uMhL7bPEssK8QV57vN3esixjUvcXQ==
 
+timecode-boss@^4.2.3:
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/timecode-boss/-/timecode-boss-4.2.3.tgz#c569ef8b815c0434ad551f7681577cd46949abf9"
+  integrity sha512-DnZWYwn/QCAW3ElK0TOaAy3v2QEr6I+VMdc1aqo/9/H0uiebMp5xIeaU44IDpwQUE7W6W4k2+2aDM6VwQaXjOQ==
+
 timers-browserify@2.0.12, timers-browserify@^2.0.4:
   version "2.0.12"
   resolved "https://registry.yarnpkg.com/timers-browserify/-/timers-browserify-2.0.12.tgz#44a45c11fbf407f34f97bccd1577c652361b00ee"

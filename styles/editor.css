@@ -48,6 +48,7 @@
 .appGrid .viewer .player {
 	margin: 16px;
 	margin-bottom: 0px;
+	line-height: 0;
 }
 
 .appGrid .viewer .player .outer {
@@ -92,3 +93,48 @@
 	box-shadow: none;
 	margin: 4px;
 }
+
+.appGrid .timeline .frames {
+	height: 100%;
+}
+
+.appGrid .timeline .frames .frame {
+	background-color: transparent;
+	margin-top: 28px;
+	height: 100%;
+	width: 4px;
+	display: inline-block;
+	border-radius: 2px 2px 0 0;
+	position: relative;
+	overflow: visible;
+}
+
+.appGrid .timeline .frames .frame .timecode {
+	display: none;
+}
+
+.appGrid .timeline .frames .frame .keyframeWrapper {
+	line-height: 0;
+	top: 16px;
+	z-index: 999;
+
+}
+
+.appGrid .timeline .frames .frame:nth-child(30n) {
+	background-color: var(--c300);
+}
+
+.appGrid .timeline .frames .frame:nth-child(30n) .timecode {
+	color: var(--c700);
+	font-weight: 500;
+	line-height: 1;
+	display: inline-block;
+	top: -16px;
+}
+
+.appGrid .timeline {
+	overflow-y: hidden;
+	overflow-x: scroll;
+	white-space: nowrap;
+}
+

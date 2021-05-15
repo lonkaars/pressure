@@ -23,3 +23,18 @@ h3 { font-size: 1rem; }
 	font-family: "Inter", sans-serif;
 }
 
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-track-piece,
+::-webkit-scrollbar {
+	background-color: var(--c100);
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: var(--c400);
+}
+
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+

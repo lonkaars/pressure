@@ -1,6 +1,7 @@
 import Button from '@material-ui/core/Button';
 import Ajv from 'ajv';
 import { useEffect, useState } from 'react';
+import Timecode from 'timecode-boss';
 import timeline, { delaySlide, loopSlide, slide, speedChangeSlide } from '../timeline';
 import * as timelineSchema from '../timeline.schema.json';
 
@@ -12,7 +13,7 @@ import SettingsRoundedIcon from '@material-ui/icons/SettingsRounded';
 import CodeRoundedIcon from '@material-ui/icons/CodeRounded';
 import MovieRoundedIcon from '@material-ui/icons/MovieRounded';
 
-class TimedVideoPlayer {
+export class TimedVideoPlayer {
 	slide: number;
 	timeline: timeline;
 	precision: number;
@@ -28,6 +29,11 @@ class TimedVideoPlayer {
 		this.frame = 0;
 		this.framerate = 0;
 		this.registeredEventListeners = false;
+	}
+
+	frameToTimestampString(frame: number) {
+		var timecodeString = new Timecode(frame, this.framerate).toString();
+		return timecodeString.replace(/^(00:)+/, '') + 'f';
 	}
 
 	timestampToFrame(timestamp: number): number {
