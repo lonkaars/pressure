@@ -4,8 +4,10 @@ import { TimedVideoPlayer } from './present';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Fab from '@material-ui/core/Fab';
 import Toolbar from '@material-ui/core/Toolbar';
+import Icon from '@mdi/react';
 
 import { PressureIcon, SlideKeyframe } from '../components/icons';
 
@@ -14,6 +16,7 @@ import NavigateBeforeRoundedIcon from '@material-ui/icons/NavigateBeforeRounded'
 import NavigateNextRoundedIcon from '@material-ui/icons/NavigateNextRounded';
 import PauseRoundedIcon from '@material-ui/icons/PauseRounded';
 import SkipPreviousRoundedIcon from '@material-ui/icons/SkipPreviousRounded';
+import { mdiCursorDefault } from '@mdi/js';
 
 function TimelineEditor(props: {
 	player: TimedVideoPlayer;
@@ -124,7 +127,28 @@ export default function Index() {
 					</div>
 				</div>
 			</div>
-			<div className='tools'></div>
+			<div className='tools'>
+				<div className='time posrel'>
+					<span className='framerate numbers posabs l0 t0'>@{player.framerate}fps</span>
+					<h2 className='timecode numbers posabs r0 t0'>00:00:00:00f</h2>
+				</div>
+				<ButtonGroup color='primary' aria-label='outlined primary button group'>
+					<Button children={<Icon path={mdiCursorDefault} size={1} />} />
+					<Button children={<SlideKeyframe type='default' />} />
+					<Button children={<SlideKeyframe type='delay' />} />
+					<Button children={<SlideKeyframe type='speedChange' />} />
+					<Button>
+						<div className='loopStartEnd'>
+							<span className='posabs start'>
+								<SlideKeyframe type='loop' />
+							</span>
+							<span className='posabs end'>
+								<SlideKeyframe type='loop' loopEnd />
+							</span>
+						</div>
+					</Button>
+				</ButtonGroup>
+			</div>
 			<div className='timeline'>
 				<TimelineEditor
 					player={player}

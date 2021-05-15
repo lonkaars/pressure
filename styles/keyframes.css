@@ -6,3 +6,7 @@
 	margin: 4px -11px;
 }
 
+.keyframe > * {
+	fill: currentColor;
+}
+

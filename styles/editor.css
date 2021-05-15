@@ -32,7 +32,55 @@
 	grid-column: 1;
 	grid-row: 3;
 	background-color: var(--c300);
+	padding: 8px;
 }
+
+.appGrid .tools .time {
+	line-height: 1;
+	height: 20px;
+}
+
+.appGrid .tools .time .framerate {
+	font-weight: 500;
+	color: var(--c700);
+}
+
+.appGrid .tools .time .timecode {
+	font-weight: 500;
+	color: var(--gruble);
+}
+
+.appGrid .tools .MuiButtonGroup-root {
+	margin-top: 8px;
+}
+
+.appGrid .tools .MuiButtonGroup-root .MuiButton-root {
+	border-width: 2px;
+	padding: 8px;
+	color: var(--c800);
+	border-color: var(--c400);
+	margin-right: -1px;
+}
+
+.appGrid .tools .MuiButtonGroup-root .MuiButton-root:first-child {
+	border-radius: 6px 0 0 6px;
+}
+
+.appGrid .tools .MuiButtonGroup-root .MuiButton-root:last-child {
+	border-radius: 0 6px 6px 0;
+}
+
+.appGrid .tools .MuiButtonGroup-root .MuiButton-root .loopStartEnd {
+	display: inline-block;
+	white-space: nowrap;
+	line-height: 0;
+	position: relative;
+	height: 24px;
+	width: 36px;
+}
+
+.appGrid .tools .MuiButtonGroup-root .MuiButton-root .loopStartEnd .start { left: -3px; }
+.appGrid .tools .MuiButtonGroup-root .MuiButton-root .loopStartEnd .end { right: -3px; }
 
 .appGrid .timeline {
 	grid-column: 2;
@@ -117,7 +165,7 @@
 	line-height: 0;
 	top: 16px;
 	z-index: 999;
-
+	color: var(--gruble);
 }
 
 .appGrid .timeline .frames .frame:nth-child(30n) {
