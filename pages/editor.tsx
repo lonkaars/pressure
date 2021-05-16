@@ -10,6 +10,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Icon from '@mdi/react';
 
 import { PressureIcon, SlideKeyframe } from '../components/icons';
+import Loop from '../components/loop';
 
 import FullscreenRoundedIcon from '@material-ui/icons/FullscreenRounded';
 import NavigateBeforeRoundedIcon from '@material-ui/icons/NavigateBeforeRounded';
@@ -23,6 +24,7 @@ function TimelineEditor(props: {
 }) {
 	var frames = [...new Array(props.player.timeline?.framecount || 0)].map((el, i) =>
 		<div className='frame'>
+			<div className='line posabs abscenterh b0' />
 			<span className='timecode numbers posabs abscenterh'>
 				{props.player?.frameToTimestampString(i + 1)}
 			</span>
@@ -30,13 +32,11 @@ function TimelineEditor(props: {
 				{(() => {
 					var slide = props.player?.timeline?.slides.find(slide => slide.frame == i + 1);
 					if (slide) {
-						return <SlideKeyframe type={slide.type} loopEnd />;
-					}
-					var loop = props.player?.timeline?.slides.find(slide =>
-						slide.type == 'loop' && (slide as loopSlide).beginFrame == i + 1
-					);
-					if (loop) {
-						return <SlideKeyframe type='loop' />;
+						if (slide.type == 'loop') {
+							return <Loop length={slide.frame - (slide as loopSlide).beginFrame} />;
+						} else {
+							return <SlideKeyframe type={slide.type} />;
+						}
 					}
 				})()}
 			</div>

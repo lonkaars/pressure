@@ -6,6 +6,12 @@
 	margin: 4px -11px;
 }
 
+.loop {
+	width: calc(var(--loop-length) * var(--zoom) * 1px + 24px);
+	position: absolute;
+	right: 0;
+}
+
 .keyframe > * {
 	fill: currentColor;
 }

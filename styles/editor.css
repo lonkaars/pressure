@@ -142,19 +142,29 @@
 	margin: 4px;
 }
 
+.appGrid .timeline {
+	--zoom: 4;
+}
+
 .appGrid .timeline .frames {
 	height: 100%;
 }
 
 .appGrid .timeline .frames .frame {
 	background-color: transparent;
-	margin-top: 28px;
 	height: 100%;
-	width: 4px;
+	width: calc(var(--zoom) * 1px);
 	display: inline-block;
 	border-radius: 2px 2px 0 0;
 	position: relative;
 	overflow: visible;
+}
+
+.appGrid .timeline .frames .frame:nth-child(30n) .line {
+	background-color: var(--c300);
+	top: 28px;
+	width: 2px;
+	border-radius: 2px 2px 0 0;
 }
 
 .appGrid .timeline .frames .frame .timecode {
@@ -163,13 +173,11 @@
 
 .appGrid .timeline .frames .frame .keyframeWrapper {
 	line-height: 0;
-	top: 16px;
+	top: 44px;
 	z-index: 999;
 	color: var(--gruble);
-}
-
-.appGrid .timeline .frames .frame:nth-child(30n) {
-	background-color: var(--c300);
+	width: 24px;
+	height: 24px;
 }
 
 .appGrid .timeline .frames .frame:nth-child(30n) .timecode {
@@ -177,7 +185,7 @@
 	font-weight: 500;
 	line-height: 1;
 	display: inline-block;
-	top: -16px;
+	top: 12px;
 }
 
 .appGrid .timeline {
