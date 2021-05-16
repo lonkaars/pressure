@@ -25,7 +25,7 @@ function TimelineEditor(props: {
 	var frames = [...new Array(props.player.timeline?.framecount || 0)].map((el, i) =>
 		<div className='frame'>
 			<div className='line posabs abscenterh b0' />
-			<span className='timecode numbers posabs abscenterh'>
+			<span className='timecode nosel numbers posabs abscenterh'>
 				{props.player?.frameToTimestampString(i + 1)}
 			</span>
 			<div className='keyframeWrapper posabs abscenterh'>
@@ -43,7 +43,24 @@ function TimelineEditor(props: {
 		</div>
 	);
 
-	return <div className='frames'>{frames}</div>;
+	return <>
+		<div className='scrubber posabs v0'>
+			<svg
+				width='20'
+				height='28'
+				viewBox='0 0 20 28'
+				xmlns='http://www.w3.org/2000/svg'
+				className='head posabs t0 abscenterh'
+			>
+				<path
+					d='M0 4C0 1.79086 1.79086 0 4 0H16C18.2091 0 20 1.79086 20 4V17.3431C20 18.404 19.5786 19.4214 18.8284 20.1716L11 28H9L1.17157 20.1716C0.421426 19.4214 0 18.404 0 17.3431V4Z'
+				/>
+			</svg>
+			<div className='needle posabs a0' />
+			<div className='frameOverlay posabs v0' />
+		</div>
+		<div className='frames'>{frames}</div>
+	</>;
 }
 
 export default function Index() {
@@ -149,7 +166,7 @@ export default function Index() {
 					</Button>
 				</ButtonGroup>
 			</div>
-			<div className='timeline'>
+			<div className='timeline posrel'>
 				<TimelineEditor
 					player={player}
 				/>

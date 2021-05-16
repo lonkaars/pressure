@@ -194,3 +194,22 @@
 	white-space: nowrap;
 }
 
+.timeline .scrubber {
+	width: 2px;
+	overflow: visible;
+	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+	z-index: 999999999;
+	--frame: 30;
+	left: calc((var(--zoom) * (var(--frame) - 0.5)) * 1px - 1px)
+}
+
+.timeline .frameOverlay {
+	left: 2px;
+	width: calc(var(--zoom) * 1px - 2px);
+	background-color: var(--blue);
+	opacity: .0;
+}
+
+.timeline .scrubber .head { fill: var(--blue); }
+.timeline .scrubber .needle { background-color: var(--blue); }
+
