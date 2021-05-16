@@ -28,6 +28,11 @@ when I'm working on them/are finished:
   timeline.json file. Maybe also a feature where you could import recorded
   presentation timings for adding a voice-over and re-exporting the video as a
   standalone video.
+- **Manim add-on library**
+  Would allow adding of something like `pressure.slide()` or
+  `pressure.slide('speedChange', 0.7)` to your Manim scene source and export it
+  using a simple python cli script, or alongside the regular Manim renderer if
+  that's possible.
 
 ## designs
 

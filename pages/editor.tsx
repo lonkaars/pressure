@@ -25,44 +25,86 @@ import { mdiCursorDefault } from '@mdi/js';
 function TimelineEditor(props: {
 	player: TimedVideoPlayer;
 }) {
-	var frames = [...new Array(props.player.timeline?.framecount || 0)].map((el, i) =>
-		<div className='frame'>
-			<div className='line posabs abscenterh b0' />
-			<span className='timecode nosel numbers posabs abscenterh'>
-				{props.player?.frameToTimestampString(i + 1)}
-			</span>
+	var keyframes = props.player?.timeline?.slides.map(slide =>
+		<div className='frame posabs' style={{ '--frame': slide.frame.toString() } as CSSProperties}>
 			<div className='keyframeWrapper posabs abscenterh'>
-				{(() => {
-					var slide = props.player?.timeline?.slides.find(slide => slide.frame == i + 1);
-					if (slide) {
-						if (slide.type == 'loop') {
-							return <Loop length={slide.frame - (slide as loopSlide).beginFrame} />;
-						} else {
-							return <SlideKeyframe type={slide.type} />;
-						}
-					}
-				})()}
+				{slide.type == 'loop'
+					? <Loop length={slide.frame - (slide as loopSlide).beginFrame} />
+					: <SlideKeyframe type={slide.type} />}
 			</div>
 		</div>
 	);
 
+	useEffect(() => {
+		var canvas = document.getElementById('timeScaleCanvas') as HTMLCanvasElement;
+		var ctx = canvas.getContext('2d');
+
+		var mouseX = 0;
+		var mouseY = 0;
+
+		window.addEventListener('mousemove', e => {
+			var rect = canvas.getBoundingClientRect();
+			mouseX = e.clientX - rect.x;
+			mouseY = e.clientY - rect.y;
+		});
+
+		var css = (varname: string) => getComputedStyle(document.body).getPropertyValue(varname).trim();
+		var textColor = css('--c100');
+		var lineColor = css('--c300');
+
+		function draw() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+			var offset = document.querySelector('.timeline .timelineInner').scrollLeft;
+
+			var d = true;
+			var frameWidth = Number(
+				getComputedStyle(document.querySelector('.timeline')).getPropertyValue('--zoom').trim(),
+			);
+			var a = 1;
+			var ns = [300, 150, 120, 90, 60, 30, 30, 30, 15, 15, 15, 15, 15];
+			var everyN = ns[Math.floor(frameWidth)];
+			for (var x = -offset; x < canvas.width + offset; x += frameWidth) {
+				ctx.fillStyle = d ? textColor : lineColor;
+				if (a % everyN == 0) ctx.fillStyle = '#ff00ff';
+				ctx.fillRect(x, 0, frameWidth, canvas.height);
+				d = !d;
+				a++;
+			}
+
+			requestAnimationFrame(draw);
+		}
+		draw();
+
+		function onresize() {
+			var size = document.querySelector('.timeline .timelineInner .keyframes');
+			canvas.width = size.clientWidth;
+			canvas.height = size.clientHeight;
+		}
+		onresize();
+		window.addEventListener('resize', onresize);
+	}, []);
+
 	return <>
-		<div className='scrubber posabs v0'>
-			<svg
-				width='20'
-				height='28'
-				viewBox='0 0 20 28'
-				xmlns='http://www.w3.org/2000/svg'
-				className='head posabs t0 abscenterh'
-			>
-				<path
-					d='M0 4C0 1.79086 1.79086 0 4 0H16C18.2091 0 20 1.79086 20 4V17.3431C20 18.404 19.5786 19.4214 18.8284 20.1716L11 28H9L1.17157 20.1716C0.421426 19.4214 0 18.404 0 17.3431V4Z'
-				/>
-			</svg>
-			<div className='needle posabs a0' />
-			<div className='frameOverlay posabs v0' />
+		<canvas className='timeScale posabs a0' id='timeScaleCanvas' />
+		<div className='timelineInner posabs a0'>
+			<div className='scrubber posabs v0'>
+				<svg
+					width='20'
+					height='28'
+					viewBox='0 0 20 28'
+					xmlns='http://www.w3.org/2000/svg'
+					className='head posabs t0 abscenterh'
+				>
+					<path
+						d='M0 4C0 1.79086 1.79086 0 4 0H16C18.2091 0 20 1.79086 20 4V17.3431C20 18.404 19.5786 19.4214 18.8284 20.1716L11 28H9L1.17157 20.1716C0.421426 19.4214 0 18.404 0 17.3431V4Z'
+					/>
+				</svg>
+				<div className='needle posabs a0' />
+				<div className='frameOverlay posabs v0' />
+			</div>
+			<div className='keyframes'>{keyframes}</div>
 		</div>
-		<div className='frames'>{frames}</div>
 	</>;
 }
 
@@ -71,7 +113,7 @@ export default function Index() {
 	var rerender = () => setDummy(!dummy);
 	var [player, setPlayer] = useState(new TimedVideoPlayer());
 
-	var [timelineZoom, setTimelineZoom] = useState(4);
+	var [timelineZoom, setTimelineZoom] = useState(0.2);
 
 	useEffect(() => {
 		var videoEL = document.getElementById('player') as HTMLVideoElement;

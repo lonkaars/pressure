@@ -156,36 +156,32 @@
 	margin: 4px;
 }
 
-.appGrid .timeline {
-	--zoom: 4;
-}
-
-.appGrid .timeline .frames {
+.appGrid .timeline .keyframes {
 	height: 100%;
 }
 
-.appGrid .timeline .frames .frame {
+.appGrid .timeline .keyframes .frame {
 	background-color: transparent;
 	height: 100%;
 	width: calc(var(--zoom) * 1px);
 	display: inline-block;
 	border-radius: 2px 2px 0 0;
-	position: relative;
 	overflow: visible;
+	left: calc(var(--zoom) * (var(--frame) - 1) * 1px);
 }
 
-.appGrid .timeline .frames .frame:nth-child(30n) .line {
+.appGrid .timeline .keyframes .frame:nth-child(30n) .line {
 	background-color: var(--c300);
 	top: 28px;
 	width: 2px;
 	border-radius: 2px 2px 0 0;
 }
 
-.appGrid .timeline .frames .frame .timecode {
+.appGrid .timeline .keyframes .frame .timecode {
 	display: none;
 }
 
-.appGrid .timeline .frames .frame .keyframeWrapper {
+.appGrid .timeline .keyframes .frame .keyframeWrapper {
 	line-height: 0;
 	top: 44px;
 	z-index: 999;
@@ -194,7 +190,7 @@
 	height: 24px;
 }
 
-.appGrid .timeline .frames .frame:nth-child(30n) .timecode {
+.appGrid .timeline .keyframes .frame:nth-child(30n) .timecode {
 	color: var(--c700);
 	font-weight: 500;
 	line-height: 1;
@@ -202,7 +198,7 @@
 	top: 12px;
 }
 
-.appGrid .timeline {
+.appGrid .timeline .timelineInner {
 	overflow-y: hidden;
 	overflow-x: scroll;
 	white-space: nowrap;
