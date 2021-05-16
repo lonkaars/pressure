@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { CSSProperties, useEffect, useState } from 'react';
 import { loopSlide } from '../timeline';
 import { TimedVideoPlayer } from './present';
 
@@ -6,7 +6,10 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Fab from '@material-ui/core/Fab';
+import Slider from '@material-ui/core/Slider';
 import Toolbar from '@material-ui/core/Toolbar';
+import ZoomInRoundedIcon from '@material-ui/icons/ZoomInRounded';
+import ZoomOutRoundedIcon from '@material-ui/icons/ZoomOutRounded';
 import Icon from '@mdi/react';
 
 import { PressureIcon, SlideKeyframe } from '../components/icons';
@@ -67,6 +70,8 @@ export default function Index() {
 	var [dummy, setDummy] = useState(false);
 	var rerender = () => setDummy(!dummy);
 	var [player, setPlayer] = useState(new TimedVideoPlayer());
+
+	var [timelineZoom, setTimelineZoom] = useState(4);
 
 	useEffect(() => {
 		var videoEL = document.getElementById('player') as HTMLVideoElement;
@@ -165,8 +170,27 @@ export default function Index() {
 						</div>
 					</Button>
 				</ButtonGroup>
+				<div className='zoom'>
+					<ZoomOutRoundedIcon />
+					<div className='spacing'>
+						<Slider
+							value={timelineZoom}
+							onChange={(event: any, newValue: number | number[]) => {
+								setTimelineZoom(newValue as number);
+							}}
+							min={0}
+							step={0.00000001}
+							max={1}
+							aria-labelledby='continuous-slider'
+						/>
+					</div>
+					<ZoomInRoundedIcon />
+				</div>
 			</div>
-			<div className='timeline posrel'>
+			<div
+				className='timeline posrel'
+				style={{ '--zoom': (12 - 0.5) * timelineZoom ** (1 / 0.4) + 0.5 } as CSSProperties}
+			>
 				<TimelineEditor
 					player={player}
 				/>

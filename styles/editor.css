@@ -50,8 +50,22 @@
 	color: var(--gruble);
 }
 
-.appGrid .tools .MuiButtonGroup-root {
+.appGrid .tools .MuiButtonGroup-root,
+.appGrid .tools .zoom {
 	margin-top: 8px;
+}
+
+.appGrid .tools .zoom {
+	display: grid;
+	grid-template-columns: 24px 1fr 24px;
+}
+
+.appGrid .tools .zoom .spacing {
+	margin: -4px 8px;
+}
+
+.appGrid .tools .zoom .spacing .MuiSlider-root {
+	color: var(--gruble);
 }
 
 .appGrid .tools .MuiButtonGroup-root .MuiButton-root {
