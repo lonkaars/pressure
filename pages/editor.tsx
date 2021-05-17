@@ -1,4 +1,4 @@
-import { CSSProperties, useEffect, useState } from 'react';
+import { CSSProperties, ReactNode, useEffect, useState } from 'react';
 import create from 'zustand';
 import { loopSlide } from '../timeline';
 import { TimedVideoPlayer } from './present';
@@ -29,6 +29,11 @@ var getTimelineZoom = create(set => ({
 	setZoom: (newValue: number) => set(() => ({ zoom: newValue })),
 }));
 
+var useTimelineLabels = create(set => ({
+	labels: [],
+	setLabels: (newLabels: Array<ReactNode>) => set(() => ({ labels: newLabels })),
+}));
+
 function TimelineEditor(props: {
 	player: TimedVideoPlayer;
 }) {
@@ -41,6 +46,9 @@ function TimelineEditor(props: {
 			</div>
 		</div>
 	);
+
+	var timelineLabels = useTimelineLabels((st: any) => st.labels);
+	var setTimelineLabels = useTimelineLabels((st: any) => st.setLabels);
 
 	useEffect(() => {
 		var canvas = document.getElementById('timeScaleCanvas') as HTMLCanvasElement;
@@ -63,20 +71,24 @@ function TimelineEditor(props: {
 		function draw() {
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+			var labels: Array<ReactNode> = [];
+
 			var offset = document.querySelector('.timeline .timelineInner').scrollLeft;
 
-			var d = true;
 			var frameWidth = Number(
 				getComputedStyle(document.querySelector('.timeline')).getPropertyValue('--zoom').trim(),
 			);
+
+			var d = true;
 			var a = 1;
-			var ns = [300, 150, 120, 90, 60, 30, 30, 30, 20, 20, 20, 20, 20];
+			var ns = [300, 150, 120, 90, 60, 30, 30, 30, 15, 15, 10, 10, 10];
 			var everyN = ns[Math.floor(frameWidth)];
 			for (var x = -offset; x < canvas.width + offset; x += frameWidth) {
 				ctx.fillStyle = baseColor;
 
 				var rect = [Math.round(x + (frameWidth - 2) / 2), 28, 2, canvas.height];
 				var drawFrame = false;
+				var marker = false;
 				if (frameWidth >= 3) {
 					ctx.fillStyle = d ? baseColor : frameColor;
 					rect = [x, 28, frameWidth, canvas.height];
@@ -89,13 +101,32 @@ function TimelineEditor(props: {
 				if (a % everyN == 0) {
 					ctx.fillStyle = markerFrame;
 					drawFrame = true;
+					marker = true;
 				}
 
-				if (drawFrame) ctx.fillRect(rect[0], rect[1], rect[2], rect[3]);
+				if (drawFrame) {
+					ctx.fillRect(rect[0], rect[1], rect[2], rect[3]);
+
+					if (marker) {
+						var frame = Math.round(x / frameWidth + offset / frameWidth + 1);
+						labels.push(
+							<span
+								className='label numbers posabs nosel'
+								style={{
+									left: Math.round(rect[0] + frameWidth / 2),
+									top: rect[1],
+								}}
+								children={props.player.frameToTimestampString(frame)}
+							/>,
+						);
+					}
+				}
 
 				d = !d;
 				a++;
 			}
+
+			setTimelineLabels(labels);
 
 			requestAnimationFrame(draw);
 		}
@@ -112,6 +143,7 @@ function TimelineEditor(props: {
 
 	return <>
 		<canvas className='timeScale posabs a0' id='timeScaleCanvas' />
+		<div className='labels'>{timelineLabels}</div>
 		<div className='timelineInner posabs a0'>
 			<div className='scrubber posabs v0'>
 				<svg
@@ -128,7 +160,12 @@ function TimelineEditor(props: {
 				<div className='needle posabs a0' />
 				<div className='frameOverlay posabs v0' />
 			</div>
-			<div className='keyframes'>{keyframes}</div>
+			<div
+				className='keyframes'
+				style={{ '--total-frames': props.player?.timeline?.framecount.toString() } as CSSProperties}
+			>
+				{keyframes}
+			</div>
 		</div>
 	</>;
 }

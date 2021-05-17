@@ -33,7 +33,11 @@ export class TimedVideoPlayer {
 
 	frameToTimestampString(frame: number) {
 		var timecodeString = new Timecode(frame, this.framerate).toString();
-		return timecodeString.replace(/^(00:)+/, '') + 'f';
+		return timecodeString
+			.replace(/^(00:)+/, '')
+			.replace(';', '.')
+			.replace(/(:)(\d+?)$/, '.$2')
+			+ 'f';
 	}
 
 	timestampToFrame(timestamp: number): number {

@@ -100,6 +100,7 @@
 	grid-column: 2;
 	grid-row: 3;
 	background-color: var(--c100);
+	overflow: hidden;
 }
 
 .appGrid .viewer {
@@ -158,6 +159,7 @@
 
 .appGrid .timeline .keyframes {
 	height: 100%;
+	width: calc(var(--zoom) * var(--total-frames) * 1px);
 }
 
 .appGrid .timeline .keyframes .frame {
@@ -222,4 +224,9 @@
 
 .timeline .scrubber .head { fill: var(--blue); }
 .timeline .scrubber .needle { background-color: var(--blue); }
+
+.timeline .labels .label {
+	transform: translate(-50%, -100%);
+	color: var(--c700);
+}
 
