@@ -34,6 +34,11 @@ var useTimelineLabels = create(set => ({
 	setLabels: (newLabels: Array<ReactNode>) => set(() => ({ labels: newLabels })),
 }));
 
+var useFrame = create(set => ({
+	currentFrame: 0,
+	setFrame: (newFrame: number) => set(() => ({ currentFrame: newFrame })),
+}));
+
 function TimelineEditor(props: {
 	player: TimedVideoPlayer;
 }) {
@@ -50,18 +55,26 @@ function TimelineEditor(props: {
 	var timelineLabels = useTimelineLabels((st: any) => st.labels);
 	var setTimelineLabels = useTimelineLabels((st: any) => st.setLabels);
 
+	var frame = useFrame((st: any) => st.currentFrame);
+	var setFrame = useFrame((st: any) => st.setFrame);
+
 	useEffect(() => {
 		var canvas = document.getElementById('timeScaleCanvas') as HTMLCanvasElement;
 		var ctx = canvas.getContext('2d');
 
-		var mouseX = 0;
-		var mouseY = 0;
+		/* var mouseX = 0; */
+		/* var mouseY = 0; */
 
-		window.addEventListener('mousemove', e => {
-			var rect = canvas.getBoundingClientRect();
-			mouseX = e.clientX - rect.x;
-			mouseY = e.clientY - rect.y;
-		});
+		/* window.addEventListener('mousemove', e => { */
+		/* 	var rect = canvas.getBoundingClientRect(); */
+		/* 	mouseX = e.clientX - rect.x; */
+		/* 	mouseY = e.clientY - rect.y; */
+		/* }); */
+
+		function onframe(frame: number) {
+			setFrame(frame);
+		}
+		props.player.onframe = onframe;
 
 		var css = (varname: string) => getComputedStyle(document.body).getPropertyValue(varname).trim();
 		var baseColor = css('--c100');
@@ -89,7 +102,7 @@ function TimelineEditor(props: {
 				var rect = [Math.round(x + (frameWidth - 2) / 2), 28, 2, canvas.height];
 				var drawFrame = false;
 				var marker = false;
-				if (frameWidth >= 3) {
+				if (frameWidth >= 6) {
 					ctx.fillStyle = d ? baseColor : frameColor;
 					rect = [x, 28, frameWidth, canvas.height];
 					drawFrame = !d;
@@ -145,7 +158,7 @@ function TimelineEditor(props: {
 		<canvas className='timeScale posabs a0' id='timeScaleCanvas' />
 		<div className='labels'>{timelineLabels}</div>
 		<div className='timelineInner posabs a0'>
-			<div className='scrubber posabs v0'>
+			<div className='scrubber posabs v0' style={{ '--frame': frame.toString() } as CSSProperties}>
 				<svg
 					width='20'
 					height='28'
@@ -177,6 +190,8 @@ export default function Index() {
 
 	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
 	var setTimelineZoom = getTimelineZoom((st: any) => st.setZoom);
+
+	var frame = useFrame((st: any) => st.currentFrame);
 
 	useEffect(() => {
 		var videoEL = document.getElementById('player') as HTMLVideoElement;
@@ -255,8 +270,13 @@ export default function Index() {
 				<div className='controls'>
 					<div className='posabs abscenter'>
 						<Fab size='small' children={<SkipPreviousRoundedIcon />} />
-						<Fab className='playPause' size='medium' children={<PauseRoundedIcon />} />
-						<Fab size='small' children={<NavigateBeforeRoundedIcon />} />
+						<Fab
+							className='playPause'
+							size='medium'
+							children={<PauseRoundedIcon />}
+							onClick={() => player.next()}
+						/>
+						<Fab size='small' children={<NavigateBeforeRoundedIcon />} onClick={() => player.previous()} />
 						<Fab size='small' children={<NavigateNextRoundedIcon />} />
 					</div>
 					<div className='posabs abscenterv r0'>
@@ -267,7 +287,7 @@ export default function Index() {
 			<div className='tools'>
 				<div className='time posrel'>
 					<span className='framerate numbers posabs l0 t0'>@{player.framerate}fps</span>
-					<h2 className='timecode numbers posabs r0 t0'>00:00:00:00f</h2>
+					<h2 className='timecode numbers posabs r0 t0'>{player.frameToTimestampString(frame, false)}</h2>
 				</div>
 				<ButtonGroup color='primary' aria-label='outlined primary button group'>
 					<Button children={<Icon path={mdiCursorDefault} size={1} />} />

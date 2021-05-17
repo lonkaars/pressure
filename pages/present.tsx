@@ -22,6 +22,7 @@ export class TimedVideoPlayer {
 	registeredEventListeners: boolean;
 	frame: number;
 	framerate: number;
+	onframe?: (frame: number) => void;
 
 	constructor() {
 		this.slide = -1;
@@ -31,13 +32,13 @@ export class TimedVideoPlayer {
 		this.registeredEventListeners = false;
 	}
 
-	frameToTimestampString(frame: number) {
+	frameToTimestampString(frame: number, trim: boolean = true) {
 		var timecodeString = new Timecode(frame, this.framerate).toString();
-		return timecodeString
-			.replace(/^(00:)+/, '')
-			.replace(';', '.')
+		if (trim) timecodeString = timecodeString.replace(/^(00:)+/, '');
+		timecodeString = timecodeString.replace(';', '.')
 			.replace(/(:)(\d+?)$/, '.$2')
 			+ 'f';
+		return timecodeString;
 	}
 
 	timestampToFrame(timestamp: number): number {
@@ -114,7 +115,11 @@ export class TimedVideoPlayer {
 
 		setInterval(() => {
 			if (this.player.paused) return;
+
+			var lastFrame = this.frame;
 			this.frame = this.timestampToFrame(this.player.currentTime);
+
+			if (this.frame != lastFrame && this.onframe) this.onframe(this.frame);
 
 			var slide = this.timeline.slides[this.slide];
 			if (!slide) return;

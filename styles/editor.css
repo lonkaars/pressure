@@ -211,7 +211,6 @@
 	overflow: visible;
 	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 	z-index: 999999999;
-	--frame: 30;
 	left: calc((var(--zoom) * (var(--frame) - 0.5)) * 1px - 1px)
 }
 
