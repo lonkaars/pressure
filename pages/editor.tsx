@@ -1,4 +1,5 @@
 import { CSSProperties, useEffect, useState } from 'react';
+import create from 'zustand';
 import { loopSlide } from '../timeline';
 import { TimedVideoPlayer } from './present';
 
@@ -21,6 +22,12 @@ import NavigateNextRoundedIcon from '@material-ui/icons/NavigateNextRounded';
 import PauseRoundedIcon from '@material-ui/icons/PauseRounded';
 import SkipPreviousRoundedIcon from '@material-ui/icons/SkipPreviousRounded';
 import { mdiCursorDefault } from '@mdi/js';
+
+var getTimelineZoom = create(set => ({
+	zoom: 0.2,
+	changeZoom: (delta: number) => set((st: any) => ({ zoom: Math.min(1, Math.max(0, st.zoom + delta)) })),
+	setZoom: (newValue: number) => set(() => ({ zoom: newValue })),
+}));
 
 function TimelineEditor(props: {
 	player: TimedVideoPlayer;
@@ -49,8 +56,9 @@ function TimelineEditor(props: {
 		});
 
 		var css = (varname: string) => getComputedStyle(document.body).getPropertyValue(varname).trim();
-		var textColor = css('--c100');
-		var lineColor = css('--c300');
+		var baseColor = css('--c100');
+		var frameColor = css('--c250');
+		var markerFrame = css('--c400');
 
 		function draw() {
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -62,12 +70,29 @@ function TimelineEditor(props: {
 				getComputedStyle(document.querySelector('.timeline')).getPropertyValue('--zoom').trim(),
 			);
 			var a = 1;
-			var ns = [300, 150, 120, 90, 60, 30, 30, 30, 15, 15, 15, 15, 15];
+			var ns = [300, 150, 120, 90, 60, 30, 30, 30, 20, 20, 20, 20, 20];
 			var everyN = ns[Math.floor(frameWidth)];
 			for (var x = -offset; x < canvas.width + offset; x += frameWidth) {
-				ctx.fillStyle = d ? textColor : lineColor;
-				if (a % everyN == 0) ctx.fillStyle = '#ff00ff';
-				ctx.fillRect(x, 0, frameWidth, canvas.height);
+				ctx.fillStyle = baseColor;
+
+				var rect = [Math.round(x + (frameWidth - 2) / 2), 28, 2, canvas.height];
+				var drawFrame = false;
+				if (frameWidth >= 3) {
+					ctx.fillStyle = d ? baseColor : frameColor;
+					rect = [x, 28, frameWidth, canvas.height];
+					drawFrame = !d;
+				}
+				/* if (a * 2 % everyN == 0) { */
+				/* 	ctx.fillStyle = frameColor; */
+				/* 	drawFrame = true; */
+				/* } */
+				if (a % everyN == 0) {
+					ctx.fillStyle = markerFrame;
+					drawFrame = true;
+				}
+
+				if (drawFrame) ctx.fillRect(rect[0], rect[1], rect[2], rect[3]);
+
 				d = !d;
 				a++;
 			}
@@ -113,11 +138,22 @@ export default function Index() {
 	var rerender = () => setDummy(!dummy);
 	var [player, setPlayer] = useState(new TimedVideoPlayer());
 
-	var [timelineZoom, setTimelineZoom] = useState(0.2);
+	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
+	var setTimelineZoom = getTimelineZoom((st: any) => st.setZoom);
 
 	useEffect(() => {
 		var videoEL = document.getElementById('player') as HTMLVideoElement;
 		player.registerPlayer(videoEL);
+	}, []);
+
+	var changeZoom = getTimelineZoom(st => (st as any).changeZoom);
+	useEffect(() => {
+		document.querySelector('.timeline').addEventListener('wheel', (e: WheelEvent) => {
+			if (!e.ctrlKey && !e.altKey) return;
+			e.preventDefault();
+
+			changeZoom(-e.deltaY / 1000);
+		}, { passive: false });
 	}, []);
 
 	return <>
