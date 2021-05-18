@@ -24,10 +24,11 @@ import SkipPreviousRoundedIcon from '@material-ui/icons/SkipPreviousRounded';
 import { mdiCursorDefault } from '@mdi/js';
 
 var getTimelineZoom = create(set => ({
-	zoom: 0.2,
-	changeZoom: (delta: number) => set((st: any) => ({ zoom: Math.min(1, Math.max(0, st.zoom + delta)) })),
+	zoom: 0.687077725615,
 	setZoom: (newValue: number) => set(() => ({ zoom: newValue })),
 }));
+
+var zoomToPx = (zoom: number) => (12 - 0.5) * zoom ** (1 / 0.4) + 0.5;
 
 var useTimelineLabels = create(set => ({
 	labels: [],
@@ -61,15 +62,6 @@ function TimelineEditor(props: {
 	useEffect(() => {
 		var canvas = document.getElementById('timeScaleCanvas') as HTMLCanvasElement;
 		var ctx = canvas.getContext('2d');
-
-		/* var mouseX = 0; */
-		/* var mouseY = 0; */
-
-		/* window.addEventListener('mousemove', e => { */
-		/* 	var rect = canvas.getBoundingClientRect(); */
-		/* 	mouseX = e.clientX - rect.x; */
-		/* 	mouseY = e.clientY - rect.y; */
-		/* }); */
 
 		function onframe(frame: number) {
 			setFrame(frame);
@@ -107,10 +99,6 @@ function TimelineEditor(props: {
 					rect = [x, 28, frameWidth, canvas.height];
 					drawFrame = !d;
 				}
-				/* if (a * 2 % everyN == 0) { */
-				/* 	ctx.fillStyle = frameColor; */
-				/* 	drawFrame = true; */
-				/* } */
 				if (a % everyN == 0) {
 					ctx.fillStyle = markerFrame;
 					drawFrame = true;
@@ -146,7 +134,7 @@ function TimelineEditor(props: {
 		draw();
 
 		function onresize() {
-			var size = document.querySelector('.timeline .timelineInner .keyframes');
+			var size = document.querySelector('.timeline .timelineInner');
 			canvas.width = size.clientWidth;
 			canvas.height = size.clientHeight;
 		}
@@ -193,19 +181,42 @@ export default function Index() {
 
 	var frame = useFrame((st: any) => st.currentFrame);
 
+	var mouseX = 0;
+	var mouseY = 0;
+
 	useEffect(() => {
 		var videoEL = document.getElementById('player') as HTMLVideoElement;
 		player.registerPlayer(videoEL);
 	}, []);
 
-	var changeZoom = getTimelineZoom(st => (st as any).changeZoom);
+	function zoomAroundPoint(newZoom: number, pivot: number) {
+		var timeline = document.querySelector('.timeline .timelineInner');
+		var currentOffset = timeline.scrollLeft;
+		var frame = (pivot + currentOffset) / zoomToPx(timelineZoom);
+		var newOffset = (frame * zoomToPx(newZoom)) - pivot;
+
+		timeline.scrollLeft = newOffset;
+		setTimelineZoom(newZoom);
+		timelineZoom = newZoom;
+	}
+
 	useEffect(() => {
 		document.querySelector('.timeline').addEventListener('wheel', (e: WheelEvent) => {
 			if (!e.ctrlKey && !e.altKey) return;
 			e.preventDefault();
 
-			changeZoom(-e.deltaY / 1000);
+			var newZoom = Math.min(1, Math.max(0, timelineZoom + (-e.deltaY / 1000)));
+			zoomAroundPoint(newZoom, mouseX);
 		}, { passive: false });
+	}, []);
+
+	useEffect(() => {
+		var canvas = document.querySelector('.timeline .timeScale');
+		window.addEventListener('mousemove', e => {
+			var rect = canvas.getBoundingClientRect();
+			mouseX = e.clientX - rect.x;
+			mouseY = e.clientY - rect.y;
+		});
 	}, []);
 
 	return <>
@@ -311,7 +322,8 @@ export default function Index() {
 						<Slider
 							value={timelineZoom}
 							onChange={(event: any, newValue: number | number[]) => {
-								setTimelineZoom(newValue as number);
+								var center = document.querySelector('.timeline .timelineInner').clientWidth / 2;
+								zoomAroundPoint(newValue as number, center);
 							}}
 							min={0}
 							step={0.00000001}
@@ -324,7 +336,7 @@ export default function Index() {
 			</div>
 			<div
 				className='timeline posrel'
-				style={{ '--zoom': (12 - 0.5) * timelineZoom ** (1 / 0.4) + 0.5 } as CSSProperties}
+				style={{ '--zoom': zoomToPx(timelineZoom) } as CSSProperties}
 			>
 				<TimelineEditor
 					player={player}
