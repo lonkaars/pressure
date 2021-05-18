@@ -28,7 +28,7 @@ when I'm working on them/are finished:
   timeline.json file. Maybe also a feature where you could import recorded
   presentation timings for adding a voice-over and re-exporting the video as a
   standalone video.
-- **Manim add-on library**
+- **Manim add-on library**  
   Would allow adding of something like `pressure.slide()` or
   `pressure.slide('speedChange', 0.7)` to your Manim scene source and export it
   using a simple python cli script, or alongside the regular Manim renderer if
@@ -40,4 +40,25 @@ See
 [figma](https://www.figma.com/file/QDzMck2G5KZFqRvVsi3DSU/pressure?node-id=0%3A1)
 link. I try to follow Google's [Material design
 guidelines](https://material.io/design/guidelines-overview) most of the time.
+
+## gallery
+
+### editor
+
+![](/img/editor.png)
+
+### presentation
+
+![](/img/in-presentation.png)
+
+### presenter view
+
+![](/img/presenter-view.png)
+
+### phone
+
+<p align="center">
+<img src="/img/phone-button.png" width="49%"/>
+<img src="/img/phone-gesture.png" width="49%"/>
+</p>
 
