@@ -63,10 +63,9 @@ function TimelineEditor(props: {
 		var canvas = document.getElementById('timeScaleCanvas') as HTMLCanvasElement;
 		var ctx = canvas.getContext('2d');
 
-		function onframe(frame: number) {
-			setFrame(frame);
-		}
-		props.player.onframe = onframe;
+		props.player.addEventListener('TimedVideoPlayerOnFrame', (event: CustomEvent) => {
+			setFrame(event.detail);
+		});
 
 		var css = (varname: string) => getComputedStyle(document.body).getPropertyValue(varname).trim();
 		var baseColor = css('--c100');

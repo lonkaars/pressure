@@ -22,7 +22,6 @@ export class TimedVideoPlayer {
 	registeredEventListeners: boolean;
 	frame: number;
 	framerate: number;
-	onframe?: (frame: number) => void;
 
 	constructor() {
 		this.slide = -1;
@@ -103,6 +102,14 @@ export class TimedVideoPlayer {
 		}
 	}
 
+	addEventListener(name: string, callback: (...args: any[]) => void) {
+		return document.addEventListener(name, callback, false);
+	}
+
+	dispatchEvent(event: CustomEvent) {
+		return document.dispatchEvent(event);
+	}
+
 	registerEventListeners() {
 		if (
 			!this.video
@@ -119,7 +126,8 @@ export class TimedVideoPlayer {
 			var lastFrame = this.frame;
 			this.frame = this.timestampToFrame(this.player.currentTime);
 
-			if (this.frame != lastFrame && this.onframe) this.onframe(this.frame);
+			var event = new CustomEvent('TimedVideoPlayerOnFrame', { detail: this.frame });
+			this.dispatchEvent(event);
 
 			var slide = this.timeline.slides[this.slide];
 			if (!slide) return;
