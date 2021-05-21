@@ -65,7 +65,7 @@ function TimelineEditor(props: {
 	var timelineLabels = useTimelineLabels((st: any) => st.labels);
 	var setTimelineLabels = useTimelineLabels((st: any) => st.setLabels);
 
-	var frame = useFrame((st: any) => st.currentFrame);
+	// var frame = useFrame((st: any) => st.currentFrame);
 	var setFrame = useFrame((st: any) => st.setFrame);
 
 	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
@@ -76,6 +76,7 @@ function TimelineEditor(props: {
 
 		props.player.addEventListener('TimedVideoPlayerOnFrame', (event: CustomEvent) => {
 			setFrame(event.detail);
+			scrubberSpring.start({ frame: event.detail });
 		});
 
 		var css = (varname: string) => getComputedStyle(document.body).getPropertyValue(varname).trim();
@@ -164,7 +165,7 @@ function TimelineEditor(props: {
 	useDrag(({ xy: [x, _y] }) => {
 		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
 		setFrame(frame);
-		return scrubberSpring.start({ frame });
+		scrubberSpring.start({ frame });
 	}, { domTarget: scrubberDragRef, eventOptions: { passive: false } });
 
 	return <>
