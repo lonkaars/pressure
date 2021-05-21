@@ -156,7 +156,7 @@ function TimelineEditor(props: {
 
 	var [scrubberPos, scrubberSpring] = useSpring(
 		() => ({
-			frame: 1,
+			frame: 0,
 			config: { mass: 0.5, tension: 500, friction: 20 },
 		}),
 	);
