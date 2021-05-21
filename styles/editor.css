@@ -169,7 +169,7 @@
 	display: inline-block;
 	border-radius: 2px 2px 0 0;
 	overflow: visible;
-	left: calc(var(--zoom) * (var(--frame) - 1) * 1px);
+	left: calc(var(--zoom) * (var(--frame)) * 1px);
 }
 
 .appGrid .timeline .keyframes .frame:nth-child(30n) .line {
@@ -211,7 +211,7 @@
 	overflow: visible;
 	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 	z-index: 999999999;
-	left: calc((var(--zoom) * (var(--frame) - 0.5)) * 1px - 1px)
+	left: calc((var(--zoom) * (var(--frame) + 0.5)) * 1px - 1px)
 }
 
 .timeline .frameOverlay {

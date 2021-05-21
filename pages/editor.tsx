@@ -95,7 +95,7 @@ function TimelineEditor(props: {
 			);
 
 			var d = true;
-			var a = 1;
+			var a = 0;
 			var ns = [300, 150, 120, 90, 60, 30, 30, 30, 15, 15, 10, 10, 10];
 			var everyN = ns[Math.floor(frameWidth)];
 			for (var x = -offset; x < canvas.width + offset; x += frameWidth) {
@@ -127,7 +127,7 @@ function TimelineEditor(props: {
 									left: Math.round(rect[0] + frameWidth / 2),
 									top: rect[1],
 								}}
-								children={props.player.frameToTimestampString(frame)}
+								children={props.player.frameToTimestampString(frame - 1)}
 							/>,
 						);
 					}
@@ -152,19 +152,22 @@ function TimelineEditor(props: {
 		window.addEventListener('resize', onresize);
 	}, []);
 
-	var scrubberRef = useRef(null);
 	var scrubberDragRef = useRef(null);
 
 	var [scrubberPos, scrubberSpring] = useSpring(
 		() => ({
-			x: 0,
+			frame: 1,
 			config: { mass: 0.5, tension: 500, friction: 20 },
 		}),
 	);
 
 	useGesture(
 		{
-			onDrag: ({ offset: [x, _y] }) => scrubberSpring.start({ x: Math.round(getFrameAtOffset(x, timelineZoom)) }),
+			onDrag: ({ offset: [x, _y] }) => {
+				var frame = Math.max(0, Math.round(getFrameAtOffset(x, timelineZoom)) - 1);
+				setFrame(frame);
+				return scrubberSpring.start({ frame });
+			},
 		},
 		{ domTarget: scrubberDragRef, eventOptions: { passive: false } },
 	);
@@ -175,8 +178,7 @@ function TimelineEditor(props: {
 		<div className='timelineInner posabs a0'>
 			<animated.div
 				className='scrubber posabs v0'
-				style={{ '--frame': scrubberPos.x } as CSSProperties}
-				ref={scrubberRef}
+				style={{ '--frame': scrubberPos.frame } as CSSProperties}
 			>
 				<svg
 					width='20'

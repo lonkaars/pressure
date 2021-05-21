@@ -37,6 +37,7 @@ export class TimedVideoPlayer {
 		timecodeString = timecodeString.replace(';', '.')
 			.replace(/(:)(\d+?)$/, '.$2')
 			+ 'f';
+		if (timecodeString == '00f') timecodeString = '0';
 		return timecodeString;
 	}
 
