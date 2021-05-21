@@ -1,4 +1,6 @@
-import { CSSProperties, ReactNode, useEffect, useState } from 'react';
+import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
+import { animated, useSpring } from 'react-spring';
+import { useGesture } from 'react-use-gesture';
 import create from 'zustand';
 import { loopSlide } from '../timeline';
 import { TimedVideoPlayer } from './present';
@@ -30,6 +32,13 @@ var getTimelineZoom = create(set => ({
 
 var zoomToPx = (zoom: number) => (12 - 0.5) * zoom ** (1 / 0.4) + 0.5;
 
+function getFrameAtOffset(offset: number, timelineZoom: number) {
+	var timeline = document.querySelector('.timeline .timelineInner');
+	var currentOffset = timeline.scrollLeft;
+	var frame = (offset + currentOffset) / zoomToPx(timelineZoom);
+	return frame;
+}
+
 var useTimelineLabels = create(set => ({
 	labels: [],
 	setLabels: (newLabels: Array<ReactNode>) => set(() => ({ labels: newLabels })),
@@ -58,6 +67,8 @@ function TimelineEditor(props: {
 
 	var frame = useFrame((st: any) => st.currentFrame);
 	var setFrame = useFrame((st: any) => st.setFrame);
+
+	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
 
 	useEffect(() => {
 		var canvas = document.getElementById('timeScaleCanvas') as HTMLCanvasElement;
@@ -141,17 +152,39 @@ function TimelineEditor(props: {
 		window.addEventListener('resize', onresize);
 	}, []);
 
+	var scrubberRef = useRef(null);
+	var scrubberDragRef = useRef(null);
+
+	var [scrubberPos, scrubberSpring] = useSpring(
+		() => ({
+			x: 0,
+			config: { mass: 0.5, tension: 500, friction: 20 },
+		}),
+	);
+
+	useGesture(
+		{
+			onDrag: ({ offset: [x, _y] }) => scrubberSpring.start({ x: Math.round(getFrameAtOffset(x, timelineZoom)) }),
+		},
+		{ domTarget: scrubberDragRef, eventOptions: { passive: false } },
+	);
+
 	return <>
 		<canvas className='timeScale posabs a0' id='timeScaleCanvas' />
 		<div className='labels'>{timelineLabels}</div>
 		<div className='timelineInner posabs a0'>
-			<div className='scrubber posabs v0' style={{ '--frame': frame.toString() } as CSSProperties}>
+			<animated.div
+				className='scrubber posabs v0'
+				style={{ '--frame': scrubberPos.x } as CSSProperties}
+				ref={scrubberRef}
+			>
 				<svg
 					width='20'
 					height='28'
 					viewBox='0 0 20 28'
 					xmlns='http://www.w3.org/2000/svg'
 					className='head posabs t0 abscenterh'
+					ref={scrubberDragRef}
 				>
 					<path
 						d='M0 4C0 1.79086 1.79086 0 4 0H16C18.2091 0 20 1.79086 20 4V17.3431C20 18.404 19.5786 19.4214 18.8284 20.1716L11 28H9L1.17157 20.1716C0.421426 19.4214 0 18.404 0 17.3431V4Z'
@@ -159,7 +192,7 @@ function TimelineEditor(props: {
 				</svg>
 				<div className='needle posabs a0' />
 				<div className='frameOverlay posabs v0' />
-			</div>
+			</animated.div>
 			<div
 				className='keyframes'
 				style={{ '--total-frames': props.player?.timeline?.framecount.toString() } as CSSProperties}
@@ -173,7 +206,7 @@ function TimelineEditor(props: {
 export default function Index() {
 	var [dummy, setDummy] = useState(false);
 	var rerender = () => setDummy(!dummy);
-	var [player, setPlayer] = useState(new TimedVideoPlayer());
+	var [player, _setPlayer] = useState(new TimedVideoPlayer());
 
 	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
 	var setTimelineZoom = getTimelineZoom((st: any) => st.setZoom);
@@ -181,7 +214,7 @@ export default function Index() {
 	var frame = useFrame((st: any) => st.currentFrame);
 
 	var mouseX = 0;
-	var mouseY = 0;
+	// var mouseY = 0;
 
 	useEffect(() => {
 		var videoEL = document.getElementById('player') as HTMLVideoElement;
@@ -190,8 +223,7 @@ export default function Index() {
 
 	function zoomAroundPoint(newZoom: number, pivot: number) {
 		var timeline = document.querySelector('.timeline .timelineInner');
-		var currentOffset = timeline.scrollLeft;
-		var frame = (pivot + currentOffset) / zoomToPx(timelineZoom);
+		var frame = getFrameAtOffset(pivot, timelineZoom);
 		var newOffset = (frame * zoomToPx(newZoom)) - pivot;
 
 		timeline.scrollLeft = newOffset;
@@ -214,8 +246,14 @@ export default function Index() {
 		window.addEventListener('mousemove', e => {
 			var rect = canvas.getBoundingClientRect();
 			mouseX = e.clientX - rect.x;
-			mouseY = e.clientY - rect.y;
+			// mouseY = e.clientY - rect.y;
 		});
+	}, []);
+
+	useEffect(() => {
+		var preventDefault = (e: Event) => e.preventDefault();
+		document.addEventListener('gesturestart', preventDefault);
+		document.addEventListener('gesturechange', preventDefault);
 	}, []);
 
 	return <>
@@ -320,7 +358,7 @@ export default function Index() {
 					<div className='spacing'>
 						<Slider
 							value={timelineZoom}
-							onChange={(event: any, newValue: number | number[]) => {
+							onChange={(_event: any, newValue: number | number[]) => {
 								var center = document.querySelector('.timeline .timelineInner').clientWidth / 2;
 								zoomAroundPoint(newValue as number, center);
 							}}

@@ -221,7 +221,15 @@
 	opacity: .0;
 }
 
-.timeline .scrubber .head { fill: var(--blue); }
+.timeline .scrubber .head {
+	fill: var(--blue);
+	z-index: 1;
+	cursor: grab;
+}
+.timeline .scrubber .head:active {
+	cursor: grabbing;
+}
+
 .timeline .scrubber .needle { background-color: var(--blue); }
 
 .timeline .labels .label {
