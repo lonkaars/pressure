@@ -1,6 +1,6 @@
 import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import { animated, useSpring } from 'react-spring';
-import { useGesture } from 'react-use-gesture';
+import { useDrag } from 'react-use-gesture';
 import create from 'zustand';
 import { loopSlide } from '../timeline';
 import { TimedVideoPlayer } from './present';
@@ -161,20 +161,16 @@ function TimelineEditor(props: {
 		}),
 	);
 
-	useGesture(
-		{
-			onDrag: ({ offset: [x, _y] }) => {
-				var frame = Math.max(0, Math.round(getFrameAtOffset(x, timelineZoom)) - 1);
-				setFrame(frame);
-				return scrubberSpring.start({ frame });
-			},
-		},
-		{ domTarget: scrubberDragRef, eventOptions: { passive: false } },
-	);
+	useDrag(({ xy: [x, _y] }) => {
+		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
+		setFrame(frame);
+		return scrubberSpring.start({ frame });
+	}, { domTarget: scrubberDragRef, eventOptions: { passive: false } });
 
 	return <>
 		<canvas className='timeScale posabs a0' id='timeScaleCanvas' />
-		<div className='labels'>{timelineLabels}</div>
+		<div className='labels' children={timelineLabels} />
+		<div className='scrubberJumpArea posabs h0 t0' ref={scrubberDragRef} />
 		<div className='timelineInner posabs a0'>
 			<animated.div
 				className='scrubber posabs v0'
@@ -186,7 +182,6 @@ function TimelineEditor(props: {
 					viewBox='0 0 20 28'
 					xmlns='http://www.w3.org/2000/svg'
 					className='head posabs t0 abscenterh'
-					ref={scrubberDragRef}
 				>
 					<path
 						d='M0 4C0 1.79086 1.79086 0 4 0H16C18.2091 0 20 1.79086 20 4V17.3431C20 18.404 19.5786 19.4214 18.8284 20.1716L11 28H9L1.17157 20.1716C0.421426 19.4214 0 18.404 0 17.3431V4Z'
