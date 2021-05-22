@@ -1,5 +1,5 @@
 import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
-import { animated, useSpring } from 'react-spring';
+import { animated, useSpring, useSprings } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 import create from 'zustand';
 import { loopSlide } from '../timeline';
@@ -52,23 +52,44 @@ var useFrame = create(set => ({
 function TimelineEditor(props: {
 	player: TimedVideoPlayer;
 }) {
-	var keyframes = props.player?.timeline?.slides.map((slide, index) =>
-		<div className='frame posabs' style={{ '--frame': slide.frame.toString() } as CSSProperties}>
+	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
+
+	var keyframes: Array<{
+		html: ReactNode;
+		id: string;
+	}> = [];
+	var [keyframeSprings, _keyframeSpringsAPI] = useSprings(
+		props.player?.timeline?.slides.length || 0,
+		i => ({
+			frame: props.player.timeline.slides[i].frame,
+			config: { mass: 0.5, tension: 500, friction: 20 },
+		}),
+	);
+	props.player?.timeline?.slides.forEach((slide, index) => {
+		var id = 'frame' + index;
+		var html = <animated.div
+			className='frame posabs'
+			style={{ '--frame': keyframeSprings[index].frame } as CSSProperties}
+			id={id}
+		>
 			<div className={'keyframeWrapper posabs abscenterh keyframe-index-' + index}>
 				{slide.type == 'loop'
 					? <Loop length={slide.frame - (slide as loopSlide).beginFrame} />
 					: <SlideKeyframe type={slide.type} />}
 			</div>
-		</div>
-	);
+		</animated.div>;
+
+		keyframes[index] = {
+			html,
+			id,
+		};
+	});
 
 	var timelineLabels = useTimelineLabels((st: any) => st.labels);
 	var setTimelineLabels = useTimelineLabels((st: any) => st.setLabels);
 
 	// var frame = useFrame((st: any) => st.currentFrame);
 	var setFrame = useFrame((st: any) => st.setFrame);
-
-	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
 
 	useEffect(() => {
 		props.player.addEventListener('TimedVideoPlayerOnFrame', (event: CustomEvent) => {
@@ -212,9 +233,8 @@ function TimelineEditor(props: {
 			<div
 				className='keyframes'
 				style={{ '--total-frames': props.player?.timeline?.framecount.toString() } as CSSProperties}
-			>
-				{keyframes}
-			</div>
+				children={keyframes.map(kf => kf.html)}
+			/>
 		</div>
 	</>;
 }
