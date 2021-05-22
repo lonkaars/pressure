@@ -86,6 +86,8 @@ export class TimedVideoPlayer {
 			case 'delay': {
 				this.player.playbackRate = 0;
 				this.slide++;
+				var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.slide });
+				this.dispatchEvent(event);
 				setTimeout(() => {
 					this.player.playbackRate = this.getPlaybackSpeed(this.slide - 1);
 				}, (slide as delaySlide).delay);
@@ -93,6 +95,8 @@ export class TimedVideoPlayer {
 			}
 			case 'speedChange': {
 				this.slide++;
+				var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.slide });
+				this.dispatchEvent(event);
 				this.player.playbackRate = this.framerate / (slide as speedChangeSlide).newFramerate;
 				break;
 			}
@@ -182,6 +186,8 @@ export class TimedVideoPlayer {
 		if (!this.registeredEventListeners) return;
 
 		this.slide++;
+		var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.slide });
+		this.dispatchEvent(event);
 
 		var slide = this.timeline.slides[this.slide];
 
@@ -196,6 +202,8 @@ export class TimedVideoPlayer {
 		if (!this.registeredEventListeners) return;
 
 		this.slide = Math.max(this.slide - 1, -1);
+		var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.slide });
+		this.dispatchEvent(event);
 
 		var slide = this.timeline.slides[this.slide];
 		if (!slide) return;

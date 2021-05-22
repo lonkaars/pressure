@@ -52,9 +52,9 @@ var useFrame = create(set => ({
 function TimelineEditor(props: {
 	player: TimedVideoPlayer;
 }) {
-	var keyframes = props.player?.timeline?.slides.map(slide =>
+	var keyframes = props.player?.timeline?.slides.map((slide, index) =>
 		<div className='frame posabs' style={{ '--frame': slide.frame.toString() } as CSSProperties}>
-			<div className='keyframeWrapper posabs abscenterh'>
+			<div className={'keyframeWrapper posabs abscenterh keyframe-index-' + index}>
 				{slide.type == 'loop'
 					? <Loop length={slide.frame - (slide as loopSlide).beginFrame} />
 					: <SlideKeyframe type={slide.type} />}
@@ -71,13 +71,27 @@ function TimelineEditor(props: {
 	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
 
 	useEffect(() => {
-		var canvas = document.getElementById('timeScaleCanvas') as HTMLCanvasElement;
-		var ctx = canvas.getContext('2d');
-
 		props.player.addEventListener('TimedVideoPlayerOnFrame', (event: CustomEvent) => {
 			setFrame(event.detail);
 			scrubberSpring.start({ frame: event.detail });
 		});
+	}, []);
+
+	useEffect(() => {
+		props.player.addEventListener('TimedVideoPlayerSlide', (event: CustomEvent) => {
+			document.querySelectorAll('.keyframes .keyframeWrapper').forEach(el => {
+				el.classList.remove('current');
+				if (el.classList.contains(`keyframe-index-${event.detail}`)) {
+					el.classList.add('current');
+				}
+			});
+		});
+	}, []);
+
+	// timeline canvas stuff
+	useEffect(() => {
+		var canvas = document.getElementById('timeScaleCanvas') as HTMLCanvasElement;
+		var ctx = canvas.getContext('2d');
 
 		var css = (varname: string) => getComputedStyle(document.body).getPropertyValue(varname).trim();
 		var baseColor = css('--c100');
@@ -166,7 +180,7 @@ function TimelineEditor(props: {
 		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
 		setFrame(frame);
 		scrubberSpring.start({ frame });
-		if(props.player.player) {
+		if (props.player.player) {
 			var player = props.player.player;
 			player.currentTime = props.player.frameToTimestamp(frame + 1);
 		}
