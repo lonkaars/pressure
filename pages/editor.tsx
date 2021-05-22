@@ -166,6 +166,10 @@ function TimelineEditor(props: {
 		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
 		setFrame(frame);
 		scrubberSpring.start({ frame });
+		if(props.player.player) {
+			var player = props.player.player;
+			player.currentTime = props.player.frameToTimestamp(frame + 1);
+		}
 	}, { domTarget: scrubberDragRef, eventOptions: { passive: false } });
 
 	return <>
