@@ -113,11 +113,11 @@ function TimelineKeyframe(props: {
 					style={{ '--begin': spring.begin.toJSON() } as CSSProperties}
 					className='loop'
 				>
-					<span className='dispinbl start' ref={loopStartRef}>
+					<span className='dispinbl posabs l0 start' ref={loopStartRef}>
 						<SlideKeyframe type='loop' />
 					</span>
 					<div className='connector dispinbl' ref={dragRef} />
-					<span className='dispinbl end' ref={loopEndRef}>
+					<span className='dispinbl posabs r0 end' ref={loopEndRef}>
 						<SlideKeyframe type='loop' loopEnd />
 					</span>
 				</div>

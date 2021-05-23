@@ -1,15 +1,41 @@
+.appGrid .timeline .keyframes .frame .keyframeWrapper {
+	--keyframe-color: var(--gruble);
+	color: var(--keyframe-color);
+	line-height: 0;
+	top: 44px;
+	width: 24px;
+	height: 24px;
+}
+
+.appGrid .timeline .keyframes .frame .keyframeWrapper.current { color: var(--piss); }
+.appGrid .timeline .keyframes .frame .keyframeWrapper.current .loop .connector { background-color: var(--piss); }
+.appGrid .timeline .keyframes .frame .keyframeWrapper ,
+.appGrid .timeline .keyframes .frame .keyframeWrapper .loop .connector {
+	transition-property: color, background-color;
+	transition-duration: .2s;
+}
+
+.timeline .keyframes .frame .keyframeWrapper { cursor: grab; }
+.timeline .keyframes .frame .keyframeWrapper:active { cursor: grabbing; }
+
 .loop .connector {
 	height: 16px;
-	background-color: var(--gruble);
+	background-color: var(--keyframe-color);
 	opacity: .25;
-	width: calc(100% - 26px);
-	margin: 4px -11px;
+	inset: 4px 13px;
+	position: absolute;
 }
 
 .loop {
-	width: calc((var(--frame) - var(--begin)) * var(--zoom) * 1px + 24px);
 	position: absolute;
+	width: calc((var(--frame) - var(--begin)) * var(--zoom) * 1px + 24px);
+	height: 24px;
 	right: 0;
+}
+
+.loop .start,
+.loop .end {
+	z-index: 1;
 }
 
 .keyframe > * {

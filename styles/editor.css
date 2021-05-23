@@ -183,22 +183,6 @@
 	display: none;
 }
 
-.appGrid .timeline .keyframes .frame .keyframeWrapper {
-	line-height: 0;
-	top: 44px;
-	color: var(--gruble);
-	width: 24px;
-	height: 24px;
-}
-
-.appGrid .timeline .keyframes .frame .keyframeWrapper.current { color: var(--piss); }
-.appGrid .timeline .keyframes .frame .keyframeWrapper.current .loop .connector { background-color: var(--piss); }
-.appGrid .timeline .keyframes .frame .keyframeWrapper ,
-.appGrid .timeline .keyframes .frame .keyframeWrapper .loop .connector {
-	transition-property: color, background-color;
-	transition-duration: .2s;
-}
-
 .appGrid .timeline .keyframes .frame:nth-child(30n) .timecode {
 	color: var(--c700);
 	font-weight: 500;
@@ -229,10 +213,8 @@
 	opacity: .0;
 }
 
-.timeline .scrubberJumpArea,
-.timeline .keyframes .frame .keyframeWrapper { cursor: grab; }
-.timeline .scrubberJumpArea:active,
-.timeline .keyframes .frame .keyframeWrapper:active { cursor: grabbing; }
+.timeline .scrubberJumpArea { cursor: grab; }
+.timeline .scrubberJumpArea:active { cursor: grabbing; }
 
 .timeline .scrubber .head { fill: var(--blue); }
 .timeline .scrubber .needle { background-color: var(--blue); }
