@@ -1,3 +1,4 @@
+import { Ref } from 'react';
 import { keyframeTypes } from '../timeline';
 
 export function PressureIcon() {

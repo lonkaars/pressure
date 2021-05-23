@@ -52,32 +52,60 @@ var useFrame = create(set => ({
 function TimelineKeyframe(props: {
 	slide: slide | delaySlide | loopSlide | speedChangeSlide;
 }) {
-	var ref = useRef(null);
-	var [spring, api] = useSpring(
-		() => ({
-			frame: props.slide.frame,
-			config: { mass: 0.5, tension: 500, friction: 20 },
-		}),
-	);
+	var dragRef = useRef(null);
+	var loopStartRef = useRef(null);
+	var loopEndRef = useRef(null);
+
+	var [spring, api] = useSpring(() => ({
+		frame: props.slide.frame,
+		begin: (props.slide as loopSlide).beginFrame || 0,
+		config: { mass: 0.5, tension: 500, friction: 20 },
+	}));
 
 	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
 
+	// drag keyframe
 	useDrag(({ xy: [x, _y] }) => {
 		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
-		console.log(frame);
 		api.start({ frame });
-	}, { domTarget: ref, eventOptions: { passive: false } });
+	}, { domTarget: dragRef, eventOptions: { passive: false } });
+
+	if (props.slide.type == 'loop') {
+		// loop start
+		useDrag(({ xy: [x, _y] }) => {
+			var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
+			api.start({ begin: frame });
+		}, { domTarget: loopStartRef, eventOptions: { passive: false } });
+
+		// loop end
+		useDrag(({ xy: [x, _y] }) => {
+			var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
+			api.start({ frame });
+		}, { domTarget: loopEndRef, eventOptions: { passive: false } });
+	}
 
 	return <animated.div
 		className='frame posabs'
 		style={{ '--frame': spring.frame } as CSSProperties}
 		id={'slide-' + props.slide.id}
-		ref={ref}
 	>
 		<div className='keyframeWrapper posabs abscenterh'>
 			{props.slide.type == 'loop'
-				? <Loop length={props.slide.frame - (props.slide as loopSlide).beginFrame} />
-				: <SlideKeyframe type={props.slide.type} />}
+				? <div
+					style={{ '--loop-length': spring.frame.toJSON() - spring.begin.toJSON() } as CSSProperties}
+					className='loop'
+				>
+					<span className='dispinbl start' ref={loopStartRef}>
+						<SlideKeyframe type='loop' />
+					</span>
+					<div className='connector dispinbl' ref={dragRef} />
+					<span className='dispinbl end' ref={loopEndRef}>
+						<SlideKeyframe type='loop' loopEnd />
+					</span>
+				</div>
+				: <span ref={dragRef}>
+					<SlideKeyframe type={props.slide.type} />
+				</span>}
 		</div>
 	</animated.div>;
 }
