@@ -65,9 +65,27 @@ function TimelineKeyframe(props: {
 	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
 
 	// drag keyframe
-	useDrag(({ xy: [x, _y] }) => {
+	var [startOffset, setStartOffset] = useState(0);
+	var [endOffset, setEndOffset] = useState(0);
+	useDrag(({ xy: [x, _y], first }) => {
 		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
-		api.start({ frame });
+
+		if (props.slide.type == 'loop') {
+			if (first) {
+				var startFrame = spring.begin.toJSON();
+				var endFrame = spring.frame.toJSON();
+				var grabFrameOffset = frame;
+
+				setStartOffset(startFrame - grabFrameOffset);
+				startOffset = startFrame - grabFrameOffset;
+
+				setEndOffset(endFrame - grabFrameOffset);
+				endOffset = endFrame - grabFrameOffset;
+			}
+			api.start({ begin: frame + startOffset, frame: frame + endOffset });
+		} else {
+			api.start({ frame });
+		}
 	}, { domTarget: dragRef, eventOptions: { passive: false } });
 
 	if (props.slide.type == 'loop') {
