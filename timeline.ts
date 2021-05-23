@@ -4,6 +4,7 @@ export interface slide {
 	frame: number;
 	clickThroughBehaviour: 'ImmediatelySkip' | 'PlayOut';
 	type: keyframeTypes;
+	id: string;
 }
 
 export interface delaySlide extends slide {

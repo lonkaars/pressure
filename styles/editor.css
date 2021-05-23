@@ -218,7 +218,8 @@
 	overflow: visible;
 	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 	z-index: 1;
-	left: calc((var(--zoom) * (var(--frame) + 0.5)) * 1px - 1px)
+	left: calc((var(--zoom) * (var(--frame) + 0.5)) * 1px - 1px);
+	pointer-events: none;
 }
 
 .timeline .frameOverlay {
@@ -228,9 +229,10 @@
 	opacity: .0;
 }
 
-
-.timeline .scrubberJumpArea { cursor: grab; }
-.timeline .scrubberJumpArea:active { cursor: grabbing; }
+.timeline .scrubberJumpArea,
+.timeline .keyframes .frame .keyframeWrapper { cursor: grab; }
+.timeline .scrubberJumpArea:active,
+.timeline .keyframes .frame .keyframeWrapper:active { cursor: grabbing; }
 
 .timeline .scrubber .head { fill: var(--blue); }
 .timeline .scrubber .needle { background-color: var(--blue); }

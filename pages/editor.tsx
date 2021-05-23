@@ -2,7 +2,7 @@ import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import { animated, useSpring, useSprings } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 import create from 'zustand';
-import { loopSlide } from '../timeline';
+import { delaySlide, loopSlide, slide, speedChangeSlide } from '../timeline';
 import { TimedVideoPlayer } from './present';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -49,41 +49,43 @@ var useFrame = create(set => ({
 	setFrame: (newFrame: number) => set(() => ({ currentFrame: newFrame })),
 }));
 
+function TimelineKeyframe(props: {
+	slide: slide | delaySlide | loopSlide | speedChangeSlide;
+}) {
+	var ref = useRef(null);
+	var [spring, api] = useSpring(
+		() => ({
+			frame: props.slide.frame,
+			config: { mass: 0.5, tension: 500, friction: 20 },
+		}),
+	);
+
+	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
+
+	useDrag(({ xy: [x, _y] }) => {
+		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
+		console.log(frame);
+		api.start({ frame });
+	}, { domTarget: ref, eventOptions: { passive: false } });
+
+	return <animated.div
+		className='frame posabs'
+		style={{ '--frame': spring.frame } as CSSProperties}
+		id={'slide-' + props.slide.id}
+		ref={ref}
+	>
+		<div className='keyframeWrapper posabs abscenterh'>
+			{props.slide.type == 'loop'
+				? <Loop length={props.slide.frame - (props.slide as loopSlide).beginFrame} />
+				: <SlideKeyframe type={props.slide.type} />}
+		</div>
+	</animated.div>;
+}
+
 function TimelineEditor(props: {
 	player: TimedVideoPlayer;
 }) {
 	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
-
-	var keyframes: Array<{
-		html: ReactNode;
-		id: string;
-	}> = [];
-	var [keyframeSprings, _keyframeSpringsAPI] = useSprings(
-		props.player?.timeline?.slides.length || 0,
-		i => ({
-			frame: props.player.timeline.slides[i].frame,
-			config: { mass: 0.5, tension: 500, friction: 20 },
-		}),
-	);
-	props.player?.timeline?.slides.forEach((slide, index) => {
-		var id = 'frame' + index;
-		var html = <animated.div
-			className='frame posabs'
-			style={{ '--frame': keyframeSprings[index].frame } as CSSProperties}
-			id={id}
-		>
-			<div className={'keyframeWrapper posabs abscenterh keyframe-index-' + index}>
-				{slide.type == 'loop'
-					? <Loop length={slide.frame - (slide as loopSlide).beginFrame} />
-					: <SlideKeyframe type={slide.type} />}
-			</div>
-		</animated.div>;
-
-		keyframes[index] = {
-			html,
-			id,
-		};
-	});
 
 	var timelineLabels = useTimelineLabels((st: any) => st.labels);
 	var setTimelineLabels = useTimelineLabels((st: any) => st.setLabels);
@@ -233,7 +235,7 @@ function TimelineEditor(props: {
 			<div
 				className='keyframes'
 				style={{ '--total-frames': props.player?.timeline?.framecount.toString() } as CSSProperties}
-				children={keyframes.map(kf => kf.html)}
+				children={props.player?.timeline?.slides.map(slide => <TimelineKeyframe slide={slide} />)}
 			/>
 		</div>
 	</>;
