@@ -92,7 +92,7 @@ function TimelineKeyframe(props: {
 		<div className='keyframeWrapper posabs abscenterh'>
 			{props.slide.type == 'loop'
 				? <div
-					style={{ '--loop-length': spring.frame.toJSON() - spring.begin.toJSON() } as CSSProperties}
+					style={{ '--begin': spring.begin.toJSON() } as CSSProperties}
 					className='loop'
 				>
 					<span className='dispinbl start' ref={loopStartRef}>
@@ -182,7 +182,7 @@ function TimelineEditor(props: {
 				}
 
 				if (drawFrame) {
-					ctx.fillRect(rect[0], rect[1], rect[2], rect[3]);
+					ctx.fillRect(Math.round(rect[0]), Math.round(rect[1]), Math.round(rect[2]), Math.round(rect[3]));
 
 					if (marker) {
 						var frame = Math.round(x / frameWidth + offset / frameWidth + 1);

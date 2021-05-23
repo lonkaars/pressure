@@ -7,7 +7,7 @@
 }
 
 .loop {
-	width: calc(var(--loop-length) * var(--zoom) * 1px + 24px);
+	width: calc((var(--frame) - var(--begin)) * var(--zoom) * 1px + 24px);
 	position: absolute;
 	right: 0;
 }
