@@ -1,8 +1,8 @@
 import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
-import { animated, useSpring, useSprings } from 'react-spring';
+import { animated, useSpring } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 import create from 'zustand';
-import { delaySlide, loopSlide, slide, speedChangeSlide } from '../timeline';
+import { anySlide, loopSlide, slide } from '../timeline';
 import { TimedVideoPlayer } from './present';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -15,15 +15,19 @@ import ZoomInRoundedIcon from '@material-ui/icons/ZoomInRounded';
 import ZoomOutRoundedIcon from '@material-ui/icons/ZoomOutRounded';
 import Icon from '@mdi/react';
 
-import { PressureIcon, SlideKeyframe } from '../components/icons';
-import Loop from '../components/loop';
-
 import FullscreenRoundedIcon from '@material-ui/icons/FullscreenRounded';
 import NavigateBeforeRoundedIcon from '@material-ui/icons/NavigateBeforeRounded';
 import NavigateNextRoundedIcon from '@material-ui/icons/NavigateNextRounded';
 import PauseRoundedIcon from '@material-ui/icons/PauseRounded';
 import SkipPreviousRoundedIcon from '@material-ui/icons/SkipPreviousRounded';
 import { mdiCursorDefault } from '@mdi/js';
+import { PressureIcon, SlideKeyframe } from '../components/icons';
+
+var player = new TimedVideoPlayer();
+var useWorkingTimeline = create(set => ({
+	timeline: [],
+	setTimeline: (newTimeline: anySlide[]) => set(() => ({ timeline: newTimeline })),
+}));
 
 var getTimelineZoom = create(set => ({
 	zoom: 0.687077725615,
@@ -50,8 +54,17 @@ var useFrame = create(set => ({
 }));
 
 function TimelineKeyframe(props: {
-	slide: slide | delaySlide | loopSlide | speedChangeSlide;
+	slide: slide;
 }) {
+	var workingTimeline = useWorkingTimeline((st: any) => st.timeline);
+	var setWorkingTimeline = useWorkingTimeline((st: any) => st.setTimeline);
+
+	function modifySlide(newProps: Partial<anySlide>) {
+		var slide = workingTimeline.find((s: anySlide) => s.id == props.slide.id);
+		slide = Object.assign(slide, newProps);
+		setWorkingTimeline(workingTimeline);
+	}
+
 	var dragRef = useRef(null);
 	var loopStartRef = useRef(null);
 	var loopEndRef = useRef(null);
@@ -83,8 +96,13 @@ function TimelineKeyframe(props: {
 				endOffset = endFrame - grabFrameOffset;
 			}
 			api.start({ begin: frame + startOffset, frame: frame + endOffset });
+
+			modifySlide({ frame: frame + endOffset });
+			modifySlide({ beginFrame: frame + startOffset });
 		} else {
 			api.start({ frame });
+
+			modifySlide({ frame });
 		}
 	}, { domTarget: dragRef, eventOptions: { passive: false } });
 
@@ -92,20 +110,35 @@ function TimelineKeyframe(props: {
 		// loop start
 		useDrag(({ xy: [x, _y] }) => {
 			var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
+
 			api.start({ begin: frame });
+
+			modifySlide({ beginFrame: frame });
 		}, { domTarget: loopStartRef, eventOptions: { passive: false } });
 
 		// loop end
 		useDrag(({ xy: [x, _y] }) => {
 			var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
+
 			api.start({ frame });
+
+			modifySlide({ frame });
 		}, { domTarget: loopEndRef, eventOptions: { passive: false } });
 	}
+
+	var mouseUpListener = useRef(null);
+
+	useDrag(({ last }) => {
+		if (!last) return;
+		player.timeline.slides = Array(...workingTimeline);
+		player.timeline.slides.sort((a: anySlide, b: anySlide) => a.frame - b.frame);
+	}, { domTarget: mouseUpListener, eventOptions: { passive: false } });
 
 	return <animated.div
 		className='frame posabs'
 		style={{ '--frame': spring.frame } as CSSProperties}
 		id={'slide-' + props.slide.id}
+		ref={mouseUpListener}
 	>
 		<div className='keyframeWrapper posabs abscenterh'>
 			{props.slide.type == 'loop'
@@ -128,13 +161,13 @@ function TimelineKeyframe(props: {
 	</animated.div>;
 }
 
-function TimelineEditor(props: {
-	player: TimedVideoPlayer;
-}) {
+function TimelineEditor(props: { player: TimedVideoPlayer; }) {
 	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
 
 	var timelineLabels = useTimelineLabels((st: any) => st.labels);
 	var setTimelineLabels = useTimelineLabels((st: any) => st.setLabels);
+
+	var workingTimeline = useWorkingTimeline((st: any) => st.timeline);
 
 	// var frame = useFrame((st: any) => st.currentFrame);
 	var setFrame = useFrame((st: any) => st.setFrame);
@@ -281,7 +314,7 @@ function TimelineEditor(props: {
 			<div
 				className='keyframes'
 				style={{ '--total-frames': props.player?.timeline?.framecount.toString() } as CSSProperties}
-				children={props.player?.timeline?.slides.map(slide => <TimelineKeyframe slide={slide} />)}
+				children={workingTimeline.map((slide: anySlide) => <TimelineKeyframe slide={slide} />)}
 			/>
 		</div>
 	</>;
@@ -290,7 +323,8 @@ function TimelineEditor(props: {
 export default function Index() {
 	var [dummy, setDummy] = useState(false);
 	var rerender = () => setDummy(!dummy);
-	var [player, _setPlayer] = useState(new TimedVideoPlayer());
+
+	var setWorkingTimeline = useWorkingTimeline((st: any) => st.setTimeline);
 
 	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
 	var setTimelineZoom = getTimelineZoom((st: any) => st.setZoom);
@@ -375,6 +409,7 @@ export default function Index() {
 						var reader = new FileReader();
 						reader.addEventListener('load', ev => {
 							player.loadSlides(ev.target.result as string);
+							setWorkingTimeline(player.timeline.slides);
 							rerender();
 						});
 						reader.readAsText(file);

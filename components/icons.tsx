@@ -1,5 +1,4 @@
-import { Ref } from 'react';
-import { keyframeTypes } from '../timeline';
+import { slideTypes } from '../timeline';
 
 export function PressureIcon() {
 	return <svg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'>
@@ -117,7 +116,7 @@ export function PressureIcon() {
 }
 
 export function SlideKeyframe(props: {
-	type: keyframeTypes;
+	type: slideTypes;
 	loopEnd?: boolean;
 }) {
 	return <svg

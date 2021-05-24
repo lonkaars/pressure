@@ -1,9 +1,10 @@
-export type keyframeTypes = 'default' | 'delay' | 'speedChange' | 'loop';
+export type slideTypes = 'default' | 'delay' | 'speedChange' | 'loop';
+export type anySlide = slide | delaySlide | speedChangeSlide | loopSlide;
 
 export interface slide {
 	frame: number;
 	clickThroughBehaviour: 'ImmediatelySkip' | 'PlayOut';
-	type: keyframeTypes;
+	type: slideTypes;
 	id: string;
 }
 
@@ -25,7 +26,7 @@ export interface presentationSettings {
 }
 
 export default interface timeline {
-	slides: Array<slide | delaySlide | speedChangeSlide | loopSlide>;
+	slides: Array<anySlide>;
 	framecount: number;
 	framerate: number;
 	name: string;

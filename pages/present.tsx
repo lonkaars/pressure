@@ -58,6 +58,9 @@ export class TimedVideoPlayer {
 	jumpToFrame(frame: number) {
 		this.player.currentTime = this.frameToTimestamp(frame);
 		this.frame = frame;
+
+		var event = new CustomEvent('TimedVideoPlayerOnFrame', { detail: this.frame });
+		this.dispatchEvent(event);
 	}
 
 	jumpToSlide(slide: slide) {
@@ -128,7 +131,6 @@ export class TimedVideoPlayer {
 		setInterval(() => {
 			if (this.player.paused) return;
 
-			var lastFrame = this.frame;
 			this.frame = this.timestampToFrame(this.player.currentTime);
 
 			var event = new CustomEvent('TimedVideoPlayerOnFrame', { detail: this.frame });
@@ -169,6 +171,7 @@ export class TimedVideoPlayer {
 		this.framerate = this.timeline.framerate;
 
 		this.timeline.slides[-1] = {
+			id: '00000000-0000-0000-0000-000000000000',
 			frame: 0,
 			type: 'default',
 			clickThroughBehaviour: 'ImmediatelySkip',
@@ -202,6 +205,7 @@ export class TimedVideoPlayer {
 		if (!this.registeredEventListeners) return;
 
 		this.slide = Math.max(this.slide - 1, -1);
+
 		var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.slide });
 		this.dispatchEvent(event);
 
