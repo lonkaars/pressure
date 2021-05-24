@@ -132,6 +132,12 @@ function TimelineKeyframe(props: {
 		if (!last) return;
 		player.timeline.slides = Array(...workingTimeline);
 		player.timeline.slides.sort((a: anySlide, b: anySlide) => a.frame - b.frame);
+		player.timeline.slides[-1] = { // TODO: dry
+			id: '00000000-0000-0000-0000-000000000000',
+			frame: 0,
+			type: 'default',
+			clickThroughBehaviour: 'ImmediatelySkip',
+		};
 	}, { domTarget: mouseUpListener, eventOptions: { passive: false } });
 
 	return <animated.div
@@ -398,6 +404,12 @@ export default function Index() {
 						reader.readAsDataURL(file);
 					}}
 				/>
+				<Button
+					variant='contained'
+					color='default'
+					children='Load video'
+					onClick={() => document.getElementById('vidUpload').click()}
+				/>
 				<input
 					type='file'
 					id='jsonUpload'
@@ -418,14 +430,24 @@ export default function Index() {
 				<Button
 					variant='contained'
 					color='default'
-					children='Load video'
-					onClick={() => document.getElementById('vidUpload').click()}
+					children='Load json'
+					onClick={() => document.getElementById('jsonUpload').click()}
 				/>
 				<Button
 					variant='contained'
 					color='default'
-					children='Load json'
-					onClick={() => document.getElementById('jsonUpload').click()}
+					children='Download json'
+					onClick={() => {
+						var timeline = Object({ ...(player.timeline) });
+						var data = JSON.stringify(timeline);
+						var blob = new Blob([data], { type: 'application/json' });
+						var a = document.createElement('a');
+						a.href = URL.createObjectURL(blob);
+						a.download = player.timeline.name
+							.toLowerCase()
+							.replace(/\s/g, '-');
+						a.click();
+					}}
 				/>
 			</div>
 			<div className='viewer'>
