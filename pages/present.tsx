@@ -89,7 +89,7 @@ export class TimedVideoPlayer {
 			case 'delay': {
 				this.player.playbackRate = 0;
 				this.slide++;
-				var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.slide });
+				var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.timeline.slides[this.slide] });
 				this.dispatchEvent(event);
 				setTimeout(() => {
 					this.player.playbackRate = this.getPlaybackSpeed(this.slide - 1);
@@ -98,7 +98,7 @@ export class TimedVideoPlayer {
 			}
 			case 'speedChange': {
 				this.slide++;
-				var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.slide });
+				var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.timeline.slides[this.slide] });
 				this.dispatchEvent(event);
 				this.player.playbackRate = this.framerate / (slide as speedChangeSlide).newFramerate;
 				break;
@@ -189,10 +189,10 @@ export class TimedVideoPlayer {
 		if (!this.registeredEventListeners) return;
 
 		this.slide++;
-		var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.slide });
-		this.dispatchEvent(event);
 
 		var slide = this.timeline.slides[this.slide];
+		var event = new CustomEvent('TimedVideoPlayerSlide', { detail: slide });
+		this.dispatchEvent(event);
 
 		if (!this.player.paused && this.frame < slide?.frame) {
 			this.skip();
@@ -206,11 +206,11 @@ export class TimedVideoPlayer {
 
 		this.slide = Math.max(this.slide - 1, -1);
 
-		var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.slide });
-		this.dispatchEvent(event);
-
 		var slide = this.timeline.slides[this.slide];
 		if (!slide) return;
+
+		var event = new CustomEvent('TimedVideoPlayerSlide', { detail: slide });
+		this.dispatchEvent(event);
 
 		this.jumpToSlide(slide);
 	}

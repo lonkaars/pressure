@@ -7,21 +7,22 @@ import { TimedVideoPlayer } from './present';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Fab from '@material-ui/core/Fab';
 import Slider from '@material-ui/core/Slider';
 import Toolbar from '@material-ui/core/Toolbar';
 import ZoomInRoundedIcon from '@material-ui/icons/ZoomInRounded';
 import ZoomOutRoundedIcon from '@material-ui/icons/ZoomOutRounded';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import Icon from '@mdi/react';
 
 import FullscreenRoundedIcon from '@material-ui/icons/FullscreenRounded';
 import NavigateBeforeRoundedIcon from '@material-ui/icons/NavigateBeforeRounded';
 import NavigateNextRoundedIcon from '@material-ui/icons/NavigateNextRounded';
-import PauseRoundedIcon from '@material-ui/icons/PauseRounded';
 import SkipPreviousRoundedIcon from '@material-ui/icons/SkipPreviousRounded';
 import { mdiCursorDefault } from '@mdi/js';
 import { PressureIcon, SlideKeyframe } from '../components/icons';
+import PlaySkipIconAni from '../components/play-skip';
 
 var player = new TimedVideoPlayer();
 var useWorkingTimeline = create(set => ({
@@ -187,9 +188,9 @@ function TimelineEditor(props: { player: TimedVideoPlayer; }) {
 
 	useEffect(() => {
 		props.player.addEventListener('TimedVideoPlayerSlide', (event: CustomEvent) => {
-			document.querySelectorAll('.keyframes .keyframeWrapper').forEach(el => {
+			document.querySelectorAll('.keyframes .frame').forEach(el => {
 				el.classList.remove('current');
-				if (el.classList.contains(`keyframe-index-${event.detail}`)) {
+				if (event.detail && el.id == 'slide-' + (event.detail as slide).id) {
 					el.classList.add('current');
 				}
 			});
@@ -337,6 +338,10 @@ export default function Index() {
 
 	var frame = useFrame((st: any) => st.currentFrame);
 
+	var [tool, setTool] = useState('cursor');
+
+	var [playing, setPlaying] = useState(false);
+
 	var mouseX = 0;
 	// var mouseY = 0;
 
@@ -400,6 +405,9 @@ export default function Index() {
 						var reader = new FileReader();
 						reader.addEventListener('load', ev => {
 							player.loadVideo(ev.target.result as string);
+
+							player.player.addEventListener('play', () => setPlaying(true));
+							player.player.addEventListener('pause', () => setPlaying(false));
 						});
 						reader.readAsDataURL(file);
 					}}
@@ -462,8 +470,9 @@ export default function Index() {
 						<Fab
 							className='playPause'
 							size='medium'
-							children={<PauseRoundedIcon />}
 							onClick={() => player.next()}
+							children={<PlaySkipIconAni />}
+							style={{ '--ani-state': playing ? 'skip' : 'play' } as CSSProperties}
 						/>
 						<Fab size='small' children={<NavigateBeforeRoundedIcon />} onClick={() => player.previous()} />
 						<Fab size='small' children={<NavigateNextRoundedIcon />} />
@@ -478,22 +487,27 @@ export default function Index() {
 					<span className='framerate numbers posabs l0 t0'>@{player.framerate}fps</span>
 					<h2 className='timecode numbers posabs r0 t0'>{player.frameToTimestampString(frame, false)}</h2>
 				</div>
-				<ButtonGroup color='primary' aria-label='outlined primary button group'>
-					<Button children={<Icon path={mdiCursorDefault} size={1} />} />
-					<Button children={<SlideKeyframe type='default' />} />
-					<Button children={<SlideKeyframe type='delay' />} />
-					<Button children={<SlideKeyframe type='speedChange' />} />
-					<Button>
+				<ToggleButtonGroup
+					color='primary'
+					aria-label='outlined primary button group'
+					value={tool}
+					exclusive
+					onChange={(_event: any, newTool: string | null) => {
+						if (newTool === null) return;
+						setTool(newTool);
+					}}
+				>
+					<ToggleButton value='cursor' children={<Icon path={mdiCursorDefault} size={1} />} />
+					<ToggleButton value='default' children={<SlideKeyframe type='default' />} />
+					<ToggleButton value='delay' children={<SlideKeyframe type='delay' />} />
+					<ToggleButton value='speedChange' children={<SlideKeyframe type='speedChange' />} />
+					<ToggleButton value='loop'>
 						<div className='loopStartEnd'>
-							<span className='posabs start'>
-								<SlideKeyframe type='loop' />
-							</span>
-							<span className='posabs end'>
-								<SlideKeyframe type='loop' loopEnd />
-							</span>
+							<span className='posabs start' children={<SlideKeyframe type='loop' />} />
+							<span className='posabs end' children={<SlideKeyframe type='loop' loopEnd />} />
 						</div>
-					</Button>
-				</ButtonGroup>
+					</ToggleButton>
+				</ToggleButtonGroup>
 				<div className='zoom'>
 					<ZoomOutRoundedIcon />
 					<div className='spacing'>

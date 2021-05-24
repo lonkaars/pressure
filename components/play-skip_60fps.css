@@ -1,0 +1,30 @@
+@keyframes skip {
+	0% { left: 0px; }
+	100% { left: -432px; }
+}
+
+@keyframes play {
+	0% { left: -432px; }
+	100% { left: 0px; }
+}
+
+.shapeshifter {
+	width: 24px;
+	height: 24px;
+	overflow: hidden;
+	position: relative;
+	line-height: 0;
+}
+
+.shapeshifter svg {
+	position: absolute;
+	fill: currentColor;
+	left: 0;
+
+	animation-name: var(--ani-state);
+	animation-fill-mode: both;
+	animation-duration: 200ms;
+	animation-timing-function: steps(18);
+	animation-play-state: running;
+}
+

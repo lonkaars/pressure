@@ -7,9 +7,10 @@
 	height: 24px;
 }
 
-.appGrid .timeline .keyframes .frame .keyframeWrapper.current { color: var(--piss); }
-.appGrid .timeline .keyframes .frame .keyframeWrapper.current .loop .connector { background-color: var(--piss); }
-.appGrid .timeline .keyframes .frame .keyframeWrapper ,
+.appGrid .timeline .keyframes .frame.current .keyframeWrapper { color: var(--piss); }
+.appGrid .timeline .keyframes .frame.current .keyframeWrapper .loop .connector { background-color: var(--piss); }
+
+.appGrid .timeline .keyframes .frame .keyframeWrapper,
 .appGrid .timeline .keyframes .frame .keyframeWrapper .loop .connector {
 	transition-property: color, background-color;
 	transition-duration: .2s;
