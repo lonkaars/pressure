@@ -466,19 +466,41 @@ export default function Index() {
 				</div>
 				<div className='controls'>
 					<div className='posabs abscenter'>
-						<Fab size='small' children={<SkipPreviousRoundedIcon />} />
+						<Fab
+							size='small'
+							children={<SkipPreviousRoundedIcon />}
+							onClick={() => {
+								player.slide = 0;
+								player.previous();
+							}}
+						/>
 						<Fab
 							className='playPause'
 							size='medium'
-							onClick={() => player.next()}
+							onClick={() => {
+								player.next();
+								player.player.play();
+							}}
 							children={<PlaySkipIconAni />}
 							style={{ '--ani-state': playing ? 'skip' : 'play' } as CSSProperties}
 						/>
 						<Fab size='small' children={<NavigateBeforeRoundedIcon />} onClick={() => player.previous()} />
-						<Fab size='small' children={<NavigateNextRoundedIcon />} />
+						<Fab
+							size='small'
+							children={<NavigateNextRoundedIcon />}
+							onClick={() => {
+								player.next(); // TODO: fix jank here
+								player.next();
+								player.previous();
+							}}
+						/>
 					</div>
 					<div className='posabs abscenterv r0'>
-						<Fab size='small' children={<FullscreenRoundedIcon />} />
+						<Fab
+							size='small'
+							children={<FullscreenRoundedIcon />}
+							onClick={() => document.body.requestFullscreen()}
+						/>
 					</div>
 				</div>
 			</div>

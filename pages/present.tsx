@@ -197,8 +197,6 @@ export class TimedVideoPlayer {
 		if (!this.player.paused && this.frame < slide?.frame) {
 			this.skip();
 		}
-
-		this.player.play();
 	}
 
 	previous() {
@@ -258,6 +256,7 @@ export default function Present() {
 				className='control next'
 				onClick={() => {
 					player.next();
+					player.player.play();
 					rerender();
 				}}
 			/>
