@@ -217,6 +217,10 @@
 	white-space: nowrap;
 }
 
+.appGrid .timeline .timelineInner.blur {
+	pointer-events: none;
+}
+
 .timeline .scrubber {
 	width: 2px;
 	overflow: visible;

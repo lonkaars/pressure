@@ -44,5 +44,15 @@
 	fill: currentColor;
 }
 
+.keyframe .background,
+.keyframe .outline {
+	opacity: 1;
+	transition-property: opacity;
+	transition-duration: 200ms;
+}
+
 .keyframe.ghost .background { opacity: .2; }
 .keyframe.ghost .outline { opacity: .7; }
+
+#ghost { transform: translate(-16px, -16px); }
+

@@ -121,7 +121,7 @@ export function SlideKeyframe(props: {
 	loopEnd?: boolean;
 }) {
 	return <div className={'keyframe dispinbl posrel' + (props.ghost ? ' ghost' : '')}>
-		{props.ghost && <SlideKeyframeOutline type={props.type} loopEnd={props.loopEnd} />}
+		<SlideKeyframeOutline type={props.type} loopEnd={props.loopEnd} />
 		<SlideKeyframeBackground type={props.type} loopEnd={props.loopEnd} />
 	</div>;
 }

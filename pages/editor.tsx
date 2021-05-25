@@ -1,6 +1,7 @@
 import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import { animated, useSpring } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
+import { v4 as uuid } from 'uuid';
 import create from 'zustand';
 import { anySlide, loopSlide, slide, slideTypes } from '../timeline';
 import { TimedVideoPlayer } from './present';
@@ -25,9 +26,19 @@ import { PressureIcon, SlideKeyframe } from '../components/icons';
 import PlaySkipIconAni from '../components/play-skip';
 
 var player = new TimedVideoPlayer();
-var useWorkingTimeline = create(set => ({
+var useWorkingTimeline = create((set, get) => ({
 	timeline: [],
 	setTimeline: (newTimeline: anySlide[]) => set(() => ({ timeline: newTimeline })),
+	refreshLiveTimeline: () => {
+		player.timeline.slides = Array(...((get() as any).timeline));
+		player.timeline.slides.sort((a: anySlide, b: anySlide) => a.frame - b.frame);
+		player.timeline.slides[-1] = { // TODO: dry
+			id: '00000000-0000-0000-0000-000000000000',
+			frame: 0,
+			type: 'default',
+			clickThroughBehaviour: 'ImmediatelySkip',
+		};
+	},
 }));
 
 var getTimelineZoom = create(set => ({
@@ -59,6 +70,7 @@ function TimelineKeyframe(props: {
 }) {
 	var workingTimeline = useWorkingTimeline((st: any) => st.timeline);
 	var setWorkingTimeline = useWorkingTimeline((st: any) => st.setTimeline);
+	var updateTimeline = useWorkingTimeline((st: any) => st.refreshLiveTimeline);
 
 	function modifySlide(newProps: Partial<anySlide>) {
 		var slide = workingTimeline.find((s: anySlide) => s.id == props.slide.id);
@@ -130,14 +142,7 @@ function TimelineKeyframe(props: {
 	var mouseUpListener = useRef(null);
 	useDrag(({ last }) => {
 		if (!last) return;
-		player.timeline.slides = Array(...workingTimeline);
-		player.timeline.slides.sort((a: anySlide, b: anySlide) => a.frame - b.frame);
-		player.timeline.slides[-1] = { // TODO: dry
-			id: '00000000-0000-0000-0000-000000000000',
-			frame: 0,
-			type: 'default',
-			clickThroughBehaviour: 'ImmediatelySkip',
-		};
+		updateTimeline();
 	}, { domTarget: mouseUpListener, eventOptions: { passive: false } });
 
 	return <animated.div
@@ -177,8 +182,8 @@ function TimelineEditor(props: {
 	var setTimelineLabels = useTimelineLabels((st: any) => st.setLabels);
 
 	var workingTimeline = useWorkingTimeline((st: any) => st.timeline);
+	var setWorkingTimeline = useWorkingTimeline((st: any) => st.setTimeline);
 
-	// var frame = useFrame((st: any) => st.currentFrame);
 	var setFrame = useFrame((st: any) => st.setFrame);
 
 	useEffect(() => {
@@ -305,18 +310,33 @@ function TimelineEditor(props: {
 	useEffect(() => {
 		document.querySelector('.timeline').addEventListener('mousemove', (e: MouseEvent) => {
 			var rect = document.querySelector('.timeline').getBoundingClientRect();
-			var offset = 16;
-			var x = e.clientX - rect.left - offset;
-			var y = e.clientY - rect.top - offset;
+			var x = e.clientX - rect.left;
+			var y = e.clientY - rect.top;
 			ghostApi.start({ x, y });
 		});
 	}, []);
 
 	return <>
-		<canvas className='timeScale posabs a0' id='timeScaleCanvas' />
+		<canvas
+			className='timeScale posabs a0'
+			id='timeScaleCanvas'
+			onClick={event => {
+				// place new keyframe
+				var x = event.clientX - 240;
+				var frame = Math.round(getFrameAtOffset(x, timelineZoom));
+				var id = uuid();
+				workingTimeline.push({
+					frame,
+					id,
+					type: props.selectedTool as slideTypes,
+					clickThroughBehaviour: 'ImmediatelySkip',
+				});
+				setWorkingTimeline(workingTimeline);
+			}}
+		/>
 		<div className='labels' children={timelineLabels} />
 		<div className='scrubberJumpArea posabs h0 t0' ref={scrubberDragRef} />
-		<div className='timelineInner posabs a0'>
+		<div className={'timelineInner posabs a0' + (props.selectedTool != 'cursor' ? ' blur' : '')}>
 			<animated.div
 				className='scrubber posabs v0'
 				style={{ '--frame': scrubberPos.frame } as CSSProperties}
