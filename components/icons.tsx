@@ -117,10 +117,21 @@ export function PressureIcon() {
 
 export function SlideKeyframe(props: {
 	type: slideTypes;
+	ghost?: boolean;
+	loopEnd?: boolean;
+}) {
+	return <div className={'keyframe dispinbl posrel' + (props.ghost ? ' ghost' : '')}>
+		{props.ghost && <SlideKeyframeOutline type={props.type} loopEnd={props.loopEnd} />}
+		<SlideKeyframeBackground type={props.type} loopEnd={props.loopEnd} />
+	</div>;
+}
+
+export function SlideKeyframeBackground(props: {
+	type: slideTypes;
 	loopEnd?: boolean;
 }) {
 	return <svg
-		className='keyframe'
+		className='background'
 		width='24'
 		height='24'
 		viewBox='0 0 24 24'
@@ -140,6 +151,48 @@ export function SlideKeyframe(props: {
 				/>
 				: <path
 					d='M15 18C15 19.1046 14.1046 20 13 20H9C7.89543 20 7 19.1046 7 18C7 16.8954 7.89543 16 9 16H11V8H9C7.89543 8 7 7.10457 7 6C7 4.89543 7.89543 4 9 4H13C14.1046 4 15 4.89543 15 6V18Z'
+				/>,
+		}[props.type]}
+	</svg>;
+}
+
+export function SlideKeyframeOutline(props: {
+	type: slideTypes;
+	loopEnd?: boolean;
+}) {
+	return <svg
+		className='outline posabs l0 t0'
+		width='24'
+		height='24'
+		viewBox='0 0 24 24'
+		xmlns='http://www.w3.org/2000/svg'
+	>
+		{{
+			'default': <path
+				fill-rule='evenodd'
+				clip-rule='evenodd'
+				d='M5.41421 13L11 18.5858C11.2652 18.851 11.6249 19 12 19C12.3751 19 12.7348 18.851 13 18.5858L18.5858 13C18.851 12.7348 19 12.3751 19 12C19 11.6249 18.851 11.2652 18.5858 11L13 5.41421L13.7071 4.70711L19.2929 10.2929C19.7456 10.7456 20 11.3597 20 12C20 12.6403 19.7456 13.2544 19.2929 13.7071L13.7071 19.2929C13.2544 19.7456 12.6403 20 12 20C11.3597 20 10.7456 19.7456 10.2929 19.2929L4.70711 13.7071C4.25435 13.2544 4 12.6403 4 12C4 11.3597 4.25435 10.7456 4.70711 10.2929L10.2929 4.70711L11 5.41421L5.41421 11C5.149 11.2652 5 11.6249 5 12C5 12.3751 5.149 12.7348 5.41421 13ZM10.2929 4.70711L11 5.41421C11.2652 5.149 11.6249 5 12 5C12.3751 5 12.7348 5.149 13 5.41421L13.7071 4.70711C13.2544 4.25435 12.6403 4 12 4C11.3597 4 10.7456 4.25435 10.2929 4.70711Z'
+			/>,
+			'delay': <path
+				fill-rule='evenodd'
+				clip-rule='evenodd'
+				d='M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20Z'
+			/>,
+			'speedChange': <path
+				fill-rule='evenodd'
+				clip-rule='evenodd'
+				d='M5 6V18C5 18.5523 5.44772 19 6 19H18C18.5523 19 19 18.5523 19 18V6C19 5.44772 18.5523 5 18 5H6C5.44772 5 5 5.44772 5 6ZM4 6V18C4 19.1046 4.89543 20 6 20H18C19.1046 20 20 19.1046 20 18V6C20 4.89543 19.1046 4 18 4H6C4.89543 4 4 4.89543 4 6Z'
+			/>,
+			'loop': !props.loopEnd
+				? <path
+					fill-rule='evenodd'
+					clip-rule='evenodd'
+					d='M12 7H15C15.5523 7 16 6.55228 16 6C16 5.44772 15.5523 5 15 5H11C10.4477 5 10 5.44772 10 6V18C10 18.5523 10.4477 19 11 19H15C15.5523 19 16 18.5523 16 18C16 17.4477 15.5523 17 15 17H12V7ZM11 4C9.89543 4 9 4.89543 9 6V18C9 19.1046 9.89543 20 11 20H15C16.1046 20 17 19.1046 17 18C17 16.8954 16.1046 16 15 16H13V8H15C16.1046 8 17 7.10457 17 6C17 4.89543 16.1046 4 15 4H11Z'
+				/>
+				: <path
+					fill-rule='evenodd'
+					clip-rule='evenodd'
+					d='M12 17H9C8.44772 17 8 17.4477 8 18C8 18.5523 8.44772 19 9 19H13C13.5523 19 14 18.5523 14 18V6C14 5.44772 13.5523 5 13 5H9C8.44772 5 8 5.44772 8 6C8 6.55228 8.44772 7 9 7H12V17ZM13 20C14.1046 20 15 19.1046 15 18V6C15 4.89543 14.1046 4 13 4H9C7.89543 4 7 4.89543 7 6C7 7.10457 7.89543 8 9 8H11V16H9C7.89543 16 7 16.8954 7 18C7 19.1046 7.89543 20 9 20H13Z'
 				/>,
 		}[props.type]}
 	</svg>;

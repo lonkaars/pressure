@@ -2,7 +2,7 @@ import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import { animated, useSpring } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 import create from 'zustand';
-import { anySlide, loopSlide, slide } from '../timeline';
+import { anySlide, loopSlide, slide, slideTypes } from '../timeline';
 import { TimedVideoPlayer } from './present';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -128,7 +128,6 @@ function TimelineKeyframe(props: {
 	}
 
 	var mouseUpListener = useRef(null);
-
 	useDrag(({ last }) => {
 		if (!last) return;
 		player.timeline.slides = Array(...workingTimeline);
@@ -168,7 +167,10 @@ function TimelineKeyframe(props: {
 	</animated.div>;
 }
 
-function TimelineEditor(props: { player: TimedVideoPlayer; }) {
+function TimelineEditor(props: {
+	player: TimedVideoPlayer;
+	selectedTool: string;
+}) {
 	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
 
 	var timelineLabels = useTimelineLabels((st: any) => st.labels);
@@ -295,6 +297,21 @@ function TimelineEditor(props: { player: TimedVideoPlayer; }) {
 		}
 	}, { domTarget: scrubberDragRef, eventOptions: { passive: false } });
 
+	var [ghost, ghostApi] = useSpring(() => ({
+		x: 0,
+		y: 0,
+		config: { mass: 0.5, tension: 500, friction: 20 },
+	}));
+	useEffect(() => {
+		document.querySelector('.timeline').addEventListener('mousemove', (e: MouseEvent) => {
+			var rect = document.querySelector('.timeline').getBoundingClientRect();
+			var offset = 16;
+			var x = e.clientX - rect.left - offset;
+			var y = e.clientY - rect.top - offset;
+			ghostApi.start({ x, y });
+		});
+	}, []);
+
 	return <>
 		<canvas className='timeScale posabs a0' id='timeScaleCanvas' />
 		<div className='labels' children={timelineLabels} />
@@ -324,6 +341,17 @@ function TimelineEditor(props: { player: TimedVideoPlayer; }) {
 				children={workingTimeline.map((slide: anySlide) => <TimelineKeyframe slide={slide} />)}
 			/>
 		</div>
+		<div className={'ghostArea posabs a0' + (props.selectedTool != 'cursor' ? ' active' : '')}>
+			<animated.div
+				id='ghost'
+				className='posabs dispinbl'
+				style={{
+					top: ghost.y,
+					left: ghost.x,
+				}}
+				children={<SlideKeyframe type={props.selectedTool as slideTypes} ghost />}
+			/>
+		</div>
 	</>;
 }
 
@@ -343,7 +371,6 @@ export default function Index() {
 	var [playing, setPlaying] = useState(false);
 
 	var mouseX = 0;
-	// var mouseY = 0;
 
 	useEffect(() => {
 		var videoEL = document.getElementById('player') as HTMLVideoElement;
@@ -375,7 +402,6 @@ export default function Index() {
 		window.addEventListener('mousemove', e => {
 			var rect = canvas.getBoundingClientRect();
 			mouseX = e.clientX - rect.x;
-			// mouseY = e.clientY - rect.y;
 		});
 	}, []);
 
@@ -554,6 +580,7 @@ export default function Index() {
 			>
 				<TimelineEditor
 					player={player}
+					selectedTool={tool}
 				/>
 			</div>
 		</div>
