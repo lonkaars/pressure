@@ -1,9 +1,8 @@
 import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import { animated, useSpring } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
-import { v4 as uuid } from 'uuid';
 import create from 'zustand';
-import { anySlide, loopSlide, slide, slideTypes } from '../timeline';
+import { anySlide, loopSlide, slide, slideTypes, toolToSlide } from '../timeline';
 import { TimedVideoPlayer } from './present';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -324,13 +323,8 @@ function TimelineEditor(props: {
 				// place new keyframe
 				var x = event.clientX - 240;
 				var frame = Math.round(getFrameAtOffset(x, timelineZoom));
-				var id = uuid();
-				workingTimeline.push({
-					frame,
-					id,
-					type: props.selectedTool as slideTypes,
-					clickThroughBehaviour: 'ImmediatelySkip',
-				});
+				var slide = new toolToSlide[props.selectedTool](frame);
+				workingTimeline.push(slide);
 				setWorkingTimeline(workingTimeline);
 			}}
 		/>
