@@ -24,6 +24,8 @@ import { mdiCursorDefault } from '@mdi/js';
 import { PressureIcon, SlideKeyframe } from '../components/icons';
 import PlaySkipIconAni from '../components/play-skip';
 
+var keyframeInAnimations: { [key: string]: { x: number; y: number; }; } = {};
+
 var player = new TimedVideoPlayer();
 var useWorkingTimeline = create((set, get) => ({
 	timeline: [],
@@ -81,11 +83,28 @@ function TimelineKeyframe(props: {
 	var loopStartRef = useRef(null);
 	var loopEndRef = useRef(null);
 
+	var [firstRender, setFirstRender] = useState(true);
+
 	var [spring, api] = useSpring(() => ({
 		frame: props.slide.frame,
 		begin: (props.slide as loopSlide).beginFrame || 0,
+		y: 44,
 		config: { mass: 0.5, tension: 500, friction: 20 },
 	}));
+
+	useEffect(() => {
+		setFirstRender(false);
+		var beginAnimation = keyframeInAnimations[props.slide.id];
+		if (!beginAnimation) return;
+
+		console.log(
+			`I'm new keyframe with type ${props.slide.type} and id ${props.slide.id}\nbegin animation on ${beginAnimation.x}, ${beginAnimation.y}`,
+		);
+		api.set({ frame: beginAnimation.x, y: beginAnimation.y - 16 });
+		api.start({ frame: Math.round(beginAnimation.x), y: 44 });
+
+		delete keyframeInAnimations[props.slide.id];
+	}, []);
 
 	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
 
@@ -146,11 +165,14 @@ function TimelineKeyframe(props: {
 
 	return <animated.div
 		className='frame posabs'
-		style={{ '--frame': spring.frame } as CSSProperties}
+		style={{
+			'--frame': spring.frame,
+			opacity: firstRender ? 0 : 1,
+		} as CSSProperties}
 		id={'slide-' + props.slide.id}
 		ref={mouseUpListener}
 	>
-		<div className='keyframeWrapper posabs abscenterh'>
+		<div className='keyframeWrapper posabs abscenterh' style={{ top: spring.y.toJSON() }}>
 			{props.slide.type == 'loop'
 				? <div
 					style={{ '--begin': spring.begin.toJSON() } as CSSProperties}
@@ -321,11 +343,16 @@ function TimelineEditor(props: {
 			id='timeScaleCanvas'
 			onClick={event => {
 				// place new keyframe
-				var x = event.clientX - 240;
-				var frame = Math.round(getFrameAtOffset(x, timelineZoom));
+				var offset = -10; // keyframe offset
+				var x = event.clientX - 240 + offset;
+				var frame = getFrameAtOffset(x, timelineZoom);
 				var slide = new toolToSlide[props.selectedTool](frame);
 				workingTimeline.push(slide);
 				setWorkingTimeline(workingTimeline);
+				keyframeInAnimations[slide.id] = {
+					x: frame,
+					y: event.clientY - window.innerHeight + 210,
+				};
 			}}
 		/>
 		<div className='labels' children={timelineLabels} />

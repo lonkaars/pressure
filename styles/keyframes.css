@@ -2,7 +2,6 @@
 	--keyframe-color: var(--gruble);
 	color: var(--keyframe-color);
 	line-height: 0;
-	top: 44px;
 	width: 24px;
 	height: 24px;
 }
