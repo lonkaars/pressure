@@ -97,9 +97,6 @@ function TimelineKeyframe(props: {
 		var beginAnimation = keyframeInAnimations[props.slide.id];
 		if (!beginAnimation) return;
 
-		console.log(
-			`I'm new keyframe with type ${props.slide.type} and id ${props.slide.id}\nbegin animation on ${beginAnimation.x}, ${beginAnimation.y}`,
-		);
 		api.set({ frame: beginAnimation.x, y: beginAnimation.y - 16 });
 		api.start({ frame: Math.round(beginAnimation.x), y: 44 });
 
@@ -343,9 +340,9 @@ function TimelineEditor(props: {
 			id='timeScaleCanvas'
 			onClick={event => {
 				// place new keyframe
-				var offset = -10; // keyframe offset
+				var offset = -4; // keyframe offset
 				var x = event.clientX - 240 + offset;
-				var frame = getFrameAtOffset(x, timelineZoom);
+				var frame = getFrameAtOffset(x, timelineZoom) - 0.5;
 				var slide = new toolToSlide[props.selectedTool](frame);
 				workingTimeline.push(slide);
 				setWorkingTimeline(workingTimeline);
@@ -433,7 +430,7 @@ export default function Index() {
 			if (!e.ctrlKey && !e.altKey) return;
 			e.preventDefault();
 
-			var newZoom = Math.min(1, Math.max(0, timelineZoom + (-e.deltaY / 1000)));
+			var newZoom = Math.min(4, Math.max(0, timelineZoom + (-e.deltaY / 1000)));
 			zoomAroundPoint(newZoom, mouseX);
 		}, { passive: false });
 	}, []);
