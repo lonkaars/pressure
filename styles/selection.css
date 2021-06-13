@@ -1,0 +1,29 @@
+.selection {
+	--selection-color: var(--gruble);
+	--corner-size: 12px;
+	filter: drop-shadow(0px 0px 10px var(--selection-color));
+}
+
+.selection .bar.top,
+.selection .bar.bottom {
+	height: 2px;
+
+	left: var(--corner-size);
+	right: var(--corner-size);
+}
+
+.selection .bar.left,
+.selection .bar.right {
+	width: 2px;
+
+	top: var(--corner-size);
+	bottom: var(--corner-size);
+}
+
+.selection .bar {
+	background-color: var(--selection-color);
+}
+
+.selection .corner {
+	fill: var(--selection-color);
+}
