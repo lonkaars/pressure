@@ -335,11 +335,13 @@ function TimelineEditor(props: {
 		});
 	}, []);
 
-	var [selectionPosX, setSelectionPosX] = useState(0);
-	var [selectionPosY, setSelectionPosY] = useState(0);
-	var [selectionWidth, setSelectionWidth] = useState(0);
-	var [selectionHeight, setSelectionHeight] = useState(0);
-
+	var [selectionPos, selectionPosAPI] = useSpring(() => ({
+		x1: 0,
+		y1: 0,
+		x2: 0,
+		y2: 0,
+		config: { mass: 0.5, tension: 500, friction: 20 },
+	}));
 	var selectionRef = useRef(null);
 	useDrag(({ xy: [x, y], initial: [bx, by] }) => {
 		if (props.selectedTool != 'cursor') return;
@@ -354,10 +356,11 @@ function TimelineEditor(props: {
 		var sx = tx - ix;
 		var sy = ty - iy;
 
-		setSelectionPosX(ix + Math.min(0, sx));
-		setSelectionPosY(iy + Math.min(0, sy));
-		setSelectionWidth(Math.abs(sx));
-		setSelectionHeight(Math.abs(sy));
+		var x1 = ix + Math.min(0, sx);
+		var y1 = iy + Math.min(0, sy);
+		var x2 = x1 + Math.abs(sx);
+		var y2 = y1 + Math.abs(sy);
+		selectionPosAPI.start({ x1, y1, x2, y2 });
 	}, { domTarget: selectionRef, eventOptions: { passive: false } });
 
 	return <>
@@ -408,8 +411,11 @@ function TimelineEditor(props: {
 				<div
 					id='selection'
 					className='posabs dispinbl'
-					style={{ left: selectionPosX - 6, top: selectionPosY - 6 }}
-					children={<Selection width={selectionWidth + 12} height={selectionHeight + 12} />}
+					style={{ left: selectionPos.x1.toJSON() - 6, top: selectionPos.y1.toJSON() - 6 }}
+					children={<Selection
+						width={selectionPos.x2.toJSON() - selectionPos.x1.toJSON() + 12}
+						height={selectionPos.y2.toJSON() - selectionPos.y1.toJSON() + 12}
+					/>}
 				/>
 			</div>
 		</div>
@@ -464,7 +470,7 @@ export default function Index() {
 			if (!e.ctrlKey && !e.altKey) return;
 			e.preventDefault();
 
-			var newZoom = Math.min(4, Math.max(0, timelineZoom + (-e.deltaY / 1000)));
+			var newZoom = Math.min(1, Math.max(0, timelineZoom + (-e.deltaY / 1000)));
 			zoomAroundPoint(newZoom, mouseX);
 		}, { passive: false });
 	}, []);
