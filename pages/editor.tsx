@@ -345,7 +345,7 @@ function TimelineEditor(props: {
 		config: { mass: 0.5, tension: 500, friction: 20 },
 	}));
 	var selectionRef = useRef(null);
-	useDrag(({ xy: [x, y], initial: [bx, by], last, movement: [ox, oy] }) => {
+	useDrag(({ xy: [x, y], initial: [bx, by], first, last, movement: [ox, oy] }) => {
 		if (props.selectedTool != 'cursor') return;
 		// var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
 		var minDistance = 5; // minimal drag distance in pixels to register selection
@@ -373,7 +373,7 @@ function TimelineEditor(props: {
 			if (distanceTraveled <= minDistance) setSelectionHidden(true);
 		}
 
-		selectionPosAPI.start({ x1, y1, x2, y2 });
+		selectionPosAPI[first && selectionHidden ? 'set' : 'start']({ x1, y1, x2, y2 });
 	}, { domTarget: selectionRef, eventOptions: { passive: false } });
 
 	return <>
