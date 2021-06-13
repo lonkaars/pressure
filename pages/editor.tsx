@@ -23,6 +23,7 @@ import SkipPreviousRoundedIcon from '@material-ui/icons/SkipPreviousRounded';
 import { mdiCursorDefault } from '@mdi/js';
 import { PressureIcon, SlideKeyframe } from '../components/icons';
 import PlaySkipIconAni from '../components/play-skip';
+import Selection from '../components/selection';
 
 var keyframeInAnimations: { [key: string]: { x: number; y: number; }; } = {};
 
@@ -334,6 +335,31 @@ function TimelineEditor(props: {
 		});
 	}, []);
 
+	var [selectionPosX, setSelectionPosX] = useState(0);
+	var [selectionPosY, setSelectionPosY] = useState(0);
+	var [selectionWidth, setSelectionWidth] = useState(0);
+	var [selectionHeight, setSelectionHeight] = useState(0);
+
+	var selectionRef = useRef(null);
+	useDrag(({ xy: [x, y], initial: [bx, by] }) => {
+		if (props.selectedTool != 'cursor') return;
+		// var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
+		var timelineInner = document.querySelector('.timeline .timelineInner');
+		var timelineRects = timelineInner.getBoundingClientRect();
+		var tx = x - timelineRects.x + timelineInner.scrollLeft;
+		var ty = y - timelineRects.y;
+		var ix = bx - timelineRects.x + timelineInner.scrollLeft;
+		var iy = by - timelineRects.y;
+
+		var sx = tx - ix;
+		var sy = ty - iy;
+
+		setSelectionPosX(ix + Math.min(0, sx));
+		setSelectionPosY(iy + Math.min(0, sy));
+		setSelectionWidth(Math.abs(sx));
+		setSelectionHeight(Math.abs(sy));
+	}, { domTarget: selectionRef, eventOptions: { passive: false } });
+
 	return <>
 		<canvas
 			className='timeScale posabs a0'
@@ -376,8 +402,16 @@ function TimelineEditor(props: {
 			<div
 				className='keyframes'
 				style={{ '--total-frames': props.player?.timeline?.framecount.toString() } as CSSProperties}
-				children={workingTimeline.map((slide: anySlide) => <TimelineKeyframe slide={slide} />)}
-			/>
+			>
+				<div className='selectionarea posabs v0' ref={selectionRef} />
+				{workingTimeline.map((slide: anySlide) => <TimelineKeyframe slide={slide} />)}
+				<div
+					id='selection'
+					className='posabs dispinbl'
+					style={{ left: selectionPosX - 6, top: selectionPosY - 6 }}
+					children={<Selection width={selectionWidth + 12} height={selectionHeight + 12} />}
+				/>
+			</div>
 		</div>
 		<div className={'ghostArea posabs a0' + (props.selectedTool != 'cursor' ? ' active' : '')}>
 			<animated.div

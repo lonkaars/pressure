@@ -68,7 +68,7 @@ export default function Selection(props: {
 	left?: slideTypes;
 	right?: slideTypes;
 }) {
-	var small = props.width < 24 || props.height < 24;
+	var small = props.width < 24 || props.height < 24 || !props.left || !props.right;
 	return <div
 		className='selection'
 		style={{
