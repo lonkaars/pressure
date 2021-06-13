@@ -32,6 +32,7 @@
 
 .selection.active .background { opacity: .12; }
 .selection .background {
+	border-radius: 6px;
 	background-color: var(--selection-color);
 	opacity: 0;
 	transition: opacity 200ms;
