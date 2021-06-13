@@ -1,7 +1,9 @@
 .selection {
 	--selection-color: var(--gruble);
 	--corner-size: 12px;
-	filter: drop-shadow(0px 0px 10px var(--selection-color));
+	filter: drop-shadow(0px 0px 16px var(--selection-color));
+	transition-duration: 100ms;
+	transition-property: transform, opacity;
 }
 
 .selection .bar.top,
@@ -26,4 +28,16 @@
 
 .selection .corner {
 	fill: var(--selection-color);
+}
+
+.selection.active .background { opacity: .12; }
+.selection .background {
+	background-color: var(--selection-color);
+	opacity: 0;
+	transition: opacity 200ms;
+}
+
+.selection.hidden {
+	transform: scale(0.5);
+	opacity: 0;
 }

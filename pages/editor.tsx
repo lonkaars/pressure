@@ -335,6 +335,8 @@ function TimelineEditor(props: {
 		});
 	}, []);
 
+	var [selectionActive, setSelectionActive] = useState(false);
+	var [selectionHidden, setSelectionHidden] = useState(true);
 	var [selectionPos, selectionPosAPI] = useSpring(() => ({
 		x1: 0,
 		y1: 0,
@@ -343,9 +345,13 @@ function TimelineEditor(props: {
 		config: { mass: 0.5, tension: 500, friction: 20 },
 	}));
 	var selectionRef = useRef(null);
-	useDrag(({ xy: [x, y], initial: [bx, by] }) => {
+	useDrag(({ xy: [x, y], initial: [bx, by], last, movement: [ox, oy] }) => {
 		if (props.selectedTool != 'cursor') return;
 		// var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
+		var minDistance = 5; // minimal drag distance in pixels to register selection
+		var distanceTraveled = Math.sqrt(ox ** 2 + oy ** 2);
+		if (selectionHidden && distanceTraveled > minDistance) setSelectionHidden(false);
+
 		var timelineInner = document.querySelector('.timeline .timelineInner');
 		var timelineRects = timelineInner.getBoundingClientRect();
 		var tx = x - timelineRects.x + timelineInner.scrollLeft;
@@ -360,6 +366,13 @@ function TimelineEditor(props: {
 		var y1 = iy + Math.min(0, sy);
 		var x2 = x1 + Math.abs(sx);
 		var y2 = y1 + Math.abs(sy);
+
+		if (!selectionActive) setSelectionActive(true);
+		if (last) {
+			setSelectionActive(false);
+			if (distanceTraveled <= minDistance) setSelectionHidden(true);
+		}
+
 		selectionPosAPI.start({ x1, y1, x2, y2 });
 	}, { domTarget: selectionRef, eventOptions: { passive: false } });
 
@@ -413,6 +426,7 @@ function TimelineEditor(props: {
 					className='posabs dispinbl'
 					style={{ left: selectionPos.x1.toJSON() - 6, top: selectionPos.y1.toJSON() - 6 }}
 					children={<Selection
+						className={'' + (selectionActive ? 'active ' : '') + (selectionHidden ? 'hidden ' : '')}
 						width={selectionPos.x2.toJSON() - selectionPos.x1.toJSON() + 12}
 						height={selectionPos.y2.toJSON() - selectionPos.y1.toJSON() + 12}
 					/>}

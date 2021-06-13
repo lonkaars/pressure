@@ -67,16 +67,18 @@ export default function Selection(props: {
 	height: number;
 	left?: slideTypes;
 	right?: slideTypes;
+	className?: string;
 }) {
 	var small = props.width < 24 || props.height < 24 || !props.left || !props.right;
 	return <div
-		className='selection'
+		className={'selection ' + props.className}
 		style={{
 			width: props.width,
 			height: props.height,
 			'--corner-size': small ? '6px' : '12px',
 		} as CSSProperties}
 	>
+		<div className='background posabs dispinbl a0' />
 		<div className='posabs dispinbl t0 bar top' />
 		<div className='posabs dispinbl r0 bar right' />
 		<div className='posabs dispinbl b0 bar bottom' />

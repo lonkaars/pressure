@@ -169,9 +169,8 @@
 	width: calc(var(--zoom) * var(--total-frames) * 1px);
 }
 
-.appGrid .timeline .keyframes .selectionarea {
-	width: calc(var(--zoom) * var(--total-frames) * 1px);
-}
+.appGrid .timeline .keyframes .selectionarea { width: calc(var(--zoom) * var(--total-frames) * 1px); }
+#selection { pointer-events: none; }
 
 .appGrid .timeline .ghostArea {
 	pointer-events: none;
