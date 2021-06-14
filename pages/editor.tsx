@@ -216,6 +216,7 @@ function TimelineEditor(props: {
 
 	var workingTimeline = useWorkingTimeline((st: any) => st.timeline);
 	var setWorkingTimeline = useWorkingTimeline((st: any) => st.setTimeline);
+	var refreshWorkingTimline = useWorkingTimeline((st: any) => st.refreshLiveTimeline);
 
 	var setFrame = useFrame((st: any) => st.setFrame);
 
@@ -406,7 +407,7 @@ function TimelineEditor(props: {
 			if (distanceTraveled <= minDistance) setSelectionHidden(true);
 			else {
 				var endingFrame = startingFrame + frameWidth;
-				var keyframesInSelection = workingTimeline.filter((slide: anySlide) =>
+				var keyframesInSelection = player.timeline.slides.filter((slide: anySlide) =>
 					slide.frame >= Math.floor(startingFrame) && slide.frame <= Math.ceil(endingFrame)
 				);
 
@@ -451,6 +452,7 @@ function TimelineEditor(props: {
 					x: frame,
 					y: event.clientY - window.innerHeight + 210,
 				};
+				refreshWorkingTimline();
 			}}
 		/>
 		<div className='labels' children={timelineLabels} />
