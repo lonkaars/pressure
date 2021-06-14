@@ -108,6 +108,8 @@
 	grid-row: 3;
 	background-color: var(--c100);
 	overflow: hidden;
+
+	--debug-hitbox-opacity: 0;
 }
 
 .appGrid .viewer {
@@ -169,7 +171,10 @@
 	width: calc(var(--zoom) * var(--total-frames) * 1px);
 }
 
-.appGrid .timeline .keyframes .selectionarea { width: calc(var(--zoom) * var(--total-frames) * 1px); }
+.appGrid .timeline .keyframes .selectionarea {
+	width: calc(var(--zoom) * var(--total-frames) * 1px);
+	background-color: rgba(0, 0, 255, var(--debug-hitbox-opacity));
+}
 #selection { pointer-events: none; }
 
 .appGrid .timeline .ghostArea {
@@ -193,6 +198,9 @@
 	border-radius: 2px 2px 0 0;
 	overflow: visible;
 	left: calc(var(--zoom) * (var(--frame)) * 1px);
+
+	pointer-events: none;
+	background-color: rgba(255, 0, 0, var(--debug-hitbox-opacity));
 }
 
 .appGrid .timeline .keyframes .frame:nth-child(30n) .line {
@@ -240,7 +248,10 @@
 	opacity: .0;
 }
 
-.timeline .scrubberJumpArea { cursor: grab; }
+.timeline .scrubberJumpArea {
+	cursor: grab;
+	background-color: rgba(0, 255, 0, var(--debug-hitbox-opacity));
+}
 .timeline .scrubberJumpArea:active { cursor: grabbing; }
 
 .timeline .scrubber .head { fill: var(--blue); }

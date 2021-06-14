@@ -4,6 +4,9 @@
 	line-height: 0;
 	width: 24px;
 	height: 24px;
+
+	background-color: rgba(255, 0, 255, var(--debug-hitbox-opacity));
+	pointer-events: initial;
 }
 
 .appGrid .timeline .keyframes .frame.current .keyframeWrapper { color: var(--piss); }
