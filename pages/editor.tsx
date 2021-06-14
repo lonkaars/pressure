@@ -337,6 +337,8 @@ function TimelineEditor(props: {
 
 	var [selectionActive, setSelectionActive] = useState(false);
 	var [selectionHidden, setSelectionHidden] = useState(true);
+	var [selectionLeftType, setSelectionLeftType] = useState(null);
+	var [selectionRightType, setSelectionRightType] = useState(null);
 	var [selectionPos, selectionPosAPI] = useSpring(() => ({
 		x1: 0,
 		y1: 0,
@@ -351,7 +353,10 @@ function TimelineEditor(props: {
 		if (props.selectedTool != 'cursor') return;
 		var minDistance = 5; // minimal drag distance in pixels to register selection
 		var distanceTraveled = Math.sqrt(ox ** 2 + oy ** 2);
+
 		if (selectionHidden && distanceTraveled > minDistance) setSelectionHidden(false);
+		if (selectionLeftType) setSelectionLeftType(null);
+		if (selectionRightType) setSelectionRightType(null);
 
 		var timelineInner = document.querySelector('.timeline .timelineInner');
 		var timelineRects = timelineInner.getBoundingClientRect();
@@ -372,13 +377,30 @@ function TimelineEditor(props: {
 		var frameWidth = Math.abs(sx) / zoom;
 		var startingFrame = x1 / zoom;
 
+		selectionPosAPI[first && selectionHidden ? 'set' : 'start']({ x1, y1, x2, y2, startingFrame, frameWidth });
 		if (!selectionActive) setSelectionActive(true);
 		if (last) {
 			setSelectionActive(false);
 			if (distanceTraveled <= minDistance) setSelectionHidden(true);
-		}
+			else {
+				var endingFrame = startingFrame + frameWidth;
+				var keyframesInSelection = workingTimeline.filter((slide: anySlide) =>
+					slide.frame >= Math.floor(startingFrame) && slide.frame <= Math.ceil(endingFrame)
+				);
 
-		selectionPosAPI[first && selectionHidden ? 'set' : 'start']({ x1, y1, x2, y2, startingFrame, frameWidth });
+				if (keyframesInSelection.length < 1) return;
+				var left = keyframesInSelection[0];
+				var right = keyframesInSelection[keyframesInSelection.length - 1];
+				selectionPosAPI.start({
+					y1: 50,
+					y2: 62,
+					startingFrame: left.frame,
+					frameWidth: right.frame - left.frame,
+				});
+				setSelectionLeftType(left.type);
+				setSelectionRightType(right.type);
+			}
+		}
 	}, { domTarget: selectionRef, eventOptions: { passive: false } });
 
 	return <>
@@ -438,6 +460,8 @@ function TimelineEditor(props: {
 						width={selectionPos.x2.toJSON() - selectionPos.x1.toJSON() + 12}
 						frameWidth={selectionPos.frameWidth.toJSON()}
 						height={selectionPos.y2.toJSON() - selectionPos.y1.toJSON() + 12}
+						left={selectionLeftType}
+						right={selectionRightType}
 					/>}
 				/>
 			</div>
