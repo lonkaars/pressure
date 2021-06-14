@@ -67,6 +67,20 @@ var useFrame = create(set => ({
 	setFrame: (newFrame: number) => set(() => ({ currentFrame: newFrame })),
 }));
 
+function calculateSelectionOffsets(left: slideTypes, right: slideTypes) {
+	var offsets = {
+		default: { left: -6, right: 6 },
+		loop: { left: -2, right: 1 },
+		delay: { left: -6, right: 6 },
+		speedChange: { left: -6, right: 6 },
+	};
+
+	var offsetLeft = offsets[left].left;
+	var offsetWidth = offsets[right].right - offsetLeft;
+
+	return [offsetLeft, offsetWidth];
+}
+
 function TimelineKeyframe(props: {
 	slide: slide;
 }) {
@@ -344,8 +358,11 @@ function TimelineEditor(props: {
 		y1: 0,
 		x2: 0,
 		y2: 0,
+		center: 0,
 		startingFrame: 0,
 		frameWidth: 0,
+		startOffset: 0,
+		widthOffset: 0,
 		config: { mass: 0.5, tension: 500, friction: 20 },
 	}));
 	var selectionRef = useRef(null);
@@ -357,6 +374,11 @@ function TimelineEditor(props: {
 		if (selectionHidden && distanceTraveled > minDistance) setSelectionHidden(false);
 		if (selectionLeftType) setSelectionLeftType(null);
 		if (selectionRightType) setSelectionRightType(null);
+		selectionPosAPI.start({
+			center: 0,
+			startOffset: 0,
+			widthOffset: 0,
+		});
 
 		var timelineInner = document.querySelector('.timeline .timelineInner');
 		var timelineRects = timelineInner.getBoundingClientRect();
@@ -388,14 +410,24 @@ function TimelineEditor(props: {
 					slide.frame >= Math.floor(startingFrame) && slide.frame <= Math.ceil(endingFrame)
 				);
 
-				if (keyframesInSelection.length < 1) return;
+				if (keyframesInSelection.length < 1) {
+					setSelectionHidden(true);
+					return;
+				}
+
 				var left = keyframesInSelection[0];
 				var right = keyframesInSelection[keyframesInSelection.length - 1];
+
+				var [startOffset, widthOffset] = calculateSelectionOffsets(left.type, right.type);
+
 				selectionPosAPI.start({
 					y1: 50,
 					y2: 62,
 					startingFrame: left.frame,
 					frameWidth: right.frame - left.frame,
+					center: 0.5,
+					startOffset,
+					widthOffset,
 				});
 				setSelectionLeftType(left.type);
 				setSelectionRightType(right.type);
@@ -452,7 +484,8 @@ function TimelineEditor(props: {
 					id='selection'
 					className='posabs dispinbl'
 					style={{
-						left: `calc(var(--zoom) * ${selectionPos.startingFrame.toJSON()} * 1px - 6px)`,
+						left: `calc(var(--zoom) * ${selectionPos.startingFrame.toJSON()
+							+ selectionPos.center.toJSON()} * 1px - 6px + ${selectionPos.startOffset.toJSON()} * 1px)`,
 						top: selectionPos.y1.toJSON() - 6,
 					}}
 					children={<Selection
@@ -462,6 +495,7 @@ function TimelineEditor(props: {
 						height={selectionPos.y2.toJSON() - selectionPos.y1.toJSON() + 12}
 						left={selectionLeftType}
 						right={selectionRightType}
+						widthOffset={selectionPos.widthOffset.toJSON()}
 					/>}
 				/>
 			</div>

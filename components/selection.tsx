@@ -69,12 +69,13 @@ export default function Selection(props: {
 	left?: slideTypes;
 	right?: slideTypes;
 	className?: string;
+	widthOffset?: number;
 }) {
-	var small = props.width < 24 || props.height < 24 || !props.left || !props.right;
+	var small = (props.width + props.widthOffset) < 24 || props.height < 24 || !props.left || !props.right;
 	return <div
 		className={'selection ' + props.className}
 		style={{
-			width: `calc(var(--zoom) * ${props.frameWidth} * 1px + 12px)`,
+			width: `calc(var(--zoom) * ${props.frameWidth} * 1px + 12px + ${props.widthOffset} * 1px)`,
 			height: props.height,
 			'--corner-size': small ? '6px' : '12px',
 		} as CSSProperties}
