@@ -342,12 +342,13 @@ function TimelineEditor(props: {
 		y1: 0,
 		x2: 0,
 		y2: 0,
+		startingFrame: 0,
+		frameWidth: 0,
 		config: { mass: 0.5, tension: 500, friction: 20 },
 	}));
 	var selectionRef = useRef(null);
 	useDrag(({ xy: [x, y], initial: [bx, by], first, last, movement: [ox, oy] }) => {
 		if (props.selectedTool != 'cursor') return;
-		// var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
 		var minDistance = 5; // minimal drag distance in pixels to register selection
 		var distanceTraveled = Math.sqrt(ox ** 2 + oy ** 2);
 		if (selectionHidden && distanceTraveled > minDistance) setSelectionHidden(false);
@@ -367,13 +368,17 @@ function TimelineEditor(props: {
 		var x2 = x1 + Math.abs(sx);
 		var y2 = y1 + Math.abs(sy);
 
+		var zoom = zoomToPx(timelineZoom);
+		var frameWidth = Math.abs(sx) / zoom;
+		var startingFrame = x1 / zoom;
+
 		if (!selectionActive) setSelectionActive(true);
 		if (last) {
 			setSelectionActive(false);
 			if (distanceTraveled <= minDistance) setSelectionHidden(true);
 		}
 
-		selectionPosAPI[first && selectionHidden ? 'set' : 'start']({ x1, y1, x2, y2 });
+		selectionPosAPI[first && selectionHidden ? 'set' : 'start']({ x1, y1, x2, y2, startingFrame, frameWidth });
 	}, { domTarget: selectionRef, eventOptions: { passive: false } });
 
 	return <>
@@ -424,10 +429,14 @@ function TimelineEditor(props: {
 				<div
 					id='selection'
 					className='posabs dispinbl'
-					style={{ left: selectionPos.x1.toJSON() - 6, top: selectionPos.y1.toJSON() - 6 }}
+					style={{
+						left: `calc(var(--zoom) * ${selectionPos.startingFrame.toJSON()} * 1px - 6px)`,
+						top: selectionPos.y1.toJSON() - 6,
+					}}
 					children={<Selection
 						className={'' + (selectionActive ? 'active ' : '') + (selectionHidden ? 'hidden ' : '')}
 						width={selectionPos.x2.toJSON() - selectionPos.x1.toJSON() + 12}
+						frameWidth={selectionPos.frameWidth.toJSON()}
 						height={selectionPos.y2.toJSON() - selectionPos.y1.toJSON() + 12}
 					/>}
 				/>

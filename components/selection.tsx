@@ -65,6 +65,7 @@ function Corner(props: {
 export default function Selection(props: {
 	width: number;
 	height: number;
+	frameWidth: number;
 	left?: slideTypes;
 	right?: slideTypes;
 	className?: string;
@@ -73,7 +74,7 @@ export default function Selection(props: {
 	return <div
 		className={'selection ' + props.className}
 		style={{
-			width: props.width,
+			width: `calc(var(--zoom) * ${props.frameWidth} * 1px + 12px)`,
 			height: props.height,
 			'--corner-size': small ? '6px' : '12px',
 		} as CSSProperties}
