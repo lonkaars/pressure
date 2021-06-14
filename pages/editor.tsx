@@ -445,7 +445,7 @@ function TimelineEditor(props: {
 				var offset = -4; // keyframe offset
 				var x = event.clientX - 240 + offset;
 				var frame = getFrameAtOffset(x, timelineZoom) - 0.5;
-				var slide = new toolToSlide[props.selectedTool](frame);
+				var slide = new toolToSlide[props.selectedTool](Math.round(frame));
 				workingTimeline.push(slide);
 				setWorkingTimeline(workingTimeline);
 				keyframeInAnimations[slide.id] = {
