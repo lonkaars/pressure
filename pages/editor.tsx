@@ -26,6 +26,7 @@ import PlaySkipIconAni from '../components/play-skip';
 import Selection from '../components/selection';
 
 var keyframeInAnimations: { [key: string]: { x: number; y: number; }; } = {};
+var slideAPIs: { [key: string]: any; }[] = [];
 
 var player = new TimedVideoPlayer();
 var useWorkingTimeline = create((set, get) => ({
@@ -107,6 +108,8 @@ function TimelineKeyframe(props: {
 		y: 44,
 		config: { mass: 0.5, tension: 500, friction: 20 },
 	}));
+
+	slideAPIs[props.slide.id] = api;
 
 	useEffect(() => {
 		setFirstRender(false);
@@ -318,15 +321,14 @@ function TimelineEditor(props: {
 		window.addEventListener('resize', onresize);
 	}, []);
 
+	// timeline scrubber
 	var scrubberDragRef = useRef(null);
-
 	var [scrubberPos, scrubberSpring] = useSpring(
 		() => ({
 			frame: 0,
 			config: { mass: 0.5, tension: 500, friction: 20 },
 		}),
 	);
-
 	useDrag(({ xy: [x, _y] }) => {
 		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom)) - 1);
 		setFrame(frame);
@@ -337,6 +339,7 @@ function TimelineEditor(props: {
 		}
 	}, { domTarget: scrubberDragRef, eventOptions: { passive: false } });
 
+	// slide placement ghost
 	var [ghost, ghostApi] = useSpring(() => ({
 		x: 0,
 		y: 0,
@@ -351,6 +354,7 @@ function TimelineEditor(props: {
 		});
 	}, []);
 
+	// selection
 	var [selectionActive, setSelectionActive] = useState(false);
 	var [selectionPlaced, setSelectionPlaced] = useState(false);
 	var [selectionHidden, setSelectionHidden] = useState(true);
@@ -368,7 +372,45 @@ function TimelineEditor(props: {
 		widthOffset: 0,
 		config: { mass: 0.5, tension: 500, friction: 20 },
 	}));
+	var selectionAreaRef = useRef(null);
 	var selectionRef = useRef(null);
+	var [selection, setSelection] = useState([]);
+	useDrag(({ movement: [x, _y], last }) => {
+		if (!selectionPlaced) return;
+		if (selection.length < 1) return;
+		var frameOffset = Math.round(x / zoomToPx(timelineZoom));
+		selection.forEach((slide: anySlide) => {
+			var api = slideAPIs[slide.id];
+			switch (slide.type as slideTypes | 'loopBegin') {
+				case 'loopBegin': {
+					if (!api) break;
+					var loop = workingTimeline.find((s: anySlide) => s.id == slide.id) as loopSlide;
+					var begin = loop.beginFrame + frameOffset;
+					api.start({ begin });
+
+					if (last) {
+						loop.beginFrame = begin;
+						refreshWorkingTimline();
+					}
+
+					break;
+				}
+				default: {
+					if (!api) break;
+					var frame = slide.frame + frameOffset;
+					api.start({ frame });
+
+					if (last) {
+						workingTimeline.find((s: anySlide) => s.id == slide.id).frame = frame;
+						refreshWorkingTimline();
+					}
+				}
+			}
+			if (last) return;
+			var selectionFrame = selection[0].frame;
+			selectionPosAPI.start({ startingFrame: selectionFrame + frameOffset });
+		});
+	}, { domTarget: selectionRef, eventOptions: { passive: false } });
 	useDrag(({ xy: [x, y], initial: [bx, by], first, last, movement: [ox, oy] }) => {
 		if (props.selectedTool != 'cursor') return;
 		var minDistance = 5; // minimal drag distance in pixels to register selection
@@ -383,6 +425,8 @@ function TimelineEditor(props: {
 			startOffset: 0,
 			widthOffset: 0,
 		});
+		selection = [];
+		setSelection(selection);
 
 		var timelineInner = document.querySelector('.timeline .timelineInner');
 		var timelineRects = timelineInner.getBoundingClientRect();
@@ -416,9 +460,11 @@ function TimelineEditor(props: {
 					if (slide.type != 'loop') continue;
 					var beginFrame = (slide as loopSlide).beginFrame;
 					expandedTimeline.splice(i, 0, new loopBeginSlide(beginFrame));
+					expandedTimeline[i].id = expandedTimeline[i + 1].id;
 					i++;
 				}
-				var keyframesInSelection = expandedTimeline.filter((slide: anySlide) =>
+
+				var keyframesInSelection = expandedTimeline.filter(slide =>
 					slide.frame >= Math.floor(startingFrame) && slide.frame <= Math.ceil(endingFrame)
 				);
 
@@ -426,6 +472,9 @@ function TimelineEditor(props: {
 					setSelectionHidden(true);
 					return;
 				}
+
+				selection = keyframesInSelection;
+				setSelection(selection);
 
 				var left = keyframesInSelection[0];
 				var right = keyframesInSelection[keyframesInSelection.length - 1];
@@ -446,7 +495,7 @@ function TimelineEditor(props: {
 				setSelectionPlaced(true);
 			}
 		}
-	}, { domTarget: selectionRef, eventOptions: { passive: false } });
+	}, { domTarget: selectionAreaRef, eventOptions: { passive: false } });
 
 	return <>
 		<canvas
@@ -492,15 +541,17 @@ function TimelineEditor(props: {
 				className='keyframes'
 				style={{ '--total-frames': props.player?.timeline?.framecount.toString() } as CSSProperties}
 			>
-				<div className='selectionarea posabs v0' ref={selectionRef} />
+				<div className='selectionarea posabs v0' ref={selectionAreaRef} />
 				{workingTimeline.map((slide: anySlide) => <TimelineKeyframe slide={slide} />)}
 				<div
 					id='selection'
 					className={'posabs dispinbl ' + (selectionPlaced ? 'placed ' : '')}
+					ref={selectionRef}
 					style={{
 						left: `calc(var(--zoom) * ${selectionPos.startingFrame.toJSON()
 							+ selectionPos.center.toJSON()} * 1px - 6px + ${selectionPos.startOffset.toJSON()} * 1px)`,
 						top: selectionPos.y1.toJSON() - 6,
+						pointerEvents: selectionPlaced ? 'all' : 'none',
 					}}
 					children={<Selection
 						className={'' + (selectionActive ? 'active ' : '') + (selectionHidden ? 'hidden ' : '')}

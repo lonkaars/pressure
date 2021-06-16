@@ -1,6 +1,7 @@
 import { v4 as uuid } from 'uuid';
 
 export type slideTypes = 'default' | 'delay' | 'speedChange' | 'loop';
+export var slideTypes = ['default', 'delay', 'speedChange', 'loop'];
 export type anySlide = slide | delaySlide | speedChangeSlide | loopSlide;
 
 export class slide {
