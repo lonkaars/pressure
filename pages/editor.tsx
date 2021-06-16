@@ -2,7 +2,7 @@ import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import { animated, useSpring } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 import create from 'zustand';
-import { anySlide, loopSlide, slide, slideTypes, toolToSlide } from '../timeline';
+import { anySlide, loopBeginSlide, loopSlide, slide, slideTypes, toolToSlide } from '../timeline';
 import { TimedVideoPlayer } from './present';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -70,7 +70,8 @@ var useFrame = create(set => ({
 function calculateSelectionOffsets(left: slideTypes, right: slideTypes) {
 	var offsets = {
 		default: { left: -6, right: 6 },
-		loop: { left: -2, right: 1 },
+		loop: { left: -3, right: 1 },
+		loopBegin: { left: -1, right: 3 },
 		delay: { left: -6, right: 6 },
 		speedChange: { left: -6, right: 6 },
 	};
@@ -409,7 +410,15 @@ function TimelineEditor(props: {
 			if (distanceTraveled <= minDistance) setSelectionHidden(true);
 			else {
 				var endingFrame = startingFrame + frameWidth;
-				var keyframesInSelection = player.timeline.slides.filter((slide: anySlide) =>
+				var expandedTimeline = new Array(...player.timeline.slides);
+				for (let i = 0; i < expandedTimeline.length; i++) {
+					var slide = expandedTimeline[i];
+					if (slide.type != 'loop') continue;
+					var beginFrame = (slide as loopSlide).beginFrame;
+					expandedTimeline.splice(i, 0, new loopBeginSlide(beginFrame));
+					i++;
+				}
+				var keyframesInSelection = expandedTimeline.filter((slide: anySlide) =>
 					slide.frame >= Math.floor(startingFrame) && slide.frame <= Math.ceil(endingFrame)
 				);
 

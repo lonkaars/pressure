@@ -5,6 +5,7 @@ type cornerTypes = 'round' | 'diamond' | 'square' | 'square-s';
 var slideTypeToCornerType = {
 	default: 'diamond',
 	loop: 'square',
+	loopBegin: 'square',
 	speedChange: 'square',
 	delay: 'round',
 };

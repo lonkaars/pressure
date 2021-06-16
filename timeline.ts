@@ -29,6 +29,10 @@ export class loopSlide extends slide {
 	playbackType: 'PingPong' | 'Normal' = 'Normal';
 }
 
+export class loopBeginSlide extends slide {
+	type = 'loopBegin' as slideTypes;
+}
+
 export var toolToSlide = {
 	default: slide,
 	delay: delaySlide,
