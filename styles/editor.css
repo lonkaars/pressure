@@ -175,7 +175,12 @@
 	width: calc(var(--zoom) * var(--total-frames) * 1px);
 	background-color: rgba(0, 0, 255, var(--debug-hitbox-opacity));
 }
-#selection { pointer-events: none; }
+#selection {
+	cursor: grab;
+}
+#selection:active {
+	cursor: grabbing;
+}
 
 .appGrid .timeline .ghostArea {
 	pointer-events: none;

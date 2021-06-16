@@ -7,11 +7,21 @@
 }
 
 .selection .bar.top,
-.selection .bar.bottom {
-	height: 2px;
-
+.selection .bar.bottom,
+.selection .background.center {
 	left: var(--corner-size);
 	right: var(--corner-size);
+}
+
+.selection .bar.top,
+.selection .bar.bottom {
+	height: 2px;
+}
+
+.selection .background.left,
+.selection .background.right {
+	top: calc(var(--corner-size) - 2px);
+	bottom: calc(var(--corner-size) - 2px);
 }
 
 .selection .bar.left,
@@ -22,6 +32,7 @@
 	bottom: var(--corner-size);
 }
 
+.selection div.fill,
 .selection .bar {
 	background-color: var(--selection-color);
 }
@@ -30,12 +41,20 @@
 	fill: var(--selection-color);
 }
 
-.selection.active .background { opacity: .12; }
-.selection .background {
-	border-radius: 6px;
-	background-color: var(--selection-color);
+.selection .fill {
 	opacity: 0;
-	transition: opacity 200ms;
+	transition-property: opacity;
+	transition-duration: 200ms;
+}
+
+.selection .background.left,
+.selection .background.right {
+	width: var(--corner-size);
+}
+
+.selection:hover .fill,
+.selection.active .fill {
+	opacity: .15;
 }
 
 .selection.hidden {
