@@ -175,10 +175,10 @@
 	width: calc(var(--zoom) * var(--total-frames) * 1px);
 	background-color: rgba(0, 0, 255, var(--debug-hitbox-opacity));
 }
-#selection {
+#selection.placed {
 	cursor: grab;
 }
-#selection:active {
+#selection.placed:active {
 	cursor: grabbing;
 }
 

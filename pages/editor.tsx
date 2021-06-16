@@ -351,6 +351,7 @@ function TimelineEditor(props: {
 	}, []);
 
 	var [selectionActive, setSelectionActive] = useState(false);
+	var [selectionPlaced, setSelectionPlaced] = useState(false);
 	var [selectionHidden, setSelectionHidden] = useState(true);
 	var [selectionLeftType, setSelectionLeftType] = useState(null);
 	var [selectionRightType, setSelectionRightType] = useState(null);
@@ -375,6 +376,7 @@ function TimelineEditor(props: {
 		if (selectionHidden && distanceTraveled > minDistance) setSelectionHidden(false);
 		if (selectionLeftType) setSelectionLeftType(null);
 		if (selectionRightType) setSelectionRightType(null);
+		if (selectionPlaced) setSelectionPlaced(false);
 		selectionPosAPI.start({
 			center: 0,
 			startOffset: 0,
@@ -432,6 +434,7 @@ function TimelineEditor(props: {
 				});
 				setSelectionLeftType(left.type);
 				setSelectionRightType(right.type);
+				setSelectionPlaced(true);
 			}
 		}
 	}, { domTarget: selectionRef, eventOptions: { passive: false } });
@@ -484,7 +487,7 @@ function TimelineEditor(props: {
 				{workingTimeline.map((slide: anySlide) => <TimelineKeyframe slide={slide} />)}
 				<div
 					id='selection'
-					className='posabs dispinbl'
+					className={'posabs dispinbl ' + (selectionPlaced ? 'placed ' : '')}
 					style={{
 						left: `calc(var(--zoom) * ${selectionPos.startingFrame.toJSON()
 							+ selectionPos.center.toJSON()} * 1px - 6px + ${selectionPos.startOffset.toJSON()} * 1px)`,
