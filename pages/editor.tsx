@@ -615,6 +615,7 @@ function TimelineEditor(props: {
 	</>;
 }
 
+// https://material.io/design/navigation/navigation-transitions.html#peer-transitions
 function DefaultSettings() {
 	var setPlaying = usePlaying((st: any) => st.setPlaying);
 	var setWorkingTimeline = useWorkingTimeline((st: any) => st.setTimeline);

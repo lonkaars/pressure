@@ -41,6 +41,7 @@
 	display: block;
 }
 
+.MuiSwitch-root { margin: -6px 0px; }
 .settings .inner .section > * { margin-bottom: 8px; }
 .settings .inner .scroll {
 	top: 32px;
@@ -54,10 +55,17 @@
 	background-color: var(--piss);
 	color: var(--bg);
 }
-.settings .inner .section .settings {
-	display: grid;
-	grid-auto-flow: column;
+.settings .inner .section .body {
+	font-size: .875em;
+	font-weight: 500;
 }
+
+.MuiSwitch-root .MuiSwitch-thumb { color: var(--c700); }
+.MuiSwitch-root .MuiSwitch-track { background-color: var(--c700); }
+.MuiSwitch-root .Mui-checked .MuiSwitch-thumb { color: var(--gruble); }
+.MuiSwitch-root .Mui-checked + .MuiSwitch-track { background-color: var(--gruble) !important; }
+.MuiSwitch-root .Mui-checked { color: var(--gruble) !important; }
+.MuiSwitch-root .Mui-checked:hover { background-color: rgba(93, 233, 174, 0.04) !important; }
 
 .settings ::-webkit-scrollbar-track,
 .settings ::-webkit-scrollbar-track-piece,
