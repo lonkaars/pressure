@@ -14,6 +14,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import Fab from '@material-ui/core/Fab';
 import Slider from '@material-ui/core/Slider';
+import Switch from '@material-ui/core/Switch';
 import Toolbar from '@material-ui/core/Toolbar';
 import ZoomInRoundedIcon from '@material-ui/icons/ZoomInRounded';
 import ZoomOutRoundedIcon from '@material-ui/icons/ZoomOutRounded';
@@ -73,6 +74,11 @@ var useTimelineLabels = create(set => ({
 var useFrame = create(set => ({
 	currentFrame: 0,
 	setFrame: (newFrame: number) => set(() => ({ currentFrame: newFrame })),
+}));
+
+var usePlaying = create(set => ({
+	playing: false,
+	setPlaying: (playing: boolean) => set(() => ({ playing })),
 }));
 
 function calculateSelectionOffsets(left: slideTypes, right: slideTypes) {
@@ -609,12 +615,93 @@ function TimelineEditor(props: {
 	</>;
 }
 
-export default function Index() {
-	var [dummy, setDummy] = useState(false);
-	var rerender = () => setDummy(!dummy);
-
+function DefaultSettings() {
+	var setPlaying = usePlaying((st: any) => st.setPlaying);
 	var setWorkingTimeline = useWorkingTimeline((st: any) => st.setTimeline);
 
+	return <>
+		<h2 className='title posabs h0 t0'>Presentation settings</h2>
+		<div className='scroll posabs h0 b0'>
+			<div className='section'>
+				<span className='title'>Controls</span>
+				<div className='sidebyside'>
+					<span className='body'>Allow remote control during presentation</span>
+					<Switch />
+				</div>
+			</div>
+			<div className='section'>
+				<span className='title'>Cool temporary buttons</span>
+				<input
+					type='file'
+					id='vidUpload'
+					accept='video/*'
+					className='dispnone'
+					onChange={event => {
+						var file = event.target.files[0];
+						if (!file) return;
+						var reader = new FileReader();
+						reader.addEventListener('load', ev => {
+							player.loadVideo(ev.target.result as string);
+
+							player.player.addEventListener('play', () => setPlaying(true));
+							player.player.addEventListener('pause', () => setPlaying(false));
+						});
+						reader.readAsDataURL(file);
+					}}
+				/>
+				<Button
+					variant='contained'
+					color='default'
+					children='Load video'
+					onClick={() => document.getElementById('vidUpload').click()}
+					startIcon={<VideoLabelRoundedIcon />}
+				/>
+				<input
+					type='file'
+					id='jsonUpload'
+					accept='application/json'
+					className='dispnone'
+					onChange={event => {
+						var file = event.target.files[0];
+						if (!file) return;
+						var reader = new FileReader();
+						reader.addEventListener('load', ev => {
+							player.loadSlides(ev.target.result as string);
+							setWorkingTimeline(player.timeline.slides);
+						});
+						reader.readAsText(file);
+					}}
+				/>
+				<Button
+					variant='contained'
+					color='default'
+					children='Load json'
+					onClick={() => document.getElementById('jsonUpload').click()}
+					startIcon={<CodeRoundedIcon />}
+				/>
+				<Button
+					variant='contained'
+					color='default'
+					children='Download json'
+					onClick={() => {
+						var timeline = Object({ ...(player.timeline) });
+						var data = JSON.stringify(timeline);
+						var blob = new Blob([data], { type: 'application/json' });
+						var a = document.createElement('a');
+						a.href = URL.createObjectURL(blob);
+						a.download = player.timeline.name
+							.toLowerCase()
+							.replace(/\s/g, '-');
+						a.click();
+					}}
+					startIcon={<GetAppRoundedIcon />}
+				/>
+			</div>
+		</div>
+	</>;
+}
+
+export default function Index() {
 	var timelineZoom = getTimelineZoom((st: any) => st.zoom);
 	var setTimelineZoom = getTimelineZoom((st: any) => st.setZoom);
 
@@ -622,7 +709,7 @@ export default function Index() {
 
 	var [tool, setTool] = useState('cursor');
 
-	var [playing, setPlaying] = useState(false);
+	var playing = usePlaying((st: any) => st.playing);
 
 	var mouseX = 0;
 
@@ -673,80 +760,9 @@ export default function Index() {
 					<h1>pressure</h1>
 				</Toolbar>
 			</AppBar>
-			<div className='settings'>
-				<div className='inner posrel'>
-					<h2 className='title posabs h0 t0'>Presentation settings</h2>
-					<div className='scroll posabs h0 b0'>
-						<div className='section'>
-							<span className='title'>Cool temporary buttons</span>
-							<input
-								type='file'
-								id='vidUpload'
-								accept='video/*'
-								className='dispnone'
-								onChange={event => {
-									var file = event.target.files[0];
-									if (!file) return;
-									var reader = new FileReader();
-									reader.addEventListener('load', ev => {
-										player.loadVideo(ev.target.result as string);
-
-										player.player.addEventListener('play', () => setPlaying(true));
-										player.player.addEventListener('pause', () => setPlaying(false));
-									});
-									reader.readAsDataURL(file);
-								}}
-							/>
-							<Button
-								variant='contained'
-								color='default'
-								children='Load video'
-								onClick={() => document.getElementById('vidUpload').click()}
-								startIcon={<VideoLabelRoundedIcon />}
-							/>
-							<input
-								type='file'
-								id='jsonUpload'
-								accept='application/json'
-								className='dispnone'
-								onChange={event => {
-									var file = event.target.files[0];
-									if (!file) return;
-									var reader = new FileReader();
-									reader.addEventListener('load', ev => {
-										player.loadSlides(ev.target.result as string);
-										setWorkingTimeline(player.timeline.slides);
-										rerender();
-									});
-									reader.readAsText(file);
-								}}
-							/>
-							<Button
-								variant='contained'
-								color='default'
-								children='Load json'
-								onClick={() => document.getElementById('jsonUpload').click()}
-								startIcon={<CodeRoundedIcon />}
-							/>
-							<Button
-								variant='contained'
-								color='default'
-								children='Download json'
-								onClick={() => {
-									var timeline = Object({ ...(player.timeline) });
-									var data = JSON.stringify(timeline);
-									var blob = new Blob([data], { type: 'application/json' });
-									var a = document.createElement('a');
-									a.href = URL.createObjectURL(blob);
-									a.download = player.timeline.name
-										.toLowerCase()
-										.replace(/\s/g, '-');
-									a.click();
-								}}
-								startIcon={<GetAppRoundedIcon />}
-							/>
-						</div>
-					</div>
+			<div className='settings posrel'>
+				<div className='inner posabs a0'>
+					<DefaultSettings />
 				</div>
 			</div>
 			<div className='viewer'>
