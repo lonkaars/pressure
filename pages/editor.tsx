@@ -649,34 +649,40 @@ function DefaultSettings() {
 					>
 						<MenuItem value='FullScreen'>
 							<div className='posrel os-controls-type fullscreen'>
-								<div className='sidebyside'>
-									<div className='posrel icon'>
-										<div className='posabs abscenterv'>
-											<FullScreenControlsRoundedIcon />
+								<span className='label'>Full screen</span>
+								<div className='inner'>
+									<div className='sidebyside'>
+										<div className='posrel icon'>
+											<div className='posabs abscenterv'>
+												<FullScreenControlsRoundedIcon />
+											</div>
 										</div>
-									</div>
-									<div className='description'>
-										<span className='title'>Full screen</span>
-										<span className='body'>
-											Full screen columns to click through slides. Press center to show menu
-										</span>
+										<div className='description'>
+											<span className='title'>Full screen</span>
+											<span className='body'>
+												Full screen columns to click through slides. Press center to show menu
+											</span>
+										</div>
 									</div>
 								</div>
 							</div>
 						</MenuItem>
 						<MenuItem value='MenuBar'>
 							<div className='posrel os-controls-type menubar'>
-								<div className='sidebyside'>
-									<div className='posrel icon'>
-										<div className='posabs abscenterv'>
-											<MenuBarControlsRoundedIcon />
+								<span className='label'>Menu Bar</span>
+								<div className='inner'>
+									<div className='sidebyside'>
+										<div className='posrel icon'>
+											<div className='posabs abscenterv'>
+												<MenuBarControlsRoundedIcon />
+											</div>
 										</div>
-									</div>
-									<div className='description'>
-										<span className='title'>Menu bar</span>
-										<span className='body'>
-											Floating controls that snap to the screen edge
-										</span>
+										<div className='description'>
+											<span className='title'>Menu bar</span>
+											<span className='body'>
+												Floating controls that snap to the screen edge
+											</span>
+										</div>
 									</div>
 								</div>
 							</div>

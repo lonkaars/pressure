@@ -118,6 +118,9 @@
 	padding-right: 4px;
 }
 
+.MuiList-root .os-controls-type .label { display: none; }
+.MuiSelect-root .os-controls-type :not(.label) { display: none; }
+
 .settings ::-webkit-scrollbar-track,
 .settings ::-webkit-scrollbar-track-piece,
 .settings ::-webkit-scrollbar {
