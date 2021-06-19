@@ -22,6 +22,33 @@
 	background-color: var(--c400);
 }
 
+.appGrid .settings .inner {
+	margin: 16px;
+}
+
+.settings .inner .title {
+	font-size: 1em;
+	font-weight: 500;
+	color: var(--mint);
+}
+
+.settings .inner .section {
+	margin-top: 16px;
+}
+
+.settings .inner .section .title {
+	color: var(--c800);
+	display: block;
+}
+
+.settings .inner .section > * { margin-bottom: 8px; }
+.settings .inner .scroll { top: 32px; }
+.settings .inner button {
+	width: 100%;
+	background-color: var(--piss);
+	color: var(--bg);
+}
+
 .appGrid .viewer {
 	grid-column: 2;
 	grid-row: 2;

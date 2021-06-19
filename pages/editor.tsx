@@ -27,6 +27,10 @@ import NavigateNextRoundedIcon from '@material-ui/icons/NavigateNextRounded';
 import SkipPreviousRoundedIcon from '@material-ui/icons/SkipPreviousRounded';
 import { mdiCursorDefault } from '@mdi/js';
 
+import CodeRoundedIcon from '@material-ui/icons/CodeRounded';
+import GetAppRoundedIcon from '@material-ui/icons/GetAppRounded';
+import VideoLabelRoundedIcon from '@material-ui/icons/VideoLabelRounded';
+
 var keyframeInAnimations: { [key: string]: { x: number; y: number; }; } = {};
 var slideAPIs: { [key: string]: any; }[] = [];
 
@@ -670,69 +674,80 @@ export default function Index() {
 				</Toolbar>
 			</AppBar>
 			<div className='settings'>
-				<input
-					type='file'
-					id='vidUpload'
-					accept='video/*'
-					className='dispnone'
-					onChange={event => {
-						var file = event.target.files[0];
-						if (!file) return;
-						var reader = new FileReader();
-						reader.addEventListener('load', ev => {
-							player.loadVideo(ev.target.result as string);
+				<div className='inner posrel'>
+					<h2 className='title posabs h0 t0'>Presentation settings</h2>
+					<div className='scroll posabs h0 b0'>
+						<div className='section'>
+							<span className='title'>Cool temporary buttons</span>
+							<input
+								type='file'
+								id='vidUpload'
+								accept='video/*'
+								className='dispnone'
+								onChange={event => {
+									var file = event.target.files[0];
+									if (!file) return;
+									var reader = new FileReader();
+									reader.addEventListener('load', ev => {
+										player.loadVideo(ev.target.result as string);
 
-							player.player.addEventListener('play', () => setPlaying(true));
-							player.player.addEventListener('pause', () => setPlaying(false));
-						});
-						reader.readAsDataURL(file);
-					}}
-				/>
-				<Button
-					variant='contained'
-					color='default'
-					children='Load video'
-					onClick={() => document.getElementById('vidUpload').click()}
-				/>
-				<input
-					type='file'
-					id='jsonUpload'
-					accept='application/json'
-					className='dispnone'
-					onChange={event => {
-						var file = event.target.files[0];
-						if (!file) return;
-						var reader = new FileReader();
-						reader.addEventListener('load', ev => {
-							player.loadSlides(ev.target.result as string);
-							setWorkingTimeline(player.timeline.slides);
-							rerender();
-						});
-						reader.readAsText(file);
-					}}
-				/>
-				<Button
-					variant='contained'
-					color='default'
-					children='Load json'
-					onClick={() => document.getElementById('jsonUpload').click()}
-				/>
-				<Button
-					variant='contained'
-					color='default'
-					children='Download json'
-					onClick={() => {
-						var timeline = Object({ ...(player.timeline) });
-						var data = JSON.stringify(timeline);
-						var blob = new Blob([data], { type: 'application/json' });
-						var a = document.createElement('a');
-						a.href = URL.createObjectURL(blob);
-						a.download = player.timeline.name
-							.toLowerCase()
-							.replace(/\s/g, '-');
-						a.click();
-					}}
-				/>
+										player.player.addEventListener('play', () => setPlaying(true));
+										player.player.addEventListener('pause', () => setPlaying(false));
+									});
+									reader.readAsDataURL(file);
+								}}
+							/>
+							<Button
+								variant='contained'
+								color='default'
+								children='Load video'
+								onClick={() => document.getElementById('vidUpload').click()}
+								startIcon={<VideoLabelRoundedIcon />}
+							/>
+							<input
+								type='file'
+								id='jsonUpload'
+								accept='application/json'
+								className='dispnone'
+								onChange={event => {
+									var file = event.target.files[0];
+									if (!file) return;
+									var reader = new FileReader();
+									reader.addEventListener('load', ev => {
+										player.loadSlides(ev.target.result as string);
+										setWorkingTimeline(player.timeline.slides);
+										rerender();
+									});
+									reader.readAsText(file);
+								}}
+							/>
+							<Button
+								variant='contained'
+								color='default'
+								children='Load json'
+								onClick={() => document.getElementById('jsonUpload').click()}
+								startIcon={<CodeRoundedIcon />}
+							/>
+							<Button
+								variant='contained'
+								color='default'
+								children='Download json'
+								onClick={() => {
+									var timeline = Object({ ...(player.timeline) });
+									var data = JSON.stringify(timeline);
+									var blob = new Blob([data], { type: 'application/json' });
+									var a = document.createElement('a');
+									a.href = URL.createObjectURL(blob);
+									a.download = player.timeline.name
+										.toLowerCase()
+										.replace(/\s/g, '-');
+									a.click();
+								}}
+								startIcon={<GetAppRoundedIcon />}
+							/>
+						</div>
+					</div>
+				</div>
 			</div>
 			<div className='viewer'>
 				<div className='player posrel'>
