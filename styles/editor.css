@@ -51,7 +51,6 @@
 	margin-right: -8px;
 }
 .settings .inner button {
-	width: 100%;
 	background-color: var(--piss);
 	color: var(--bg);
 }
@@ -60,12 +59,64 @@
 	font-weight: 500;
 }
 
+.settings .inner button,
+.settings .inner .MuiFormControl-root
+{ width: 100%; }
+
 .MuiSwitch-root .MuiSwitch-thumb { color: var(--c700); }
 .MuiSwitch-root .MuiSwitch-track { background-color: var(--c700); }
 .MuiSwitch-root .Mui-checked .MuiSwitch-thumb { color: var(--gruble); }
 .MuiSwitch-root .Mui-checked + .MuiSwitch-track { background-color: var(--gruble) !important; }
 .MuiSwitch-root .Mui-checked { color: var(--gruble) !important; }
 .MuiSwitch-root .Mui-checked:hover { background-color: rgba(93, 233, 174, 0.04) !important; }
+
+.MuiFormControl-root {
+	border-radius: 4px;
+	overflow: hidden;
+}
+.MuiSelect-icon,
+.MuiFormLabel-root
+{ color: var(--c800) !important; }
+.MuiFormLabel-root.Mui-focused { color: var(--gruble) !important; }
+.MuiFilledInput-root {
+	background-color: var(--c300) !important;
+	color: var(--fg) !important;
+}
+.MuiFilledInput-underline:after { border-color: var(--gruble) !important; }
+.MuiFilledInput-underline:before { border-bottom: none !important; }
+
+.MuiMenu-paper {
+	background-color: var(--c200) !important;
+	color: var(--fg) !important;
+}
+.MuiListItem-root.Mui-selected, .MuiListItem-root.Mui-selected:hover { background-color: transparent !important; }
+
+.os-controls-type { width: 192px; }
+.os-controls-type svg {
+	fill: var(--piss);
+	width: 48px;
+	height: 48px;
+}
+.os-controls-type .description {
+	overflow: hidden;
+	line-height: 1.1;
+}
+.os-controls-type .description .title {
+	font-weight: 700;
+	margin-bottom: 4px;
+	font-size: 1.125rem;
+}
+
+.os-controls-type .description .title,
+.os-controls-type .description .body {
+	display: block;
+	white-space: normal !important;
+}
+
+.os-controls-type .icon {
+	width: 48px;
+	padding-right: 4px;
+}
 
 .settings ::-webkit-scrollbar-track,
 .settings ::-webkit-scrollbar-track-piece,

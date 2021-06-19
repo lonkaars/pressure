@@ -197,3 +197,27 @@ export function SlideKeyframeOutline(props: {
 		}[props.type]}
 	</svg>;
 }
+
+export function FullScreenControlsRoundedIcon() {
+	return <svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+		<path
+			d='M2 7C2 6.44772 2.44772 6 3 6H8C8.55228 6 9 6.44772 9 7V17C9 17.5523 8.55228 18 8 18H3C2.44772 18 2 17.5523 2 17V7Z'
+		/>
+		<path
+			d='M10 7C10 6.44772 10.4477 6 11 6H13C13.5523 6 14 6.44772 14 7V17C14 17.5523 13.5523 18 13 18H11C10.4477 18 10 17.5523 10 17V7Z'
+		/>
+		<path
+			d='M15 7C15 6.44772 15.4477 6 16 6H21C21.5523 6 22 6.44772 22 7V17C22 17.5523 21.5523 18 21 18H16C15.4477 18 15 17.5523 15 17V7Z'
+		/>
+	</svg>;
+}
+
+export function MenuBarControlsRoundedIcon() {
+	return <svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+		<path
+			fillRule='evenodd'
+			clipRule='evenodd'
+			d='M2 17V7C2 6.44772 2.44772 6 3 6H21C21.5523 6 22 6.44772 22 7V17C22 17.5523 21.5523 18 21 18H3C2.44772 18 2 17.5523 2 17ZM8 15C7.44772 15 7 15.4477 7 16C7 16.5523 7.44772 17 8 17H16C16.5523 17 17 16.5523 17 16C17 15.4477 16.5523 15 16 15H8Z'
+		/>
+	</svg>;
+}

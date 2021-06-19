@@ -4,7 +4,12 @@ import { animated, useSpring } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 import create from 'zustand';
 
-import { PressureIcon, SlideKeyframe } from '../components/icons';
+import {
+	FullScreenControlsRoundedIcon,
+	MenuBarControlsRoundedIcon,
+	PressureIcon,
+	SlideKeyframe,
+} from '../components/icons';
 import PlaySkipIconAni from '../components/play-skip';
 import Selection from '../components/selection';
 import { anySlide, loopBeginSlide, loopSlide, slide, slideTypes, toolToSlide } from '../timeline';
@@ -13,6 +18,10 @@ import { TimedVideoPlayer } from './present';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import Fab from '@material-ui/core/Fab';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
 import Slider from '@material-ui/core/Slider';
 import Switch from '@material-ui/core/Switch';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -22,6 +31,7 @@ import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import Icon from '@mdi/react';
 
+import ArrowDropDownRoundedIcon from '@material-ui/icons/ArrowDropDownRounded';
 import FullscreenRoundedIcon from '@material-ui/icons/FullscreenRounded';
 import NavigateBeforeRoundedIcon from '@material-ui/icons/NavigateBeforeRounded';
 import NavigateNextRoundedIcon from '@material-ui/icons/NavigateNextRounded';
@@ -629,6 +639,50 @@ function DefaultSettings() {
 					<span className='body'>Allow remote control during presentation</span>
 					<Switch />
 				</div>
+				<FormControl variant='filled'>
+					<InputLabel>On-screen controls</InputLabel>
+					<Select
+						labelId='demo-simple-select-filled-label'
+						id='demo-simple-select-filled'
+						onChange={console.log}
+						IconComponent={ArrowDropDownRoundedIcon}
+					>
+						<MenuItem value='FullScreen'>
+							<div className='posrel os-controls-type fullscreen'>
+								<div className='sidebyside'>
+									<div className='posrel icon'>
+										<div className='posabs abscenterv'>
+											<FullScreenControlsRoundedIcon />
+										</div>
+									</div>
+									<div className='description'>
+										<span className='title'>Full screen</span>
+										<span className='body'>
+											Full screen columns to click through slides. Press center to show menu
+										</span>
+									</div>
+								</div>
+							</div>
+						</MenuItem>
+						<MenuItem value='MenuBar'>
+							<div className='posrel os-controls-type menubar'>
+								<div className='sidebyside'>
+									<div className='posrel icon'>
+										<div className='posabs abscenterv'>
+											<MenuBarControlsRoundedIcon />
+										</div>
+									</div>
+									<div className='description'>
+										<span className='title'>Menu bar</span>
+										<span className='body'>
+											Floating controls that snap to the screen edge
+										</span>
+									</div>
+								</div>
+							</div>
+						</MenuItem>
+					</Select>
+				</FormControl>
 			</div>
 			<div className='section'>
 				<span className='title'>Cool temporary buttons</span>
