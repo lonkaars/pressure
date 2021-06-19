@@ -1,7 +1,12 @@
+import mousetrap from 'mousetrap';
 import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import { animated, useSpring } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 import create from 'zustand';
+
+import { PressureIcon, SlideKeyframe } from '../components/icons';
+import PlaySkipIconAni from '../components/play-skip';
+import Selection from '../components/selection';
 import { anySlide, loopBeginSlide, loopSlide, slide, slideTypes, toolToSlide } from '../timeline';
 import { TimedVideoPlayer } from './present';
 
@@ -21,9 +26,6 @@ import NavigateBeforeRoundedIcon from '@material-ui/icons/NavigateBeforeRounded'
 import NavigateNextRoundedIcon from '@material-ui/icons/NavigateNextRounded';
 import SkipPreviousRoundedIcon from '@material-ui/icons/SkipPreviousRounded';
 import { mdiCursorDefault } from '@mdi/js';
-import { PressureIcon, SlideKeyframe } from '../components/icons';
-import PlaySkipIconAni from '../components/play-skip';
-import Selection from '../components/selection';
 
 var keyframeInAnimations: { [key: string]: { x: number; y: number; }; } = {};
 var slideAPIs: { [key: string]: any; }[] = [];
@@ -34,7 +36,8 @@ var useWorkingTimeline = create((set, get) => ({
 	setTimeline: (newTimeline: anySlide[]) => set(() => ({ timeline: newTimeline })),
 	refreshLiveTimeline: () => {
 		player.timeline.slides = Array(...((get() as any).timeline));
-		player.timeline.slides.sort((a: anySlide, b: anySlide) => a.frame - b.frame);
+		player.timeline.slides = player.timeline.slides.filter(slide => slide != null);
+		player.timeline.slides.sort((a, b) => a.frame - b.frame);
 		player.timeline.slides[-1] = { // TODO: dry
 			id: '00000000-0000-0000-0000-000000000000',
 			frame: 0,
@@ -496,6 +499,29 @@ function TimelineEditor(props: {
 			}
 		}
 	}, { domTarget: selectionAreaRef, eventOptions: { passive: false } });
+
+	useEffect(() => {
+		var delkeys = ['del', 'backspace'];
+		mousetrap.bind(delkeys, () => {
+			if (!selectionPlaced) return;
+
+			selection.forEach((slide: anySlide) => {
+				if (!slideTypes.includes(slide.type)) return;
+				var index = workingTimeline.findIndex((s: anySlide) => s?.id == slide.id);
+				if (index == -1) return;
+				delete workingTimeline[index];
+			});
+			refreshWorkingTimline();
+
+			setSelectionPlaced(false);
+			setSelectionHidden(true);
+			setSelection([]);
+		});
+
+		return () => {
+			mousetrap.unbind(delkeys);
+		};
+	}, [selectionPlaced, workingTimeline]);
 
 	return <>
 		<canvas
