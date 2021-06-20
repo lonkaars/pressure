@@ -631,6 +631,10 @@ function DefaultSettings() {
 	var setPlaying = usePlaying((st: any) => st.setPlaying);
 	var setWorkingTimeline = useWorkingTimeline((st: any) => st.setTimeline);
 
+	var [nextSlideKeybinds, setNextSlideKeybinds] = useState(['Space', 'n', 'Enter']);
+	var [previousSlideKeybinds, setPreviousSlideKeybinds] = useState(['Backspace', 'p']);
+	var [showMenuKeybinds, setShowMenuKeybinds] = useState(['Escape', 'm']);
+
 	return <>
 		<h2 className='title posabs h0 t0'>Presentation settings</h2>
 		<div className='scroll posabs h0 b0'>
@@ -693,9 +697,13 @@ function DefaultSettings() {
 			</div>
 			<div className='section'>
 				<span className='title'>Keybindings</span>
-				<KeybindSelector label='Next slide' value={['Space', 'n', 'Enter']} />
-				<KeybindSelector label='Previous slide' value={['Backspace', 'p']} />
-				<KeybindSelector label='Show menu' value={['Escape', 'm']} />
+				<KeybindSelector label='Next slide' value={nextSlideKeybinds} onChange={setNextSlideKeybinds} />
+				<KeybindSelector
+					label='Previous slide'
+					value={previousSlideKeybinds}
+					onChange={setPreviousSlideKeybinds}
+				/>
+				<KeybindSelector label='Show menu' value={showMenuKeybinds} onChange={setShowMenuKeybinds} />
 			</div>
 			<div className='section'>
 				<span className='title'>Cool temporary buttons</span>

@@ -1,16 +1,32 @@
 .keybind-selector-inner { padding: 27px 12px 10px; }
 
+.keybind-selector > * { cursor: pointer !important; } 
+
 .keybind-selector-inner .keybind {
 	padding: 2px 4px 1px;
 	margin-right: 3px;
 	border-radius: 4px;
 	user-select: none;
+	cursor: pointer;
+	transform: scale(1);
+	display: inline-block;
 
-	transition-property: background-color;
+	transition-property: background-color, opacity, transform;
 	transition-duration: 100ms;
 	background-color: var(--c800);
 	color: var(--c100);
 }
+
+.keybind-selector-inner .keybind:hover {
+	opacity: .7;
+}
+
+.keybind-selector-inner .keybind.new {
+	opacity: 0;
+	transform: scale(.85);
+}
+
+.keybind-selector * { font-family: "Inter", sans-serif !important; }
 
 .keybind-selector:focus .keybind-selector-inner .keybind { background-color: var(--gruble); }
 .keybind-selector:focus label { color: var(--gruble) !important; }
