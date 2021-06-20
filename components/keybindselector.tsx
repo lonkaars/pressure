@@ -38,6 +38,7 @@ export default function KeybindSelector(props: {
 					}}
 				/>
 			)}
+			{props.value.length == 0 && <span className='placeholder'>Unbound</span>}
 		</div>;
 	}
 

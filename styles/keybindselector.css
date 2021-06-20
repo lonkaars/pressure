@@ -1,10 +1,14 @@
-.keybind-selector-inner { padding: 27px 12px 10px; }
+.keybind-selector-inner {
+	padding: 27px 12px 6px;
+	min-height: 25px;
+}
 
 .keybind-selector > * { cursor: pointer !important; } 
 
 .keybind-selector-inner .keybind {
 	padding: 2px 4px 1px;
 	margin-right: 3px;
+	margin-bottom: 3px;
 	border-radius: 4px;
 	user-select: none;
 	cursor: pointer;
@@ -15,6 +19,13 @@
 	transition-duration: 100ms;
 	background-color: var(--c800);
 	color: var(--c100);
+}
+
+.keybind-selector-inner .placeholder {
+	font-style: italic;
+	color: var(--c700);
+	margin-top: 2px;
+	display: inline-block;
 }
 
 .keybind-selector-inner .keybind:hover {
