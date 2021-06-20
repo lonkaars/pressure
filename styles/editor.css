@@ -48,7 +48,7 @@
 	overflow-y: scroll;
 	overflow-x: hidden;
 	border-radius: 4px;
-	margin-right: -8px;
+	margin-right: -16px;
 }
 .settings .inner button {
 	background-color: var(--piss);
@@ -128,7 +128,12 @@
 }
 
 .settings ::-webkit-scrollbar-thumb {
-	background-color: var(--c700);
+	background: linear-gradient(90deg , var(--c400) 7px, var(--c700) 7px, var(--c700) 9px, var(--c400) 9px);
+}
+
+.settings ::-webkit-scrollbar {
+	width: 16px;
+	height: 16px;
 }
 
 .appGrid .viewer {
