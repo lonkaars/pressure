@@ -10,6 +10,7 @@ import {
 	PressureIcon,
 	SlideKeyframe,
 } from '../components/icons';
+import KeybindSelector from '../components/keybindselector';
 import PlaySkipIconAni from '../components/play-skip';
 import Selection from '../components/selection';
 import { anySlide, loopBeginSlide, loopSlide, slide, slideTypes, toolToSlide } from '../timeline';
@@ -689,6 +690,12 @@ function DefaultSettings() {
 						</MenuItem>
 					</Select>
 				</FormControl>
+			</div>
+			<div className='section'>
+				<span className='title'>Keybindings</span>
+				<KeybindSelector label='Next slide' value={['Space', 'n', 'Enter']} />
+				<KeybindSelector label='Previous slide' value={['Backspace', 'p']} />
+				<KeybindSelector label='Show menu' value={['Escape', 'm']} />
 			</div>
 			<div className='section'>
 				<span className='title'>Cool temporary buttons</span>

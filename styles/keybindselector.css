@@ -1,0 +1,18 @@
+.keybind-selector-inner { padding: 27px 12px 10px; }
+
+.keybind-selector-inner .keybind {
+	padding: 2px 4px 1px;
+	margin-right: 3px;
+	border-radius: 4px;
+	user-select: none;
+
+	transition-property: background-color;
+	transition-duration: 100ms;
+	background-color: var(--c800);
+	color: var(--c100);
+}
+
+.keybind-selector:focus .keybind-selector-inner .keybind { background-color: var(--gruble); }
+.keybind-selector:focus label { color: var(--gruble) !important; }
+.keybind-selector:focus .MuiFilledInput-underline:after { transform: scaleX(1); }
+.keybind-selector:focus { outline: none; }
