@@ -4,9 +4,8 @@ html, body {
 
 	background-color: var(--bg);
 	color: var(--fg);
-
-	font-family: "Inter", sans-serif;
 }
+* { font-family: "Inter", sans-serif !important; }
 
 .keyframe { fill: var(--gruble); }
 
