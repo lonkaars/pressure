@@ -1,7 +1,7 @@
 import FilledInput from '@material-ui/core/FilledInput';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
 function Keybind(props: {
@@ -19,6 +19,10 @@ var keyBlacklist = [
 ];
 var keyMap = {
 	' ': 'Space',
+	'ArrowDown': 'Down',
+	'ArrowLeft': 'Left',
+	'ArrowRight': 'Right',
+	'ArrowUp': 'Up',
 };
 
 export default function KeybindSelector(props: {
