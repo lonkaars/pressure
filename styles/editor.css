@@ -63,12 +63,15 @@
 .settings .inner .MuiFormControl-root
 { width: 100%; }
 
+:root { --selection-hover-color: rgba(93, 233, 174, 0.04); }
 .MuiSwitch-root .MuiSwitch-thumb { color: var(--c700); }
 .MuiSwitch-root .MuiSwitch-track { background-color: var(--c700); }
 .MuiSwitch-root .Mui-checked .MuiSwitch-thumb { color: var(--gruble); }
 .MuiSwitch-root .Mui-checked + .MuiSwitch-track { background-color: var(--gruble) !important; }
 .MuiSwitch-root .Mui-checked { color: var(--gruble) !important; }
-.MuiSwitch-root .Mui-checked:hover { background-color: rgba(93, 233, 174, 0.04) !important; }
+.MuiSwitch-root .Mui-checked:hover { background-color: var(--selection-hover-color) !important; }
+.MuiSlider-thumb.Mui-focusVisible, .MuiSlider-thumb:hover { box-shadow: 0px 0px 0px 8px var(--selection-hover-color) !important; }
+.MuiSlider-thumb.MuiSlider-active { box-shadow: 0px 0px 0px 14px var(--selection-hover-color) !important; }
 
 .MuiFormControl-root {
 	border-radius: 4px;
