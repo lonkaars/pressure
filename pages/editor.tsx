@@ -48,28 +48,14 @@ var slideAPIs: { [key: string]: any; }[] = [];
 
 var player = new TimedVideoPlayer();
 
-interface project {
+var project = {
 	timeline: {
-		playing: boolean;
-		frame: number;
-		labels: ReactNode[];
-		zoom: number;
-		workingTimeline: anySlide[];
-		tool: string;
-	};
-	update: {
-		refreshLiveTimeline: () => void;
-	};
-}
-
-var project = createState<project>({
-	timeline: {
-		playing: false,
-		frame: 0,
-		labels: [],
-		zoom: 0.687077725615,
-		workingTimeline: [],
-		tool: 'cursor',
+		playing: createState<boolean>(false),
+		frame: createState<number>(0),
+		labels: createState<Array<ReactNode>>([]),
+		zoom: createState<number>(0.687077725615),
+		workingTimeline: createState<Array<anySlide>>([]),
+		tool: createState<string>('cursor'),
 	},
 	update: {
 		refreshLiveTimeline: () => {
@@ -84,7 +70,7 @@ var project = createState<project>({
 			};
 		},
 	},
-});
+};
 
 var zoomToPx = (zoom: number) => (12 - 0.5) * zoom ** (1 / 0.4) + 0.5;
 
@@ -113,14 +99,11 @@ function calculateSelectionOffsets(left: slideTypes, right: slideTypes) {
 function TimelineKeyframe(props: {
 	slide: slide;
 }) {
-	var workingTimeline = useHookState(project.timeline.workingTimeline);
-	var setWorkingTimeline = useHookState(project.timeline.workingTimeline).set;
-	var updateTimeline = useHookState(project.update.refreshLiveTimeline).value;
+	var workingTimeline = useHookState(project.timeline.workingTimeline) as State<anySlide[]>;
 
 	function modifySlide(newProps: Partial<anySlide>) {
-		var slide = workingTimeline.value.find(s => s.id == props.slide.id);
-		slide = Object.assign(slide, newProps);
-		setWorkingTimeline(workingTimeline.value);
+		var slide = workingTimeline.find(s => s.value.id == props.slide.id);
+		slide.set(Object.assign(slide.value, newProps));
 	}
 
 	var dragRef = useRef(null);
@@ -203,7 +186,7 @@ function TimelineKeyframe(props: {
 	var mouseUpListener = useRef(null);
 	useDrag(({ last }) => {
 		if (!last) return;
-		updateTimeline();
+		project.update.refreshLiveTimeline();
 	}, { domTarget: mouseUpListener, eventOptions: { passive: false } });
 
 	return <animated.div
@@ -243,7 +226,8 @@ function TimelineLabels() {
 
 function TimelineEditor() {
 	var timelineZoom = useHookState(project.timeline.zoom);
-	var workingTimeline = useHookState(project.timeline.workingTimeline);
+	var workingTimeline = useHookState(project.timeline.workingTimeline) as State<anySlide[]>;
+
 	var tool = useHookState(project.timeline.tool);
 
 	var mouseX = 0;
@@ -371,7 +355,6 @@ function TimelineEditor() {
 		}),
 	);
 	useDrag(({ xy: [x, _y] }) => {
-		console.log('scrubber drag');
 		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, project.timeline.zoom.value)) - 1);
 		scrubberSpring.start({ frame });
 		if (player.player) {
@@ -433,7 +416,7 @@ function TimelineEditor() {
 					if (last) {
 						(project.timeline.workingTimeline.find(s => s.value.id == slide.id) as State<loopSlide>)
 							.beginFrame.set(begin);
-						project.update.refreshLiveTimeline.value();
+						project.update.refreshLiveTimeline();
 					}
 
 					break;
@@ -445,7 +428,7 @@ function TimelineEditor() {
 
 					if (last) {
 						workingTimeline.find(s => s.value.id == slide.id).frame.set(frame);
-						project.update.refreshLiveTimeline.value();
+						project.update.refreshLiveTimeline();
 					}
 				}
 			}
@@ -553,7 +536,7 @@ function TimelineEditor() {
 				timeline.splice(index, 1);
 				workingTimeline.set(timeline);
 			});
-			project.update.refreshLiveTimeline.value();
+			project.update.refreshLiveTimeline();
 
 			setSelectionPlaced(false);
 			setSelectionHidden(true);
@@ -579,13 +562,13 @@ function TimelineEditor() {
 				var x = event.clientX - 240 + offset;
 				var frame = getFrameAtOffset(x, project.timeline.zoom.value) - 0.5;
 				var slide = new toolToSlide[tool.value](Math.round(frame));
-				workingTimeline.value.push(slide);
+				workingTimeline[workingTimeline.value.length].set(slide);
 				workingTimeline.set(workingTimeline.value);
 				keyframeInAnimations[slide.id] = {
 					x: frame,
 					y: event.clientY - window.innerHeight + 210,
 				};
-				project.update.refreshLiveTimeline.value();
+				project.update.refreshLiveTimeline();
 			}}
 		/>
 		<TimelineLabels />
@@ -657,6 +640,8 @@ function DefaultSettings() {
 	var [previousSlideKeybinds, setPreviousSlideKeybinds] = useState(['Backspace', 'p']);
 	var [showMenuKeybinds, setShowMenuKeybinds] = useState(['Escape', 'm']);
 
+	var [oscType, setOscType] = useState('FullScreen');
+
 	return <>
 		<h2 className='title posabs h0 t0'>Presentation settings</h2>
 		<div className='scroll posabs h0 b0'>
@@ -671,8 +656,8 @@ function DefaultSettings() {
 					<Select
 						labelId='demo-simple-select-filled-label'
 						id='demo-simple-select-filled'
-						value='FullScreen'
-						onChange={console.log}
+						value={oscType}
+						onChange={e => setOscType(e.target.value as string)}
 						IconComponent={ArrowDropDownRoundedIcon}
 					>
 						<MenuItem value='FullScreen'>
@@ -767,7 +752,7 @@ function DefaultSettings() {
 						reader.addEventListener('load', ev => {
 							player.loadSlides(ev.target.result as string);
 							project.timeline.workingTimeline.set(player.timeline.slides);
-							project.update.refreshLiveTimeline.value();
+							project.update.refreshLiveTimeline();
 						});
 						reader.readAsText(file);
 					}}
@@ -864,9 +849,7 @@ function Tools() {
 }
 
 export default function Index() {
-	// var playing = useHookState(project.timeline.playing);
-	//
-	var playing = { get: () => false };
+	var playing = useHookState(project.timeline.playing);
 
 	var playerRef = useRef(null);
 	useEffect(() => {
