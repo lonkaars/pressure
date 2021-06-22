@@ -1,4 +1,4 @@
-import { createState, Downgraded, useState as useHookState } from '@hookstate/core';
+import { createState, Downgraded, State, useState as useHookState } from '@hookstate/core';
 import mousetrap from 'mousetrap';
 import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import { animated, useSpring } from 'react-spring';
@@ -236,19 +236,40 @@ function TimelineKeyframe(props: {
 	</animated.div>;
 }
 
+function TimelineLabels() {
+	var labels = useHookState(project.timeline.labels);
+	return <div className='labels' children={labels.attach(Downgraded).get()} />;
+}
+
 function TimelineEditor() {
 	var timelineZoom = useHookState(project.timeline.zoom);
-	var timelineLabels = useHookState(project.timeline.labels);
 	var workingTimeline = useHookState(project.timeline.workingTimeline);
-
-	var refreshWorkingTimline = useHookState(project.update.refreshLiveTimeline).value;
-	var setFrame = useHookState(project.timeline.frame).set;
-
 	var tool = useHookState(project.timeline.tool);
+
+	var mouseX = 0;
+
+	var timelineRef = useRef(null);
+	useEffect(() => {
+		timelineRef.current.addEventListener('wheel', (e: WheelEvent) => {
+			if (!e.ctrlKey && !e.altKey) return;
+			e.preventDefault();
+
+			var newZoom = Math.min(1, Math.max(0, project.timeline.zoom.value + (-e.deltaY / 1000)));
+			zoomAroundPoint(newZoom, mouseX);
+		});
+	}, []);
+
+	useEffect(() => {
+		var canvas = document.querySelector('.timeline .timeScale');
+		window.addEventListener('mousemove', e => {
+			var rect = canvas.getBoundingClientRect();
+			mouseX = e.clientX - rect.x;
+		});
+	}, []);
 
 	useEffect(() => {
 		player.addEventListener('TimedVideoPlayerOnFrame', (event: CustomEvent) => {
-			setFrame(event.detail);
+			project.timeline.frame.set(event.detail);
 			scrubberSpring.start({ frame: event.detail });
 		});
 	}, []);
@@ -281,9 +302,7 @@ function TimelineEditor() {
 
 			var offset = document.querySelector('.timeline .timelineInner').scrollLeft;
 
-			var frameWidth = Number(
-				getComputedStyle(document.querySelector('.timeline')).getPropertyValue('--zoom').trim(),
-			);
+			var frameWidth = zoomToPx(project.timeline.zoom.value);
 
 			var d = true;
 			var a = 0;
@@ -352,12 +371,14 @@ function TimelineEditor() {
 		}),
 	);
 	useDrag(({ xy: [x, _y] }) => {
-		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom.value)) - 1);
-		setFrame(frame);
+		console.log('scrubber drag');
+		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, project.timeline.zoom.value)) - 1);
 		scrubberSpring.start({ frame });
 		if (player.player) {
-			player.player.currentTime = player.frameToTimestamp(frame + 1);
+			var time = player.frameToTimestamp(frame + 1);
+			if (isFinite(time)) player.player.currentTime = time;
 		}
+		project.timeline.frame.set(frame);
 	}, { domTarget: scrubberDragRef, eventOptions: { passive: false } });
 
 	// slide placement ghost
@@ -395,12 +416,12 @@ function TimelineEditor() {
 	}));
 	var selectionAreaRef = useRef(null);
 	var selectionRef = useRef(null);
-	var [selection, setSelection] = useState([]);
+	var [selection, setSelection] = useState<anySlide[]>([]);
 	useDrag(({ movement: [x, _y], last }) => {
 		if (!selectionPlaced) return;
 		if (selection.length < 1) return;
-		var frameOffset = Math.round(x / zoomToPx(timelineZoom.value));
-		selection.forEach((slide: anySlide) => {
+		var frameOffset = Math.round(x / zoomToPx(project.timeline.zoom.value));
+		selection.forEach(slide => {
 			var api = slideAPIs[slide.id];
 			switch (slide.type as slideTypes | 'loopBegin') {
 				case 'loopBegin': {
@@ -410,8 +431,9 @@ function TimelineEditor() {
 					api.start({ begin });
 
 					if (last) {
-						loop.beginFrame = begin;
-						refreshWorkingTimline();
+						(project.timeline.workingTimeline.find(s => s.value.id == slide.id) as State<loopSlide>)
+							.beginFrame.set(begin);
+						project.update.refreshLiveTimeline.value();
 					}
 
 					break;
@@ -422,9 +444,8 @@ function TimelineEditor() {
 					api.start({ frame });
 
 					if (last) {
-						workingTimeline.value.find(s => s.id == slide.id).frame = frame;
-						project.timeline.workingTimeline.set(workingTimeline.value);
-						refreshWorkingTimline();
+						workingTimeline.find(s => s.value.id == slide.id).frame.set(frame);
+						project.update.refreshLiveTimeline.value();
 					}
 				}
 			}
@@ -465,7 +486,7 @@ function TimelineEditor() {
 		var x2 = x1 + Math.abs(sx);
 		var y2 = y1 + Math.abs(sy);
 
-		var zoom = zoomToPx(timelineZoom.value);
+		var zoom = zoomToPx(project.timeline.zoom.value);
 		var frameWidth = Math.abs(sx) / zoom;
 		var startingFrame = x1 / zoom;
 
@@ -524,14 +545,15 @@ function TimelineEditor() {
 		mousetrap.bind(delkeys, () => {
 			if (!selectionPlaced) return;
 
-			selection.forEach((slide: anySlide) => {
+			selection.forEach(slide => {
 				if (!slideTypes.includes(slide.type)) return;
-				var index = workingTimeline.value.findIndex(s => s?.id == slide.id);
+				var index = workingTimeline.findIndex(s => s.value?.id == slide.id);
 				if (index == -1) return;
-				delete workingTimeline.value[index];
-				// !!! AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+				var timeline = new Array(...workingTimeline.value);
+				timeline.splice(index, 1);
+				workingTimeline.set(timeline);
 			});
-			refreshWorkingTimline();
+			project.update.refreshLiveTimeline.value();
 
 			setSelectionPlaced(false);
 			setSelectionHidden(true);
@@ -543,7 +565,11 @@ function TimelineEditor() {
 		};
 	}, [selectionPlaced, workingTimeline]);
 
-	return <>
+	return <div
+		className='timeline posrel'
+		style={{ '--zoom': zoomToPx(timelineZoom.value) } as CSSProperties}
+		ref={timelineRef}
+	>
 		<canvas
 			className='timeScale posabs a0'
 			id='timeScaleCanvas'
@@ -551,7 +577,7 @@ function TimelineEditor() {
 				// place new keyframe
 				var offset = -4; // keyframe offset
 				var x = event.clientX - 240 + offset;
-				var frame = getFrameAtOffset(x, timelineZoom.value) - 0.5;
+				var frame = getFrameAtOffset(x, project.timeline.zoom.value) - 0.5;
 				var slide = new toolToSlide[tool.value](Math.round(frame));
 				workingTimeline.value.push(slide);
 				workingTimeline.set(workingTimeline.value);
@@ -559,10 +585,10 @@ function TimelineEditor() {
 					x: frame,
 					y: event.clientY - window.innerHeight + 210,
 				};
-				refreshWorkingTimline();
+				project.update.refreshLiveTimeline.value();
 			}}
 		/>
-		<div className='labels' children={timelineLabels.attach(Downgraded).get()} />
+		<TimelineLabels />
 		<div className='scrubberJumpArea posabs h0 t0' ref={scrubberDragRef} />
 		<div className={'timelineInner posabs a0' + (tool.value != 'cursor' ? ' blur' : '')}>
 			<animated.div
@@ -622,16 +648,11 @@ function TimelineEditor() {
 				children={<SlideKeyframe type={tool.value as slideTypes} ghost />}
 			/>
 		</div>
-	</>;
+	</div>;
 }
 
 // https://material.io/design/navigation/navigation-transitions.html#peer-transitions
 function DefaultSettings() {
-	var setPlaying = useHookState(project.timeline.playing).set;
-
-	var setWorkingTimeline = useHookState(project.timeline.workingTimeline).set;
-	var refreshLiveTimeline = useHookState(project.update.refreshLiveTimeline).value;
-
 	var [nextSlideKeybinds, setNextSlideKeybinds] = useState(['Space', 'n', 'Enter']);
 	var [previousSlideKeybinds, setPreviousSlideKeybinds] = useState(['Backspace', 'p']);
 	var [showMenuKeybinds, setShowMenuKeybinds] = useState(['Escape', 'm']);
@@ -721,8 +742,8 @@ function DefaultSettings() {
 						reader.addEventListener('load', ev => {
 							player.loadVideo(ev.target.result as string);
 
-							player.player.addEventListener('play', () => setPlaying(true));
-							player.player.addEventListener('pause', () => setPlaying(false));
+							player.player.addEventListener('play', () => project.timeline.playing.set(true));
+							player.player.addEventListener('pause', () => project.timeline.playing.set(false));
 						});
 						reader.readAsDataURL(file);
 					}}
@@ -745,8 +766,8 @@ function DefaultSettings() {
 						var reader = new FileReader();
 						reader.addEventListener('load', ev => {
 							player.loadSlides(ev.target.result as string);
-							setWorkingTimeline(player.timeline.slides);
-							refreshLiveTimeline();
+							project.timeline.workingTimeline.set(player.timeline.slides);
+							project.update.refreshLiveTimeline.value();
 						});
 						reader.readAsText(file);
 					}}
@@ -780,45 +801,76 @@ function DefaultSettings() {
 	</>;
 }
 
-export default function Index() {
-	var timelineZoom = useHookState(project.timeline.zoom);
+function zoomAroundPoint(newZoom: number, pivot: number) {
+	var timeline = document.querySelector('.timeline .timelineInner');
+	var frame = getFrameAtOffset(pivot, project.timeline.zoom.value);
+	var newOffset = (frame * zoomToPx(newZoom)) - pivot;
+
+	timeline.scrollLeft = newOffset;
+	project.timeline.zoom.set(newZoom);
+}
+
+function Tools() {
 	var frame = useHookState(project.timeline.frame);
 	var tool = useHookState(project.timeline.tool);
-	var playing = useHookState(project.timeline.playing);
+	var timelineZoom = useHookState(project.timeline.zoom);
 
-	var mouseX = 0;
+	return <div className='tools'>
+		<div className='time posrel'>
+			<span className='framerate numbers posabs l0 t0'>@{player.framerate}fps</span>
+			<h2 className='timecode numbers posabs r0 t0'>
+				{player.frameToTimestampString(frame.value, false)}
+			</h2>
+		</div>
+		<ToggleButtonGroup
+			color='primary'
+			aria-label='outlined primary button group'
+			value={tool.get()}
+			exclusive
+			onChange={(_event: any, newTool: string | null) => {
+				if (newTool === null) return;
+				tool.set(newTool);
+			}}
+		>
+			<ToggleButton value='cursor' children={<Icon path={mdiCursorDefault} size={1} />} />
+			<ToggleButton value='default' children={<SlideKeyframe type='default' />} />
+			<ToggleButton value='delay' children={<SlideKeyframe type='delay' />} />
+			<ToggleButton value='speedChange' children={<SlideKeyframe type='speedChange' />} />
+			<ToggleButton value='loop'>
+				<div className='loopStartEnd'>
+					<span className='posabs start' children={<SlideKeyframe type='loop' />} />
+					<span className='posabs end' children={<SlideKeyframe type='loop' loopEnd />} />
+				</div>
+			</ToggleButton>
+		</ToggleButtonGroup>
+		<div className='zoom'>
+			<ZoomOutRoundedIcon />
+			<div className='spacing'>
+				<Slider
+					value={timelineZoom.value}
+					onChange={(_event: any, newValue: number | number[]) => {
+						var center = document.querySelector('.timeline .timelineInner').clientWidth / 2;
+						zoomAroundPoint(newValue as number, center);
+					}}
+					min={0}
+					step={0.00000001}
+					max={1}
+					aria-labelledby='continuous-slider'
+				/>
+			</div>
+			<ZoomInRoundedIcon />
+		</div>
+	</div>;
+}
 
+export default function Index() {
+	// var playing = useHookState(project.timeline.playing);
+	//
+	var playing = { get: () => false };
+
+	var playerRef = useRef(null);
 	useEffect(() => {
-		var videoEL = document.getElementById('player') as HTMLVideoElement;
-		player.registerPlayer(videoEL);
-	}, []);
-
-	function zoomAroundPoint(newZoom: number, pivot: number) {
-		var timeline = document.querySelector('.timeline .timelineInner');
-		var frame = getFrameAtOffset(pivot, timelineZoom.value);
-		var newOffset = (frame * zoomToPx(newZoom)) - pivot;
-
-		timeline.scrollLeft = newOffset;
-		timelineZoom.set(newZoom);
-		/* timelineZoom = newZoom; */
-	}
-
-	useEffect(() => {
-		document.querySelector('.timeline').addEventListener('wheel', (e: WheelEvent) => {
-			if (!e.ctrlKey && !e.altKey) return;
-			e.preventDefault();
-
-			var newZoom = Math.min(1, Math.max(0, timelineZoom.value + (-e.deltaY / 1000)));
-			zoomAroundPoint(newZoom, mouseX);
-		}, { passive: false });
-	}, []);
-
-	useEffect(() => {
-		var canvas = document.querySelector('.timeline .timeScale');
-		window.addEventListener('mousemove', e => {
-			var rect = canvas.getBoundingClientRect();
-			mouseX = e.clientX - rect.x;
-		});
+		player.registerPlayer(playerRef.current);
 	}, []);
 
 	useEffect(() => {
@@ -843,7 +895,7 @@ export default function Index() {
 			<div className='viewer'>
 				<div className='player posrel'>
 					<div className='outer posabs abscenter'>
-						<video id='player' className='fullwidth' />
+						<video id='player' ref={playerRef} className='fullwidth' />
 					</div>
 				</div>
 				<div className='controls'>
@@ -886,58 +938,8 @@ export default function Index() {
 					</div>
 				</div>
 			</div>
-			<div className='tools'>
-				<div className='time posrel'>
-					<span className='framerate numbers posabs l0 t0'>@{player.framerate}fps</span>
-					<h2 className='timecode numbers posabs r0 t0'>
-						{player.frameToTimestampString(frame.value, false)}
-					</h2>
-				</div>
-				<ToggleButtonGroup
-					color='primary'
-					aria-label='outlined primary button group'
-					value={tool.get()}
-					exclusive
-					onChange={(_event: any, newTool: string | null) => {
-						if (newTool === null) return;
-						tool.set(newTool);
-					}}
-				>
-					<ToggleButton value='cursor' children={<Icon path={mdiCursorDefault} size={1} />} />
-					<ToggleButton value='default' children={<SlideKeyframe type='default' />} />
-					<ToggleButton value='delay' children={<SlideKeyframe type='delay' />} />
-					<ToggleButton value='speedChange' children={<SlideKeyframe type='speedChange' />} />
-					<ToggleButton value='loop'>
-						<div className='loopStartEnd'>
-							<span className='posabs start' children={<SlideKeyframe type='loop' />} />
-							<span className='posabs end' children={<SlideKeyframe type='loop' loopEnd />} />
-						</div>
-					</ToggleButton>
-				</ToggleButtonGroup>
-				<div className='zoom'>
-					<ZoomOutRoundedIcon />
-					<div className='spacing'>
-						<Slider
-							value={timelineZoom.value}
-							onChange={(_event: any, newValue: number | number[]) => {
-								var center = document.querySelector('.timeline .timelineInner').clientWidth / 2;
-								zoomAroundPoint(newValue as number, center);
-							}}
-							min={0}
-							step={0.00000001}
-							max={1}
-							aria-labelledby='continuous-slider'
-						/>
-					</div>
-					<ZoomInRoundedIcon />
-				</div>
-			</div>
-			<div
-				className='timeline posrel'
-				style={{ '--zoom': zoomToPx(timelineZoom.value) } as CSSProperties}
-			>
-				<TimelineEditor />
-			</div>
+			<Tools />
+			<TimelineEditor />
 		</div>
 	</>;
 }

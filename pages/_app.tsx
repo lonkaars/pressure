@@ -11,7 +11,7 @@ import '../styles/presentation.css';
 import '../styles/selection.css';
 import '../styles/util.css';
 
-export default function Blog({ Component, pageProps }) {
+export default function Pressure({ Component, pageProps }) {
 	return <>
 		<Head>
 			<title>pressure</title>
