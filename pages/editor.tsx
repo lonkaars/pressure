@@ -67,7 +67,7 @@ var project = createState<project>({
 		playing: false,
 		frame: 0,
 		labels: [],
-		zoom: 0.687077725615,
+		zoom: 0.687077725616,
 		workingTimeline: [],
 		tool: 'cursor',
 	},
@@ -114,13 +114,11 @@ function TimelineKeyframe(props: {
 	slide: slide;
 }) {
 	var workingTimeline = useHookstate(project).timeline.workingTimeline;
-	var setWorkingTimeline = useHookstate(project).timeline.workingTimeline.set;
 	var updateTimeline = useHookstate(project).update.refreshLiveTimeline.value;
 
 	function modifySlide(newProps: Partial<anySlide>) {
-		var slide = workingTimeline.value.find(s => s.id == props.slide.id);
-		slide = Object.assign(slide, newProps);
-		setWorkingTimeline(workingTimeline.value);
+		var slide = workingTimeline.find(s => s.value.id == props.slide.id);
+		slide.set(Object.assign(slide.value, newProps));
 	}
 
 	var dragRef = useRef(null);
@@ -203,7 +201,7 @@ function TimelineKeyframe(props: {
 	var mouseUpListener = useRef(null);
 	useDrag(({ last }) => {
 		if (!last) return;
-		updateTimeline();
+		project.update.refreshLiveTimeline.value();
 	}, { domTarget: mouseUpListener, eventOptions: { passive: false } });
 
 	return <animated.div
@@ -578,7 +576,7 @@ function TimelineEditor() {
 				var x = event.clientX - 240 + offset;
 				var frame = getFrameAtOffset(x, project.timeline.zoom.value) - 0.5;
 				var slide = new toolToSlide[tool.value](Math.round(frame));
-				workingTimeline.value.push(slide);
+				workingTimeline[workingTimeline.value.length].set(slide);
 				workingTimeline.set(workingTimeline.value);
 				keyframeInAnimations[slide.id] = {
 					x: frame,
@@ -656,6 +654,8 @@ function DefaultSettings() {
 	var [previousSlideKeybinds, setPreviousSlideKeybinds] = useState(['Backspace', 'p']);
 	var [showMenuKeybinds, setShowMenuKeybinds] = useState(['Escape', 'm']);
 
+	var [oscType, setOscType] = useState('FullScreen');
+
 	return <>
 		<h2 className='title posabs h0 t0'>Presentation settings</h2>
 		<div className='scroll posabs h0 b0'>
@@ -670,8 +670,8 @@ function DefaultSettings() {
 					<Select
 						labelId='demo-simple-select-filled-label'
 						id='demo-simple-select-filled'
-						value='FullScreen'
-						onChange={console.log}
+						value={oscType}
+						onChange={e => setOscType(e.target.value as string)}
 						IconComponent={ArrowDropDownRoundedIcon}
 					>
 						<MenuItem value='FullScreen'>
