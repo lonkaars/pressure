@@ -1,4 +1,4 @@
-import { createState, Downgraded, State, useState as useHookState } from '@hookstate/core';
+import { createState, Downgraded, State, useHookstate } from '@hookstate/core';
 import mousetrap from 'mousetrap';
 import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import { animated, useSpring } from 'react-spring';
@@ -113,9 +113,9 @@ function calculateSelectionOffsets(left: slideTypes, right: slideTypes) {
 function TimelineKeyframe(props: {
 	slide: slide;
 }) {
-	var workingTimeline = useHookState(project.timeline.workingTimeline);
-	var setWorkingTimeline = useHookState(project.timeline.workingTimeline).set;
-	var updateTimeline = useHookState(project.update.refreshLiveTimeline).value;
+	var workingTimeline = useHookstate(project).timeline.workingTimeline;
+	var setWorkingTimeline = useHookstate(project).timeline.workingTimeline.set;
+	var updateTimeline = useHookstate(project).update.refreshLiveTimeline.value;
 
 	function modifySlide(newProps: Partial<anySlide>) {
 		var slide = workingTimeline.value.find(s => s.id == props.slide.id);
@@ -149,7 +149,7 @@ function TimelineKeyframe(props: {
 		delete keyframeInAnimations[props.slide.id];
 	}, []);
 
-	var timelineZoom = useHookState(project.timeline.zoom);
+	var timelineZoom = useHookstate(project).timeline.zoom;
 
 	// drag keyframe
 	var [startOffset, setStartOffset] = useState(0);
@@ -237,14 +237,14 @@ function TimelineKeyframe(props: {
 }
 
 function TimelineLabels() {
-	var labels = useHookState(project.timeline.labels);
+	var labels = useHookstate(project).timeline.labels;
 	return <div className='labels' children={labels.attach(Downgraded).get()} />;
 }
 
 function TimelineEditor() {
-	var timelineZoom = useHookState(project.timeline.zoom);
-	var workingTimeline = useHookState(project.timeline.workingTimeline);
-	var tool = useHookState(project.timeline.tool);
+	var timelineZoom = useHookstate(project).timeline.zoom;
+	var workingTimeline = useHookstate(project).timeline.workingTimeline;
+	var tool = useHookstate(project).timeline.tool;
 
 	var mouseX = 0;
 
@@ -371,7 +371,6 @@ function TimelineEditor() {
 		}),
 	);
 	useDrag(({ xy: [x, _y] }) => {
-		console.log('scrubber drag');
 		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, project.timeline.zoom.value)) - 1);
 		scrubberSpring.start({ frame });
 		if (player.player) {
@@ -811,9 +810,9 @@ function zoomAroundPoint(newZoom: number, pivot: number) {
 }
 
 function Tools() {
-	var frame = useHookState(project.timeline.frame);
-	var tool = useHookState(project.timeline.tool);
-	var timelineZoom = useHookState(project.timeline.zoom);
+	var frame = useHookstate(project).timeline.frame;
+	var tool = useHookstate(project).timeline.tool;
+	var timelineZoom = useHookstate(project).timeline.zoom;
 
 	return <div className='tools'>
 		<div className='time posrel'>
@@ -864,9 +863,7 @@ function Tools() {
 }
 
 export default function Index() {
-	// var playing = useHookState(project.timeline.playing);
-	//
-	var playing = { get: () => false };
+	var playing = useHookstate(project).timeline.playing;
 
 	var playerRef = useRef(null);
 	useEffect(() => {
