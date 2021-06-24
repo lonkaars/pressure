@@ -117,7 +117,7 @@ function TimelineKeyframe(props: {
 
 	function modifySlide(newProps: Partial<anySlide>) {
 		var slide = workingTimeline.find(s => s.value.id == props.slide.id);
-		slide.set(Object.assign(slide.value, newProps));
+		slide.set(Object.assign({}, slide.value, newProps));
 	}
 
 	var dragRef = useRef(null);
@@ -212,10 +212,10 @@ function TimelineKeyframe(props: {
 		id={'slide-' + props.slide.id}
 		ref={mouseUpListener}
 	>
-		<div className='keyframeWrapper posabs abscenterh' style={{ top: spring.y.toJSON() }}>
+		<animated.div className='keyframeWrapper posabs abscenterh' style={{ top: spring.y }}>
 			{props.slide.type == 'loop'
-				? <div
-					style={{ '--begin': spring.begin.toJSON() } as CSSProperties}
+				? <animated.div
+					style={{ '--begin': spring.begin } as CSSProperties}
 					className='loop'
 				>
 					<span className='dispinbl posabs l0 start' ref={loopStartRef}>
@@ -225,11 +225,11 @@ function TimelineKeyframe(props: {
 					<span className='dispinbl posabs r0 end' ref={loopEndRef}>
 						<SlideKeyframe type='loop' loopEnd />
 					</span>
-				</div>
+				</animated.div>
 				: <span ref={dragRef}>
 					<SlideKeyframe type={props.slide.type} />
 				</span>}
-		</div>
+		</animated.div>
 	</animated.div>;
 }
 
