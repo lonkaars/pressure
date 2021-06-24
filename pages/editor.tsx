@@ -57,6 +57,16 @@ interface project {
 		workingTimeline: anySlide[];
 		tool: string;
 	};
+	selection: {
+		slides: anySlide[];
+		active: boolean;
+		placed: boolean;
+		hidden: boolean;
+		type: {
+			left: slideTypes | null;
+			right: slideTypes | null;
+		};
+	};
 	update: {
 		refreshLiveTimeline: () => void;
 	};
@@ -70,6 +80,16 @@ var project = createState<project>({
 		zoom: 0.687077725616,
 		workingTimeline: [],
 		tool: 'cursor',
+	},
+	selection: {
+		slides: [],
+		active: false,
+		placed: false,
+		hidden: true,
+		type: {
+			left: null,
+			right: null,
+		},
 	},
 	update: {
 		refreshLiveTimeline: () => {
@@ -242,11 +262,7 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 	var workingTimeline = useHookstate(project).timeline.workingTimeline;
 	var tool = useHookstate(project).timeline.tool;
 
-	var [selectionActive, setSelectionActive] = useState(false);
-	var [selectionPlaced, setSelectionPlaced] = useState(false);
-	var [selectionHidden, setSelectionHidden] = useState(true);
-	var [selectionLeftType, setSelectionLeftType] = useState(null);
-	var [selectionRightType, setSelectionRightType] = useState(null);
+	var selection = useHookstate(project).selection;
 
 	var [selectionPos, selectionPosAPI] = useSpring(() => ({
 		x1: 0,
@@ -262,23 +278,22 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 	}));
 
 	var selectionRef = useRef(null);
-	var [selection, setSelection] = useState<anySlide[]>([]);
 	// drag on selection
 	useDrag(({ movement: [x, _y], last }) => {
-		if (!selectionPlaced) return;
-		if (selection.length < 1) return;
+		if (!project.selection.placed.value) return;
+		if (project.selection.slides.value.length < 1) return;
 		var frameOffset = Math.round(x / zoomToPx(project.timeline.zoom.value));
-		selection.forEach(slide => {
-			var api = slideAPIs[slide.id];
-			switch (slide.type as slideTypes | 'loopBegin') {
+		project.selection.slides.forEach(slide => {
+			var api = slideAPIs[slide.value.id];
+			switch (slide.value.type as slideTypes | 'loopBegin') {
 				case 'loopBegin': {
 					if (!api) break;
-					var loop = workingTimeline.value.find(s => s.id == slide.id) as loopSlide;
+					var loop = workingTimeline.value.find(s => s.id == slide.value.id) as loopSlide;
 					var begin = loop.beginFrame + frameOffset;
 					api.start({ begin });
 
 					if (last) {
-						(project.timeline.workingTimeline.find(s => s.value.id == slide.id) as State<loopSlide>)
+						(project.timeline.workingTimeline.find(s => s.value.id == slide.value.id) as State<loopSlide>)
 							.beginFrame.set(begin);
 						project.update.refreshLiveTimeline.value();
 					}
@@ -287,17 +302,17 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 				}
 				default: {
 					if (!api) break;
-					var frame = slide.frame + frameOffset;
+					var frame = slide.value.frame + frameOffset;
 					api.start({ frame });
 
 					if (last) {
-						workingTimeline.find(s => s.value.id == slide.id).frame.set(frame);
+						workingTimeline.find(s => s.value.id == slide.value.id).frame.set(frame);
 						project.update.refreshLiveTimeline.value();
 					}
 				}
 			}
 			if (last) return;
-			var selectionFrame = selection[0].frame;
+			var selectionFrame = project.selection.slides[0].frame.value;
 			selectionPosAPI.start({ startingFrame: selectionFrame + frameOffset });
 		});
 	}, { domTarget: selectionRef, eventOptions: { passive: false } });
@@ -307,17 +322,16 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 		var minDistance = 5; // minimal drag distance in pixels to register selection
 		var distanceTraveled = Math.sqrt(ox ** 2 + oy ** 2);
 
-		if (selectionHidden && distanceTraveled > minDistance) setSelectionHidden(false);
-		if (selectionLeftType) setSelectionLeftType(null);
-		if (selectionRightType) setSelectionRightType(null);
-		if (selectionPlaced) setSelectionPlaced(false);
+		if (project.selection.hidden.value && distanceTraveled > minDistance) project.selection.hidden.set(false);
+		if (project.selection.type.left.value) project.selection.type.left.set(null);
+		if (project.selection.type.right.value) project.selection.type.right.set(null);
+		if (project.selection.placed.value) project.selection.placed.set(false);
 		selectionPosAPI.start({
 			center: 0,
 			startOffset: 0,
 			widthOffset: 0,
 		});
-		selection = [];
-		setSelection(selection);
+		project.selection.slides.set([]);
 
 		var timelineInner = document.querySelector('.timeline .timelineInner');
 		var timelineRects = timelineInner.getBoundingClientRect();
@@ -338,11 +352,18 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 		var frameWidth = Math.abs(sx) / zoom;
 		var startingFrame = x1 / zoom;
 
-		selectionPosAPI[first && selectionHidden ? 'set' : 'start']({ x1, y1, x2, y2, startingFrame, frameWidth });
-		if (!selectionActive) setSelectionActive(true);
+		selectionPosAPI[first && project.selection.hidden ? 'set' : 'start']({
+			x1,
+			y1,
+			x2,
+			y2,
+			startingFrame,
+			frameWidth,
+		});
+		if (!project.selection.active.value) project.selection.active.set(true);
 		if (last) {
-			setSelectionActive(false);
-			if (distanceTraveled <= minDistance) setSelectionHidden(true);
+			project.selection.active.set(false);
+			if (distanceTraveled <= minDistance) project.selection.hidden.set(true);
 			else {
 				var endingFrame = startingFrame + frameWidth;
 				var expandedTimeline = new Array(...player.timeline.slides);
@@ -360,12 +381,11 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 				);
 
 				if (keyframesInSelection.length < 1) {
-					setSelectionHidden(true);
+					project.selection.hidden.set(true);
 					return;
 				}
 
-				selection = keyframesInSelection;
-				setSelection(selection);
+				project.selection.slides.set(keyframesInSelection);
 
 				var left = keyframesInSelection[0];
 				var right = keyframesInSelection[keyframesInSelection.length - 1];
@@ -393,9 +413,13 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 						widthOffset,
 					});
 				}, 100);
-				setSelectionLeftType(left.type);
-				setSelectionRightType(right.type);
-				setSelectionPlaced(true);
+				project.selection.merge({
+					type: {
+						left: left.type,
+						right: right.type,
+					},
+					placed: true,
+				});
 			}
 		}
 	}, { domTarget: props.selectionAreaRef, eventOptions: { passive: false } });
@@ -403,27 +427,29 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 	useEffect(() => {
 		var delkeys = ['del', 'backspace'];
 		mousetrap.bind(delkeys, () => {
-			if (!selectionPlaced) return;
+			if (!project.selection.placed) return;
 
-			selection.forEach(slide => {
-				if (!slideTypes.includes(slide.type)) return;
-				var index = workingTimeline.findIndex(s => s.value?.id == slide.id);
+			project.selection.slides.forEach(slide => {
+				if (!slideTypes.includes(slide.value.type)) return;
+				var index = workingTimeline.findIndex(s => s.value?.id == slide.value.id);
 				if (index == -1) return;
-				var timeline = new Array(...workingTimeline.value);
+				var timeline = new Array(...project.timeline.workingTimeline.value);
 				timeline.splice(index, 1);
 				workingTimeline.set(timeline);
 			});
 			project.update.refreshLiveTimeline.value();
 
-			setSelectionPlaced(false);
-			setSelectionHidden(true);
-			setSelection([]);
+			project.selection.merge({
+				placed: false,
+				hidden: true,
+				slides: [],
+			});
 		});
 
 		return () => {
 			mousetrap.unbind(delkeys);
 		};
-	}, [selectionPlaced, workingTimeline]);
+	}, []);
 
 	function CustomSelection(props: {
 		x1: number;
@@ -439,8 +465,8 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 			width={props.x2 - props.x1 + 12}
 			frameWidth={props.frameWidth}
 			height={props.y2 - props.y1 + 12}
-			left={selectionLeftType}
-			right={selectionRightType}
+			left={selection.type.left.get()}
+			right={selection.type.right.get()}
 			widthOffset={props.widthOffset}
 		/>;
 	}
@@ -448,14 +474,14 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 
 	return <animated.div
 		id='selection'
-		className={'posabs dispinbl ' + (selectionPlaced ? 'placed ' : '')}
+		className={'posabs dispinbl ' + (selection.placed ? 'placed ' : '')}
 		ref={selectionRef}
 		style={{
 			'--starting-frame': selectionPos.startingFrame,
 			'--y': selectionPos.y1,
 			'--start-offset': selectionPos.startOffset,
 			'--center': selectionPos.center,
-			pointerEvents: selectionPlaced ? 'all' : 'none',
+			pointerEvents: selection.placed.get() ? 'all' : 'none',
 		} as CSSProperties}
 	>
 		<AnimatedSelection
@@ -465,7 +491,7 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 			y2={selectionPos.y2}
 			widthOffset={selectionPos.widthOffset}
 			frameWidth={selectionPos.frameWidth}
-			className={'' + (selectionActive ? 'active ' : '') + (selectionHidden ? 'hidden ' : '')}
+			className={'' + (selection.active.get() ? 'active ' : '') + (selection.hidden.get() ? 'hidden ' : '')}
 		/>
 	</animated.div>;
 }
