@@ -1,8 +1,8 @@
-import { createState, Downgraded, State, useHookstate } from '@hookstate/core';
-import mousetrap from 'mousetrap';
+import { createState, Downgraded, none, State, useHookstate } from '@hookstate/core';
 import { CSSProperties, ReactNode, Ref, useEffect, useRef, useState } from 'react';
 import { animated, useSpring } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
+import { useMousetrap } from 'use-mousetrap';
 
 import {
 	FullScreenControlsRoundedIcon,
@@ -131,12 +131,10 @@ function calculateSelectionOffsets(left: slideTypes, right: slideTypes) {
 }
 
 function TimelineKeyframe(props: {
-	slide: slide;
+	slide: anySlide;
 }) {
-	var workingTimeline = useHookstate(project).timeline.workingTimeline;
-
 	function modifySlide(newProps: Partial<anySlide>) {
-		var slide = workingTimeline.find(s => s.value.id == props.slide.id);
+		var slide = project.timeline.workingTimeline.find(s => s.value.id == props.slide.id);
 		slide.set(Object.assign({}, slide.value, newProps));
 	}
 
@@ -424,32 +422,26 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 		}
 	}, { domTarget: props.selectionAreaRef, eventOptions: { passive: false } });
 
-	useEffect(() => {
-		var delkeys = ['del', 'backspace'];
-		mousetrap.bind(delkeys, () => {
-			if (!project.selection.placed) return;
+	useMousetrap(['del', 'backspace'], () => {
+		if (!project.selection.placed) return;
 
-			project.selection.slides.forEach(slide => {
-				if (!slideTypes.includes(slide.value.type)) return;
-				var index = workingTimeline.findIndex(s => s.value?.id == slide.value.id);
-				if (index == -1) return;
-				var timeline = new Array(...project.timeline.workingTimeline.value);
-				timeline.splice(index, 1);
-				workingTimeline.set(timeline);
-			});
-			project.update.refreshLiveTimeline.value();
-
-			project.selection.merge({
-				placed: false,
-				hidden: true,
-				slides: [],
-			});
+		var indexOffset = 0;
+		project.selection.slides.forEach(slide => {
+			if (!slideTypes.includes(slide.value.type)) return;
+			var index = project.timeline.workingTimeline.findIndex(s => s.value?.id == slide.value.id);
+			if (index == -1) return;
+			index -= indexOffset;
+			project.timeline.workingTimeline[index].set(none);
+			indexOffset++;
 		});
+		project.update.refreshLiveTimeline.value();
 
-		return () => {
-			mousetrap.unbind(delkeys);
-		};
-	}, []);
+		project.selection.merge({
+			placed: false,
+			hidden: true,
+			slides: [],
+		});
+	});
 
 	function CustomSelection(props: {
 		x1: number;
@@ -660,13 +652,12 @@ function TimelineEditor() {
 			className='timeScale posabs a0'
 			id='timeScaleCanvas'
 			onClick={event => {
-				// place new keyframe
+				// place new keyframe / place keyframe
 				var offset = -4; // keyframe offset
 				var x = event.clientX - 240 + offset;
 				var frame = getFrameAtOffset(x, project.timeline.zoom.value) - 0.5;
 				var slide = new toolToSlide[tool.value](Math.round(frame));
-				workingTimeline[workingTimeline.value.length].set(slide);
-				workingTimeline.set(workingTimeline.value);
+				project.timeline.workingTimeline[project.timeline.workingTimeline.value.length].set(slide);
 				keyframeInAnimations[slide.id] = {
 					x: frame,
 					y: event.clientY - window.innerHeight + 210,
@@ -700,7 +691,7 @@ function TimelineEditor() {
 				style={{ '--total-frames': player.timeline?.framecount.toString() } as CSSProperties}
 			>
 				<div className='selectionarea posabs v0' ref={selectionAreaRef} />
-				{workingTimeline.value.map(slide => <TimelineKeyframe slide={slide} />)}
+				{workingTimeline.value.map(slide => <TimelineKeyframe slide={slide} key={slide.id} />)}
 				<TimelineSelection selectionAreaRef={selectionAreaRef} />
 			</div>
 		</div>
