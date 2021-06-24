@@ -299,6 +299,11 @@
 	cursor: grabbing;
 }
 
+#selection {
+	left: calc(var(--zoom) * (var(--starting-frame) + var(--center)) * 1px - 6px + var(--start-offset) * 1px);
+	top: calc((var(--y) - 6) * 1px);
+}
+
 .appGrid .timeline .ghostArea {
 	pointer-events: none;
 	line-height: 0;

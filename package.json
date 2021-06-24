@@ -18,13 +18,13 @@
 		"@types/uuid": "^8.3.0",
 		"ajv": "^8.3.0",
 		"mousetrap": "^1.6.5",
-		"next": "^10.2.0",
+		"next": "^11.0.1",
 		"react": "^17.0.2",
 		"react-dom": "^17.0.2",
 		"react-spring": "^9.1.2",
 		"react-use-gesture": "^9.1.3",
 		"timecode-boss": "^4.2.3",
-		"ts-json-schema-generator": "^0.92.0",
+		"ts-json-schema-generator": "^0.93.0",
 		"uuid": "^8.3.2"
 	},
 	"devDependencies": {
