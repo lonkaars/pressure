@@ -67,6 +67,13 @@ interface project {
 			right: slideTypes | null;
 		};
 	};
+	ready: {
+		timeline: boolean;
+		video: {
+			available: boolean;
+			fullyloaded: boolean;
+		};
+	};
 	update: {
 		refreshLiveTimeline: () => void;
 	};
@@ -89,6 +96,13 @@ var project = createState<project>({
 		type: {
 			left: null,
 			right: null,
+		},
+	},
+	ready: {
+		timeline: false,
+		video: {
+			available: false,
+			fullyloaded: false,
 		},
 	},
 	update: {
@@ -828,6 +842,7 @@ function DefaultSettings() {
 							player.loadSlides(ev.target.result as string);
 							project.timeline.workingTimeline.set(player.timeline.slides);
 							project.update.refreshLiveTimeline.value();
+							project.ready.timeline.set(true);
 						});
 						reader.readAsText(file);
 					}}
@@ -874,15 +889,17 @@ function Tools() {
 	var frame = useHookstate(project).timeline.frame;
 	var tool = useHookstate(project).timeline.tool;
 	var timelineZoom = useHookstate(project).timeline.zoom;
+	var ready = useHookstate(project).ready;
 
 	return <div className='tools'>
-		<div className='time posrel'>
+		<div className={'time posrel ' + (ready.timeline.get() ? '' : 'disabled')}>
 			<span className='framerate numbers posabs l0 t0'>@{player.framerate}fps</span>
 			<h2 className='timecode numbers posabs r0 t0'>
 				{player.frameToTimestampString(frame.value, false)}
 			</h2>
 		</div>
 		<ToggleButtonGroup
+			className={ready.timeline.get() ? '' : 'disabled'}
 			color='primary'
 			aria-label='outlined primary button group'
 			value={tool.get()}
@@ -903,7 +920,7 @@ function Tools() {
 				</div>
 			</ToggleButton>
 		</ToggleButtonGroup>
-		<div className='zoom'>
+		<div className={'zoom ' + (ready.timeline.get() ? '' : 'disabled')}>
 			<ZoomOutRoundedIcon />
 			<div className='spacing'>
 				<Slider
