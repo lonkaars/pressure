@@ -48,7 +48,7 @@ var slideAPIs: { [key: string]: any; }[] = [];
 
 var player = new TimedVideoPlayer();
 
-interface project {
+interface globalState {
 	timeline: {
 		playing: boolean;
 		frame: number;
@@ -79,7 +79,7 @@ interface project {
 	};
 }
 
-var project = createState<project>({
+var global = createState<globalState>({
 	timeline: {
 		playing: false,
 		frame: 0,
@@ -107,7 +107,7 @@ var project = createState<project>({
 	},
 	update: {
 		refreshLiveTimeline: () => {
-			player.timeline.slides = Array(...(project.timeline.workingTimeline.value));
+			player.timeline.slides = Array(...(global.timeline.workingTimeline.value));
 			player.timeline.slides = player.timeline.slides.filter(slide => slide != null);
 			player.timeline.slides.sort((a, b) => a.frame - b.frame);
 			player.timeline.slides[-1] = { // TODO: dry
@@ -148,7 +148,7 @@ function TimelineKeyframe(props: {
 	slide: anySlide;
 }) {
 	function modifySlide(newProps: Partial<anySlide>) {
-		var slide = project.timeline.workingTimeline.find(s => s.value.id == props.slide.id);
+		var slide = global.timeline.workingTimeline.find(s => s.value.id == props.slide.id);
 		slide.set(Object.assign({}, slide.value, newProps));
 	}
 
@@ -178,7 +178,7 @@ function TimelineKeyframe(props: {
 		delete keyframeInAnimations[props.slide.id];
 	}, []);
 
-	var timelineZoom = useHookstate(project).timeline.zoom;
+	var timelineZoom = useHookstate(global).timeline.zoom;
 
 	// drag keyframe
 	var [startOffset, setStartOffset] = useState(0);
@@ -232,7 +232,7 @@ function TimelineKeyframe(props: {
 	var mouseUpListener = useRef(null);
 	useDrag(({ last }) => {
 		if (!last) return;
-		project.update.refreshLiveTimeline.value();
+		global.update.refreshLiveTimeline.value();
 	}, { domTarget: mouseUpListener, eventOptions: { passive: false } });
 
 	return <animated.div
@@ -266,15 +266,15 @@ function TimelineKeyframe(props: {
 }
 
 function TimelineLabels() {
-	var labels = useHookstate(project).timeline.labels;
+	var labels = useHookstate(global).timeline.labels;
 	return <div className='labels' children={labels.attach(Downgraded).get()} />;
 }
 
 function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
-	var workingTimeline = useHookstate(project).timeline.workingTimeline;
-	var tool = useHookstate(project).timeline.tool;
+	var workingTimeline = useHookstate(global).timeline.workingTimeline;
+	var tool = useHookstate(global).timeline.tool;
 
-	var selection = useHookstate(project).selection;
+	var selection = useHookstate(global).selection;
 
 	var [selectionPos, selectionPosAPI] = useSpring(() => ({
 		x1: 0,
@@ -292,10 +292,10 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 	var selectionRef = useRef(null);
 	// drag on selection
 	useDrag(({ movement: [x, _y], last }) => {
-		if (!project.selection.placed.value) return;
-		if (project.selection.slides.value.length < 1) return;
-		var frameOffset = Math.round(x / zoomToPx(project.timeline.zoom.value));
-		project.selection.slides.forEach(slide => {
+		if (!global.selection.placed.value) return;
+		if (global.selection.slides.value.length < 1) return;
+		var frameOffset = Math.round(x / zoomToPx(global.timeline.zoom.value));
+		global.selection.slides.forEach(slide => {
 			var api = slideAPIs[slide.value.id];
 			switch (slide.value.type as slideTypes | 'loopBegin') {
 				case 'loopBegin': {
@@ -305,9 +305,9 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 					api.start({ begin });
 
 					if (last) {
-						(project.timeline.workingTimeline.find(s => s.value.id == slide.value.id) as State<loopSlide>)
+						(global.timeline.workingTimeline.find(s => s.value.id == slide.value.id) as State<loopSlide>)
 							.beginFrame.set(begin);
-						project.update.refreshLiveTimeline.value();
+						global.update.refreshLiveTimeline.value();
 					}
 
 					break;
@@ -319,12 +319,12 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 
 					if (last) {
 						workingTimeline.find(s => s.value.id == slide.value.id).frame.set(frame);
-						project.update.refreshLiveTimeline.value();
+						global.update.refreshLiveTimeline.value();
 					}
 				}
 			}
 			if (last) return;
-			var selectionFrame = project.selection.slides[0].frame.value;
+			var selectionFrame = global.selection.slides[0].frame.value;
 			selectionPosAPI.start({ startingFrame: selectionFrame + frameOffset });
 		});
 	}, { domTarget: selectionRef, eventOptions: { passive: false } });
@@ -334,16 +334,16 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 		var minDistance = 5; // minimal drag distance in pixels to register selection
 		var distanceTraveled = Math.sqrt(ox ** 2 + oy ** 2);
 
-		if (project.selection.hidden.value && distanceTraveled > minDistance) project.selection.hidden.set(false);
-		if (project.selection.type.left.value) project.selection.type.left.set(null);
-		if (project.selection.type.right.value) project.selection.type.right.set(null);
-		if (project.selection.placed.value) project.selection.placed.set(false);
+		if (global.selection.hidden.value && distanceTraveled > minDistance) global.selection.hidden.set(false);
+		if (global.selection.type.left.value) global.selection.type.left.set(null);
+		if (global.selection.type.right.value) global.selection.type.right.set(null);
+		if (global.selection.placed.value) global.selection.placed.set(false);
 		selectionPosAPI.start({
 			center: 0,
 			startOffset: 0,
 			widthOffset: 0,
 		});
-		project.selection.slides.set([]);
+		global.selection.slides.set([]);
 
 		var timelineInner = document.querySelector('.timeline .timelineInner');
 		var timelineRects = timelineInner.getBoundingClientRect();
@@ -360,11 +360,11 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 		var x2 = x1 + Math.abs(sx);
 		var y2 = y1 + Math.abs(sy);
 
-		var zoom = zoomToPx(project.timeline.zoom.value);
+		var zoom = zoomToPx(global.timeline.zoom.value);
 		var frameWidth = Math.abs(sx) / zoom;
 		var startingFrame = x1 / zoom;
 
-		selectionPosAPI[first && project.selection.hidden ? 'set' : 'start']({
+		selectionPosAPI[first && global.selection.hidden ? 'set' : 'start']({
 			x1,
 			y1,
 			x2,
@@ -372,10 +372,10 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 			startingFrame,
 			frameWidth,
 		});
-		if (!project.selection.active.value) project.selection.active.set(true);
+		if (!global.selection.active.value) global.selection.active.set(true);
 		if (last) {
-			project.selection.active.set(false);
-			if (distanceTraveled <= minDistance) project.selection.hidden.set(true);
+			global.selection.active.set(false);
+			if (distanceTraveled <= minDistance) global.selection.hidden.set(true);
 			else {
 				var endingFrame = startingFrame + frameWidth;
 				var expandedTimeline = new Array(...player.timeline.slides);
@@ -393,11 +393,11 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 				);
 
 				if (keyframesInSelection.length < 1) {
-					project.selection.hidden.set(true);
+					global.selection.hidden.set(true);
 					return;
 				}
 
-				project.selection.slides.set(keyframesInSelection);
+				global.selection.slides.set(keyframesInSelection);
 
 				var left = keyframesInSelection[0];
 				var right = keyframesInSelection[keyframesInSelection.length - 1];
@@ -425,7 +425,7 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 						widthOffset,
 					});
 				}, 100);
-				project.selection.merge({
+				global.selection.merge({
 					type: {
 						left: left.type,
 						right: right.type,
@@ -437,15 +437,15 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 	}, { domTarget: props.selectionAreaRef, eventOptions: { passive: false } });
 
 	useMousetrap(['del', 'backspace'], () => {
-		if (!project.selection.placed) return;
+		if (!global.selection.placed) return;
 
-		var selection = project.selection.slides.attach(Downgraded).value
+		var selection = global.selection.slides.attach(Downgraded).value
 			.map(s => ({ id: s.id.toString(), type: s.type.toString() }))
 			.filter(s => slideTypes.includes(s.type));
-		selection.forEach(slide => project.timeline.workingTimeline.find(s => s.value?.id == slide.id).set(none));
-		project.update.refreshLiveTimeline.value();
+		selection.forEach(slide => global.timeline.workingTimeline.find(s => s.value?.id == slide.id).set(none));
+		global.update.refreshLiveTimeline.value();
 
-		project.selection.merge({
+		global.selection.merge({
 			placed: false,
 			hidden: true,
 			slides: [],
@@ -498,13 +498,13 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 }
 
 function TimelineEditor() {
-	var timelineZoom = useHookstate(project).timeline.zoom;
-	var workingTimeline = useHookstate(project).timeline.workingTimeline;
-	var tool = useHookstate(project).timeline.tool;
+	var timelineZoom = useHookstate(global).timeline.zoom;
+	var workingTimeline = useHookstate(global).timeline.workingTimeline;
+	var tool = useHookstate(global).timeline.tool;
 
 	var mouseX = 0;
 
-	var ready = useHookstate(project).ready;
+	var ready = useHookstate(global).ready;
 
 	var timelineRef = useRef(null);
 	var selectionAreaRef = useRef(null);
@@ -513,7 +513,7 @@ function TimelineEditor() {
 			if (!e.ctrlKey && !e.altKey) return;
 			e.preventDefault();
 
-			var newZoom = Math.min(1, Math.max(0, project.timeline.zoom.value + (-e.deltaY / 1000)));
+			var newZoom = Math.min(1, Math.max(0, global.timeline.zoom.value + (-e.deltaY / 1000)));
 			zoomAroundPoint(newZoom, mouseX);
 		});
 	}, []);
@@ -528,7 +528,7 @@ function TimelineEditor() {
 
 	useEffect(() => {
 		player.addEventListener('TimedVideoPlayerOnFrame', (event: CustomEvent) => {
-			project.timeline.frame.set(event.detail);
+			global.timeline.frame.set(event.detail);
 			scrubberSpring.start({ frame: event.detail });
 		});
 	}, []);
@@ -561,7 +561,7 @@ function TimelineEditor() {
 
 			var offset = document.querySelector('.timeline .timelineInner').scrollLeft;
 
-			var frameWidth = zoomToPx(project.timeline.zoom.value);
+			var frameWidth = zoomToPx(global.timeline.zoom.value);
 
 			var d = true;
 			var a = 0;
@@ -606,7 +606,7 @@ function TimelineEditor() {
 				a++;
 			}
 
-			project.timeline.labels.set(labels);
+			global.timeline.labels.set(labels);
 
 			requestAnimationFrame(draw);
 		}
@@ -630,13 +630,13 @@ function TimelineEditor() {
 		}),
 	);
 	useDrag(({ xy: [x, _y] }) => {
-		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, project.timeline.zoom.value)) - 1);
+		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, global.timeline.zoom.value)) - 1);
 		scrubberSpring.start({ frame });
 		if (player.player) {
 			var time = player.frameToTimestamp(frame + 1);
 			if (isFinite(time)) player.player.currentTime = time;
 		}
-		project.timeline.frame.set(frame);
+		global.timeline.frame.set(frame);
 	}, { domTarget: scrubberDragRef, eventOptions: { passive: false } });
 
 	// slide placement ghost
@@ -666,14 +666,14 @@ function TimelineEditor() {
 				// place new keyframe / place keyframe
 				var offset = -4; // keyframe offset
 				var x = event.clientX - 240 + offset;
-				var frame = getFrameAtOffset(x, project.timeline.zoom.value) - 0.5;
+				var frame = getFrameAtOffset(x, global.timeline.zoom.value) - 0.5;
 				var slide = new toolToSlide[tool.value](Math.round(frame));
-				project.timeline.workingTimeline[project.timeline.workingTimeline.value.length].set(slide);
+				global.timeline.workingTimeline[global.timeline.workingTimeline.value.length].set(slide);
 				keyframeInAnimations[slide.id] = {
 					x: frame,
 					y: event.clientY - window.innerHeight + 210,
 				};
-				project.update.refreshLiveTimeline.value();
+				global.update.refreshLiveTimeline.value();
 			}}
 		/>
 		<TimelineLabels />
@@ -812,15 +812,15 @@ function DefaultSettings() {
 						var reader = new FileReader();
 						reader.addEventListener('load', ev => {
 							player.loadVideo(ev.target.result as string);
-							project.ready.video.available.set(true);
+							global.ready.video.available.set(true);
 
 							player.player.addEventListener(
 								'canplaythrough',
-								() => project.ready.video.playable.set(true),
+								() => global.ready.video.playable.set(true),
 							);
 
-							player.player.addEventListener('play', () => project.timeline.playing.set(true));
-							player.player.addEventListener('pause', () => project.timeline.playing.set(false));
+							player.player.addEventListener('play', () => global.timeline.playing.set(true));
+							player.player.addEventListener('pause', () => global.timeline.playing.set(false));
 						});
 						reader.readAsDataURL(file);
 					}}
@@ -843,9 +843,9 @@ function DefaultSettings() {
 						var reader = new FileReader();
 						reader.addEventListener('load', ev => {
 							player.loadSlides(ev.target.result as string);
-							project.timeline.workingTimeline.set(player.timeline.slides);
-							project.update.refreshLiveTimeline.value();
-							project.ready.timeline.set(true);
+							global.timeline.workingTimeline.set(player.timeline.slides);
+							global.update.refreshLiveTimeline.value();
+							global.ready.timeline.set(true);
 						});
 						reader.readAsText(file);
 					}}
@@ -881,18 +881,18 @@ function DefaultSettings() {
 
 function zoomAroundPoint(newZoom: number, pivot: number) {
 	var timeline = document.querySelector('.timeline .timelineInner');
-	var frame = getFrameAtOffset(pivot, project.timeline.zoom.value);
+	var frame = getFrameAtOffset(pivot, global.timeline.zoom.value);
 	var newOffset = (frame * zoomToPx(newZoom)) - pivot;
 
 	timeline.scrollLeft = newOffset;
-	project.timeline.zoom.set(newZoom);
+	global.timeline.zoom.set(newZoom);
 }
 
 function Tools() {
-	var frame = useHookstate(project).timeline.frame;
-	var tool = useHookstate(project).timeline.tool;
-	var timelineZoom = useHookstate(project).timeline.zoom;
-	var ready = useHookstate(project).ready;
+	var frame = useHookstate(global).timeline.frame;
+	var tool = useHookstate(global).timeline.tool;
+	var timelineZoom = useHookstate(global).timeline.zoom;
+	var ready = useHookstate(global).ready;
 
 	return <div className='tools'>
 		<div className={'time posrel ' + (ready.timeline.get() ? '' : 'disabled')}>
@@ -944,7 +944,7 @@ function Tools() {
 }
 
 export default function Index() {
-	var playing = useHookstate(project).timeline.playing;
+	var playing = useHookstate(global).timeline.playing;
 
 	var playerRef = useRef(null);
 	useEffect(() => {
@@ -957,7 +957,7 @@ export default function Index() {
 		document.addEventListener('gesturechange', preventDefault);
 	}, []);
 
-	var ready = useHookstate(project).ready;
+	var ready = useHookstate(global).ready;
 
 	return <>
 		<div className='appGrid posabs a0'>
