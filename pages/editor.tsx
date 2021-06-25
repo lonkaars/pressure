@@ -82,6 +82,9 @@ interface globalState {
 			right: slideTypes | null;
 		};
 	};
+	dialog: {
+		projectSettings: boolean;
+	};
 	ready: {
 		timeline: boolean;
 		video: {
@@ -112,6 +115,9 @@ var global = createState<globalState>({
 			left: null,
 			right: null,
 		},
+	},
+	dialog: {
+		projectSettings: false,
 	},
 	ready: {
 		timeline: false,
@@ -771,19 +777,16 @@ function DialogBox(props: {
 	</Dialog>;
 }
 
-function ProjectSettings(props: {
-	close: () => any;
-	open?: boolean;
-}) {
+function ProjectSettings() {
 	var proj = useHookstate(project).timeline;
+	var open = useHookstate(global).dialog.projectSettings;
 
 	function close() {
 		global.update.refreshLiveTimeline.value();
-		console.log(player);
-		props.close();
+		open.set(false);
 	}
 
-	return <DialogBox open={props.open} close={close} title='Project settings'>
+	return <DialogBox open={open.get()} close={close} title='Project settings'>
 		<div className='body fullwidth-inputs form-spacing'>
 			<TextField
 				value={proj.name.get()}
@@ -817,12 +820,10 @@ function DefaultSettings() {
 	var [previousSlideKeybinds, setPreviousSlideKeybinds] = useState(['Backspace', 'p']);
 	var [showMenuKeybinds, setShowMenuKeybinds] = useState(['Escape', 'm']);
 
-	var [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
-
 	var proj = useHookstate(project).timeline;
 
 	return <>
-		<ProjectSettings open={projectSettingsOpen} close={() => setProjectSettingsOpen(false)} />
+		<ProjectSettings />
 		<h2 className='title posabs h0 t0'>Presentation settings</h2>
 		<div className='scroll posabs h0 b0'>
 			<div className='section'>
@@ -974,14 +975,28 @@ function DefaultSettings() {
 					variant='contained'
 					color='default'
 					children='New project'
-					onClick={() => console.log('new project')}
+					onClick={() => {
+						var newProj: timeline = {
+							slides: [],
+							name: 'New project',
+							settings: { controlType: 'FullScreen' },
+							framerate: 0,
+							framecount: 0,
+						};
+						player.loadSlides(JSON.stringify(newProj));
+						project.timeline.set(player.timeline);
+						global.timeline.workingTimeline.set(player.timeline.slides);
+						global.update.refreshLiveTimeline.value();
+						global.ready.timeline.set(true);
+						global.dialog.projectSettings.set(true);
+					}}
 					startIcon={<AddRoundedIcon />}
 				/>
 				<Button
 					variant='contained'
 					color='default'
 					children='Project settings'
-					onClick={() => setProjectSettingsOpen(true)}
+					onClick={() => global.dialog.projectSettings.set(true)}
 					startIcon={<SettingsRoundedIcon />}
 				/>
 			</div>
