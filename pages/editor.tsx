@@ -18,8 +18,11 @@ import { TimedVideoPlayer } from './present';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import Fab from '@material-ui/core/Fab';
 import FormControl from '@material-ui/core/FormControl';
+import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
@@ -32,10 +35,13 @@ import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import Icon from '@mdi/react';
 
+import AddRoundedIcon from '@material-ui/icons/AddRounded';
 import ArrowDropDownRoundedIcon from '@material-ui/icons/ArrowDropDownRounded';
+import CloseIcon from '@material-ui/icons/Close';
 import FullscreenRoundedIcon from '@material-ui/icons/FullscreenRounded';
 import NavigateBeforeRoundedIcon from '@material-ui/icons/NavigateBeforeRounded';
 import NavigateNextRoundedIcon from '@material-ui/icons/NavigateNextRounded';
+import SettingsRoundedIcon from '@material-ui/icons/SettingsRounded';
 import SkipPreviousRoundedIcon from '@material-ui/icons/SkipPreviousRounded';
 import { mdiCursorDefault } from '@mdi/js';
 
@@ -720,7 +726,51 @@ function TimelineEditor() {
 	</div>;
 }
 
+function DialogBox(props: {
+	open?: boolean;
+	close: () => any;
+	children: ReactNode;
+	title: string;
+}) {
+	return <Dialog open={props.open} onClose={props.close}>
+		<MuiDialogTitle>
+			<span className='title'>{props.title}</span>
+			<IconButton onClick={props.close} children={<CloseIcon />} />
+		</MuiDialogTitle>
+		<div className='inner'>
+			{props.children}
+		</div>
+	</Dialog>;
+}
+
+function ProjectSettings(props: {
+	close: () => any;
+	open?: boolean;
+}) {
+	return <DialogBox {...props} title='Project settings'>
+		<div className='body'>
+			Lorem ipsum dolor, sit amet consectetur adipisicing elit. Deserunt blanditiis accusamus, fugiat vel, dolor
+			nesciunt asperiores reiciendis iure tempore veniam corrupti earum! Ipsam, delectus. Ipsum, sed eligendi
+			facere veniam nostrum in tempora libero voluptates quam saepe culpa, minima praesentium iure explicabo aut
+			laboriosam asperiores quisquam non. Nulla, eaque, enim, vitae illo dolorem natus dolores quas quam possimus
+			iure soluta quibusdam est fuga quae autem vel totam molestiae blanditiis reiciendis ducimus. Similique
+			numquam nam quisquam corrupti enim possimus debitis repudiandae sapiente et porro. Asperiores placeat error
+			quis distinctio laboriosam cumque ex iste, natus incidunt, deserunt beatae earum laudantium nam amet quia
+			nihil nesciunt exercitationem corrupti quibusdam veritatis repellendus? Neque impedit laudantium at,
+			voluptatem iure ut sed nemo quod officiis aut ab dolore quibusdam dicta rem dolor amet quo saepe corporis.
+			Iure itaque magnam quasi dolores consequuntur praesentium quaerat odit officia consequatur illo nobis odio
+			velit mollitia eaque, placeat a. Ut voluptates, odio perspiciatis earum dolore optio excepturi laudantium
+			doloremque accusamus consequuntur qui saepe obcaecati? Dolorum harum dolores officiis perspiciatis quos
+			debitis reiciendis rerum qui laborum, sapiente ut delectus totam sit aperiam magni maiores cupiditate atque
+			cum alias. Dolorum possimus fugiat ratione laborum architecto? Tempora eos, blanditiis consequuntur fugiat
+			soluta illo beatae?
+		</div>
+	</DialogBox>;
+}
+
 // https://material.io/design/navigation/navigation-transitions.html#peer-transitions
+// https://material-ui.com/components/transitions/#grow
+// https://material-ui.com/components/transitions/#fade
 function DefaultSettings() {
 	var [nextSlideKeybinds, setNextSlideKeybinds] = useState(['Space', 'n', 'Enter']);
 	var [previousSlideKeybinds, setPreviousSlideKeybinds] = useState(['Backspace', 'p']);
@@ -728,7 +778,10 @@ function DefaultSettings() {
 
 	var [oscType, setOscType] = useState('FullScreen');
 
+	var [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
+
 	return <>
+		<ProjectSettings open={projectSettingsOpen} close={() => setProjectSettingsOpen(false)} />
 		<h2 className='title posabs h0 t0'>Presentation settings</h2>
 		<div className='scroll posabs h0 b0'>
 			<div className='section'>
@@ -873,6 +926,20 @@ function DefaultSettings() {
 						a.click();
 					}}
 					startIcon={<GetAppRoundedIcon />}
+				/>
+				<Button
+					variant='contained'
+					color='default'
+					children='New project'
+					onClick={() => console.log('new project')}
+					startIcon={<AddRoundedIcon />}
+				/>
+				<Button
+					variant='contained'
+					color='default'
+					children='Project settings'
+					onClick={() => setProjectSettingsOpen(true)}
+					startIcon={<SettingsRoundedIcon />}
 				/>
 			</div>
 		</div>

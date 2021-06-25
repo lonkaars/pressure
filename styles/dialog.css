@@ -1,0 +1,41 @@
+.MuiDialog-container .MuiPaper-root {
+	max-width: 400px;
+	width: 100%;
+	background-color: var(--c400);
+	color: var(--fg);
+}
+
+.MuiDialog-container .MuiPaper-root .MuiDialogTitle-root .MuiIconButton-root {
+	position: absolute;
+	right: 16px;
+	color: var(--fg);
+}
+.MuiDialog-container .MuiPaper-root .MuiDialogTitle-root .MuiIconButton-root:hover {
+	background-color: rgba(235,238,249, 0.04) !important; 
+}
+
+.MuiDialog-container .MuiPaper-root .MuiDialogTitle-root .title {
+	margin: 8px 0;
+	display: inline-block;
+}
+.MuiDialog-container .MuiPaper-root .inner {
+	margin: 16px 24px;
+	margin-right: 0;
+	margin-top: 0;
+	overflow-y: scroll;
+}
+
+.MuiDialog-container .MuiPaper-root ::-webkit-scrollbar-track,
+.MuiDialog-container .MuiPaper-root ::-webkit-scrollbar-track-piece,
+.MuiDialog-container .MuiPaper-root ::-webkit-scrollbar {
+	background-color: var(--c400);
+}
+
+.MuiDialog-container .MuiPaper-root ::-webkit-scrollbar-thumb {
+	background: linear-gradient(90deg , var(--c400) 11px, var(--c700) 11px, var(--c700) 13px, var(--c400) 13px);
+}
+
+.MuiDialog-container .MuiPaper-root ::-webkit-scrollbar {
+	width: 24px;
+	height: 24px;
+}

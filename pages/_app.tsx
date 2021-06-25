@@ -2,6 +2,7 @@ import Head from 'next/head';
 
 import '../components/play-skip_60fps.css';
 import '../styles/colors.css';
+import '../styles/dialog.css';
 import '../styles/editor.css';
 import '../styles/globals.css';
 import '../styles/keybindselector.css';
