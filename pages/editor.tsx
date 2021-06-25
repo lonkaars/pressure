@@ -439,15 +439,10 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 	useMousetrap(['del', 'backspace'], () => {
 		if (!project.selection.placed) return;
 
-		var indexOffset = 0;
-		project.selection.slides.forEach(slide => {
-			if (!slideTypes.includes(slide.value.type)) return;
-			var index = project.timeline.workingTimeline.findIndex(s => s.value?.id == slide.value.id);
-			if (index == -1) return;
-			index -= indexOffset;
-			project.timeline.workingTimeline[index].set(none);
-			indexOffset++;
-		});
+		var selection = project.selection.slides.attach(Downgraded).value
+			.map(s => ({ id: s.id.toString(), type: s.type.toString() }))
+			.filter(s => slideTypes.includes(s.type));
+		selection.forEach(slide => project.timeline.workingTimeline.find(s => s.value?.id == slide.id).set(none));
 		project.update.refreshLiveTimeline.value();
 
 		project.selection.merge({
