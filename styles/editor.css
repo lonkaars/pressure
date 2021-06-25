@@ -169,6 +169,7 @@
 
 .tools .time .framerate,
 .tools .time .timecode {
+	user-select: none;
 	transition-property: opacity, color;
 	transition-duration: 150ms;
 }
@@ -279,7 +280,13 @@
 	line-height: 0;
 }
 
+.player.disabled .outer {
+	border-color: var(--c400) !important;
+}
+
 .appGrid .viewer .player .outer {
+	transition-property: border-color;
+	transition-duration: 150ms;
 	border: 8px solid var(--piss);
 	border-radius: 8px;
 }
@@ -311,11 +318,26 @@
 .appGrid .viewer .controls .MuiFab-root.playPause {
 	background-color: var(--blue);
 }
+.appGrid .viewer .controls.disabled .playPause,
+.appGrid .viewer .controls .playPause.disabled {
+	color: var(--c700);
+	opacity: .6;
+	background-color: var(--c400);
+}
 
 .appGrid .viewer .controls .MuiFab-root {
 	color: var(--fg);
 }
 
+.appGrid .viewer .controls.disabled .MuiFab-root {
+	color: var(--c700);
+	opacity: .6;
+	pointer-events: none;
+}
+.appGrid .viewer .controls .MuiFab-root {
+	transition-property: background-color, color, opacity;
+	transition-duration: 150ms;
+}
 .appGrid .viewer .controls .MuiFab-root:not(.playPause) {
 	background-color: var(--transparent);
 	box-shadow: none;
@@ -423,9 +445,31 @@
 .timeline .scrubber .head { fill: var(--blue); }
 .timeline .scrubber .needle { background-color: var(--blue); }
 
+.timeline .scrubber .head,
+.timeline .scrubber .needle {
+	transition-property: fill, background-color;
+	transition-duration: 150ms;
+}
+
+.timeline.disabled .scrubberJumpArea { pointer-events: none; }
+.timeline.disabled .scrubber .head { fill: var(--c600); }
+.timeline.disabled .scrubber .needle { background-color: var(--c600); }
+
 .timeline .labels .label {
 	transform: translate(-50%, -100%);
 	color: var(--c700);
+}
+
+.timeline .labels .label,
+.timeline .timeScale {
+	transition-property: color, opacity;
+	transition-duration: 150ms;
+}
+
+.timeline.disabled .labels .label,
+.timeline.disabled .timeScale {
+	color: var(--c600);
+	opacity: .6;
 }
 
 .timeline .scrubberJumpArea {

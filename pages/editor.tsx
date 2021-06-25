@@ -71,7 +71,7 @@ interface project {
 		timeline: boolean;
 		video: {
 			available: boolean;
-			fullyloaded: boolean;
+			playable: boolean;
 		};
 	};
 	update: {
@@ -102,7 +102,7 @@ var project = createState<project>({
 		timeline: false,
 		video: {
 			available: false,
-			fullyloaded: false,
+			playable: false,
 		},
 	},
 	update: {
@@ -504,6 +504,8 @@ function TimelineEditor() {
 
 	var mouseX = 0;
 
+	var ready = useHookstate(project).ready;
+
 	var timelineRef = useRef(null);
 	var selectionAreaRef = useRef(null);
 	useEffect(() => {
@@ -653,7 +655,7 @@ function TimelineEditor() {
 	}, []);
 
 	return <div
-		className='timeline posrel'
+		className={'timeline posrel ' + (ready.timeline.get() ? '' : 'disabled')}
 		style={{ '--zoom': zoomToPx(timelineZoom.value) } as CSSProperties}
 		ref={timelineRef}
 	>
@@ -810,6 +812,12 @@ function DefaultSettings() {
 						var reader = new FileReader();
 						reader.addEventListener('load', ev => {
 							player.loadVideo(ev.target.result as string);
+							project.ready.video.available.set(true);
+
+							player.player.addEventListener(
+								'canplaythrough',
+								() => project.ready.video.playable.set(true),
+							);
 
 							player.player.addEventListener('play', () => project.timeline.playing.set(true));
 							player.player.addEventListener('pause', () => project.timeline.playing.set(false));
@@ -949,6 +957,8 @@ export default function Index() {
 		document.addEventListener('gesturechange', preventDefault);
 	}, []);
 
+	var ready = useHookstate(project).ready;
+
 	return <>
 		<div className='appGrid posabs a0'>
 			<AppBar position='static' color='transparent' elevation={0}>
@@ -963,12 +973,12 @@ export default function Index() {
 				</div>
 			</div>
 			<div className='viewer'>
-				<div className='player posrel'>
+				<div className={'player posrel ' + (ready.video.available.get() ? '' : 'disabled')}>
 					<div className='outer posabs abscenter'>
 						<video id='player' ref={playerRef} className='fullwidth' />
 					</div>
 				</div>
-				<div className='controls'>
+				<div className={'controls ' + (ready.timeline.get() ? '' : 'disabled')}>
 					<div className='posabs abscenter'>
 						<Fab
 							size='small'
@@ -979,7 +989,7 @@ export default function Index() {
 							}}
 						/>
 						<Fab
-							className='playPause'
+							className={'playPause ' + (ready.video.playable.get() ? '' : 'disabled')}
 							size='medium'
 							onClick={() => {
 								player.next();
