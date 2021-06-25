@@ -42,7 +42,7 @@ export var toolToSlide = {
 };
 
 export interface presentationSettings {
-	controlType: 'FullScreen';
+	controlType: 'FullScreen' | 'MenuBar';
 }
 
 export default interface timeline {

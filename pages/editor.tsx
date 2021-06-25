@@ -13,7 +13,15 @@ import {
 import KeybindSelector from '../components/keybindselector';
 import PlaySkipIconAni from '../components/play-skip';
 import Selection from '../components/selection';
-import { anySlide, loopBeginSlide, loopSlide, slide, slideTypes, toolToSlide } from '../timeline';
+import timeline, {
+	anySlide,
+	loopBeginSlide,
+	loopSlide,
+	presentationSettings,
+	slide,
+	slideTypes,
+	toolToSlide,
+} from '../timeline';
 import { TimedVideoPlayer } from './present';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -28,6 +36,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import Slider from '@material-ui/core/Slider';
 import Switch from '@material-ui/core/Switch';
+import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import ZoomInRoundedIcon from '@material-ui/icons/ZoomInRounded';
 import ZoomOutRoundedIcon from '@material-ui/icons/ZoomOutRounded';
@@ -122,7 +131,25 @@ var global = createState<globalState>({
 				type: 'default',
 				clickThroughBehaviour: 'ImmediatelySkip',
 			};
+			project.timeline.slides.set(player.timeline.slides);
+			player.timeline = project.timeline.attach(Downgraded).value;
 		},
+	},
+});
+
+interface project {
+	timeline: timeline;
+}
+
+var project = createState<project>({
+	timeline: {
+		name: '',
+		slides: [],
+		settings: {
+			controlType: 'FullScreen',
+		},
+		framerate: 0,
+		framecount: 0,
 	},
 });
 
@@ -384,7 +411,7 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 			if (distanceTraveled <= minDistance) global.selection.hidden.set(true);
 			else {
 				var endingFrame = startingFrame + frameWidth;
-				var expandedTimeline = new Array(...player.timeline.slides);
+				var expandedTimeline = new Array(...project.timeline.slides.value);
 				for (let i = 0; i < expandedTimeline.length; i++) {
 					var slide = expandedTimeline[i];
 					if (slide.type != 'loop') continue;
@@ -511,6 +538,7 @@ function TimelineEditor() {
 	var mouseX = 0;
 
 	var ready = useHookstate(global).ready;
+	var proj = useHookstate(project).timeline;
 
 	var timelineRef = useRef(null);
 	var selectionAreaRef = useRef(null);
@@ -705,7 +733,7 @@ function TimelineEditor() {
 			</animated.div>
 			<div
 				className='keyframes'
-				style={{ '--total-frames': player.timeline?.framecount.toString() } as CSSProperties}
+				style={{ '--total-frames': proj.framecount.get() } as CSSProperties}
 			>
 				<div className='selectionarea posabs v0' ref={selectionAreaRef} />
 				{workingTimeline.value.map(slide => <TimelineKeyframe slide={slide} key={slide.id} />)}
@@ -747,23 +775,36 @@ function ProjectSettings(props: {
 	close: () => any;
 	open?: boolean;
 }) {
-	return <DialogBox {...props} title='Project settings'>
-		<div className='body'>
-			Lorem ipsum dolor, sit amet consectetur adipisicing elit. Deserunt blanditiis accusamus, fugiat vel, dolor
-			nesciunt asperiores reiciendis iure tempore veniam corrupti earum! Ipsam, delectus. Ipsum, sed eligendi
-			facere veniam nostrum in tempora libero voluptates quam saepe culpa, minima praesentium iure explicabo aut
-			laboriosam asperiores quisquam non. Nulla, eaque, enim, vitae illo dolorem natus dolores quas quam possimus
-			iure soluta quibusdam est fuga quae autem vel totam molestiae blanditiis reiciendis ducimus. Similique
-			numquam nam quisquam corrupti enim possimus debitis repudiandae sapiente et porro. Asperiores placeat error
-			quis distinctio laboriosam cumque ex iste, natus incidunt, deserunt beatae earum laudantium nam amet quia
-			nihil nesciunt exercitationem corrupti quibusdam veritatis repellendus? Neque impedit laudantium at,
-			voluptatem iure ut sed nemo quod officiis aut ab dolore quibusdam dicta rem dolor amet quo saepe corporis.
-			Iure itaque magnam quasi dolores consequuntur praesentium quaerat odit officia consequatur illo nobis odio
-			velit mollitia eaque, placeat a. Ut voluptates, odio perspiciatis earum dolore optio excepturi laudantium
-			doloremque accusamus consequuntur qui saepe obcaecati? Dolorum harum dolores officiis perspiciatis quos
-			debitis reiciendis rerum qui laborum, sapiente ut delectus totam sit aperiam magni maiores cupiditate atque
-			cum alias. Dolorum possimus fugiat ratione laborum architecto? Tempora eos, blanditiis consequuntur fugiat
-			soluta illo beatae?
+	var proj = useHookstate(project).timeline;
+
+	function close() {
+		global.update.refreshLiveTimeline.value();
+		console.log(player);
+		props.close();
+	}
+
+	return <DialogBox open={props.open} close={close} title='Project settings'>
+		<div className='body fullwidth-inputs form-spacing'>
+			<TextField
+				value={proj.name.get()}
+				onChange={e => proj.name.set(e.target.value)}
+				label='Project name'
+				variant='filled'
+			/>
+			<TextField
+				value={proj.framecount.get()}
+				onChange={e => proj.framecount.set(Math.max(0, Number(e.target.value)))}
+				label='Frame count'
+				variant='filled'
+				type='number'
+			/>
+			<TextField
+				value={proj.framerate.get()}
+				onChange={e => proj.framerate.set(Math.max(0, Number(e.target.value)))}
+				label='Framerate'
+				variant='filled'
+				type='number'
+			/>
 		</div>
 	</DialogBox>;
 }
@@ -776,9 +817,9 @@ function DefaultSettings() {
 	var [previousSlideKeybinds, setPreviousSlideKeybinds] = useState(['Backspace', 'p']);
 	var [showMenuKeybinds, setShowMenuKeybinds] = useState(['Escape', 'm']);
 
-	var [oscType, setOscType] = useState('FullScreen');
-
 	var [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
+
+	var proj = useHookstate(project).timeline;
 
 	return <>
 		<ProjectSettings open={projectSettingsOpen} close={() => setProjectSettingsOpen(false)} />
@@ -795,8 +836,9 @@ function DefaultSettings() {
 					<Select
 						labelId='demo-simple-select-filled-label'
 						id='demo-simple-select-filled'
-						value={oscType}
-						onChange={e => setOscType(e.target.value as string)}
+						value={proj.settings.controlType.get()}
+						onChange={e =>
+							proj.settings.controlType.set(e.target.value as presentationSettings['controlType'])}
 						IconComponent={ArrowDropDownRoundedIcon}
 					>
 						<MenuItem value='FullScreen'>
@@ -896,6 +938,7 @@ function DefaultSettings() {
 						var reader = new FileReader();
 						reader.addEventListener('load', ev => {
 							player.loadSlides(ev.target.result as string);
+							project.timeline.set(player.timeline);
 							global.timeline.workingTimeline.set(player.timeline.slides);
 							global.update.refreshLiveTimeline.value();
 							global.ready.timeline.set(true);
@@ -915,7 +958,7 @@ function DefaultSettings() {
 					color='default'
 					children='Download json'
 					onClick={() => {
-						var timeline = Object({ ...(player.timeline) });
+						var timeline = project.timeline.attach(Downgraded).value;
 						var data = JSON.stringify(timeline);
 						var blob = new Blob([data], { type: 'application/json' });
 						var a = document.createElement('a');
@@ -960,12 +1003,13 @@ function Tools() {
 	var tool = useHookstate(global).timeline.tool;
 	var timelineZoom = useHookstate(global).timeline.zoom;
 	var ready = useHookstate(global).ready;
+	var framerate = useHookstate(project).timeline.framerate;
 
 	return <div className='tools'>
 		<div className={'time posrel ' + (ready.timeline.get() ? '' : 'disabled')}>
-			<span className='framerate numbers posabs l0 t0'>@{player.framerate}fps</span>
+			<span className='framerate numbers posabs l0 t0'>@{framerate.get()}fps</span>
 			<h2 className='timecode numbers posabs r0 t0'>
-				{player.frameToTimestampString(frame.value, false)}
+				{player.frameToTimestampString(frame.get(), false)}
 			</h2>
 		</div>
 		<ToggleButtonGroup
@@ -1034,7 +1078,7 @@ export default function Index() {
 					<h1>pressure</h1>
 				</Toolbar>
 			</AppBar>
-			<div className='settings posrel'>
+			<div className='settings fullwidth-inputs posrel'>
 				<div className='inner posabs a0'>
 					<DefaultSettings />
 				</div>

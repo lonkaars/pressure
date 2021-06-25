@@ -21,18 +21,16 @@ export class TimedVideoPlayer {
 	video: string;
 	registeredEventListeners: boolean;
 	frame: number;
-	framerate: number;
 
 	constructor() {
 		this.slide = -1;
 		this.precision = 3;
 		this.frame = 0;
-		this.framerate = 0;
 		this.registeredEventListeners = false;
 	}
 
 	frameToTimestampString(frame: number, trim: boolean = true) {
-		var timecodeString = new Timecode(frame, this.framerate).toString();
+		var timecodeString = new Timecode(frame, this.timeline?.framerate).toString();
 		if (trim) timecodeString = timecodeString.replace(/^(00:)+/, '');
 		timecodeString = timecodeString.replace(';', '.')
 			.replace(/(:)(\d+?)$/, '.$2')
@@ -42,11 +40,11 @@ export class TimedVideoPlayer {
 	}
 
 	timestampToFrame(timestamp: number): number {
-		return Math.ceil((timestamp * 1e3) / (1e3 / this.framerate));
+		return Math.ceil((timestamp * 1e3) / (1e3 / this.timeline?.framerate));
 	}
 
 	frameToTimestamp(frame: number): number {
-		return frame / this.framerate;
+		return frame / this.timeline?.framerate;
 	}
 
 	registerPlayer(player: HTMLVideoElement) {
@@ -75,7 +73,7 @@ export class TimedVideoPlayer {
 			if (previousSlide.type != 'speedChange') {
 				continue;
 			}
-			return this.framerate / (previousSlide as speedChangeSlide).newFramerate;
+			return this.timeline?.framerate / (previousSlide as speedChangeSlide).newFramerate;
 		}
 		return 1;
 	}
@@ -100,7 +98,7 @@ export class TimedVideoPlayer {
 				this.slide++;
 				var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.timeline.slides[this.slide] });
 				this.dispatchEvent(event);
-				this.player.playbackRate = this.framerate / (slide as speedChangeSlide).newFramerate;
+				this.player.playbackRate = this.timeline?.framerate / (slide as speedChangeSlide).newFramerate;
 				break;
 			}
 			default: {
@@ -142,7 +140,7 @@ export class TimedVideoPlayer {
 			if (this.frame >= slide.frame) {
 				this.handleSlide(slide);
 			}
-		}, 1e3 / (this.precision * this.framerate));
+		}, 1e3 / (this.precision * this.timeline?.framerate));
 
 		this.registeredEventListeners = true;
 	}
@@ -168,7 +166,6 @@ export class TimedVideoPlayer {
 		}
 
 		this.timeline = timeline as timeline;
-		this.framerate = this.timeline.framerate;
 
 		this.timeline.slides[-1] = {
 			id: '00000000-0000-0000-0000-000000000000',
