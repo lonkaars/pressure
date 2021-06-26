@@ -490,3 +490,15 @@
 	z-index: 9;
 }
 
+.fadeout {
+	transition-property: opacity;
+	transition-duration: 100ms;
+	opacity: 0;
+	user-select: none;
+	pointer-events: none;
+}
+
+.fadeout.first {
+	transition-duration: 0ms;
+	opacity: 1;
+}

@@ -1,8 +1,9 @@
-import { createState, Downgraded, none, State, useHookstate } from '@hookstate/core';
+import { createState, Downgraded, none, PluginCallbacks, State, StateValueAtRoot, useHookstate } from '@hookstate/core';
 import { CSSProperties, ReactNode, Ref, useEffect, useRef, useState } from 'react';
 import { animated, useSpring } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 import { useMousetrap } from 'use-mousetrap';
+import { v4 as uuid } from 'uuid';
 
 import FadeThroughTransition from '../components/fadethrough';
 import {
@@ -86,6 +87,10 @@ interface globalState {
 	dialog: {
 		projectSettings: boolean;
 	};
+	settings: {
+		node: ReactNode;
+		name: string;
+	};
 	ready: {
 		timeline: boolean;
 		video: {
@@ -127,6 +132,10 @@ var global = createState<globalState>({
 			playable: false,
 		},
 	},
+	settings: {
+		node: <DefaultSettings />,
+		name: 'DefaultSettings',
+	},
 	update: {
 		refreshLiveTimeline: () => {
 			player.timeline.slides = Array(...(global.timeline.workingTimeline.value));
@@ -143,6 +152,22 @@ var global = createState<globalState>({
 		},
 	},
 });
+
+var settings = {
+	'default': {
+		node: <DefaultSettings />,
+		name: 'DefaultSettings',
+	},
+	'slide': {
+		node: <SlideSettings />,
+		name: 'SlideSettings',
+	},
+};
+function setSetting(name: keyof typeof settings) {
+	var setting = settings[name];
+	if (global.settings.name.value == setting.name) return;
+	global.settings.set(setting);
+}
 
 interface project {
 	timeline: timeline;
@@ -415,8 +440,10 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 		if (!global.selection.active.value) global.selection.active.set(true);
 		if (last) {
 			global.selection.active.set(false);
-			if (distanceTraveled <= minDistance) global.selection.hidden.set(true);
-			else {
+			if (distanceTraveled <= minDistance) {
+				setSetting('default');
+				global.selection.hidden.set(true);
+			} else {
 				var endingFrame = startingFrame + frameWidth;
 				var expandedTimeline = new Array(...project.timeline.slides.value);
 				for (let i = 0; i < expandedTimeline.length; i++) {
@@ -433,6 +460,7 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 				);
 
 				if (keyframesInSelection.length < 1) {
+					setSetting('default');
 					global.selection.hidden.set(true);
 					return;
 				}
@@ -465,6 +493,7 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 						widthOffset,
 					});
 				}, 100);
+				setSetting('slide');
 				global.selection.merge({
 					type: {
 						left: left.type,
@@ -1002,9 +1031,9 @@ function DefaultSettings() {
 	</>;
 }
 
-function KeyframeSettings() {
+function SlideSettings() {
 	return <>
-		<h2 className='title posabs h0 t0'>Keyframe settings</h2>
+		<h2 className='title posabs h0 t0'>Slide settings</h2>
 		<div className='scroll posabs h0 b0'>
 			<div className='section'>
 				<span className='title'>Cool</span>
@@ -1078,6 +1107,22 @@ function Tools() {
 	</div>;
 }
 
+var settingsArr: ReactNode[] = [null, global.settings.node.attach(Downgraded).value];
+function SettingsPane() {
+	var settings = useHookstate(global).settings;
+	var key = uuid();
+
+	settingsArr[0] = settingsArr[1];
+	settingsArr[1] = settings.node.attach(Downgraded).get();
+
+	return <FadeThroughTransition
+		key={key}
+		from={<div className='inner posabs a0' children={settingsArr[0]} />}
+		to={<div className='inner posabs a0' children={settingsArr[1]} />}
+		show={true}
+	/>;
+}
+
 export default function Index() {
 	var playing = useHookstate(global).timeline.playing;
 
@@ -1102,17 +1147,7 @@ export default function Index() {
 					<h1>pressure</h1>
 				</Toolbar>
 			</AppBar>
-			<div className='settings fullwidth-inputs posrel'>
-				<FadeThroughTransition
-					from={<div className='inner posabs a0'>
-						<DefaultSettings />
-					</div>}
-					to={<div className='inner posabs a0'>
-						<KeyframeSettings />
-					</div>}
-					show={false}
-				/>
-			</div>
+			<div className='settings fullwidth-inputs posrel' children={<SettingsPane />} />
 			<div className='viewer'>
 				<div className={'player posrel ' + (ready.video.available.get() ? '' : 'disabled')}>
 					<div className='outer posabs abscenter'>
