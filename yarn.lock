@@ -76,6 +76,11 @@
   resolved "https://registry.yarnpkg.com/@hookstate/core/-/core-3.0.8.tgz#d6838153d6d43c2f35cfca475c31248192564e62"
   integrity sha512-blQagGIVIbNoUiNCRrvaXqFmUe7WGMY35ok/LENfl2pcIsLBjkreYIZiaSFi83tkycwq7ZOmcQz/R1nvLKhH8w==
 
+"@hookstate/untracked@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@hookstate/untracked/-/untracked-3.0.0.tgz#fcf5005f89a68956c994ffb4b04cc3bd25d7cbf6"
+  integrity sha512-NctZVu0fEXc+komMmEpJ4OAD77P1P4uhXnU8e2Y1l+k0P+ZCE+enTDvgg9rp2WmViD7s8XA2+lS7wTkHGargmw==
+
 "@material-ui/core@^4.11.4":
   version "4.11.4"
   resolved "https://registry.yarnpkg.com/@material-ui/core/-/core-4.11.4.tgz#4fb9fe5dec5dcf780b687e3a40cff78b2b9640a4"

@@ -1,4 +1,4 @@
-import { createState, Downgraded, none, PluginCallbacks, State, StateValueAtRoot, useHookstate } from '@hookstate/core';
+import { createState, Downgraded, none, State, useHookstate } from '@hookstate/core';
 import { CSSProperties, ReactNode, Ref, useEffect, useRef, useState } from 'react';
 import { animated, useSpring } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
@@ -1113,87 +1113,96 @@ function SettingsPane() {
 	var key = uuid();
 
 	settingsArr[0] = settingsArr[1];
-	settingsArr[1] = settings.node.attach(Downgraded).get();
+	settingsArr[1] = settings.node.attach(Downgraded).value;
 
-	return <FadeThroughTransition
-		key={key}
-		from={<div className='inner posabs a0' children={settingsArr[0]} />}
-		to={<div className='inner posabs a0' children={settingsArr[1]} />}
-		show={true}
-	/>;
+	return <div className='settings fullwidth-inputs posrel'>
+		<FadeThroughTransition
+			key={key}
+			from={<div className='inner posabs a0' children={settingsArr[0]} />}
+			to={<div className='inner posabs a0' children={settingsArr[1]} />}
+			show={true}
+		/>
+	</div>;
 }
 
-export default function Index() {
+function Player() {
 	var playing = useHookstate(global).timeline.playing;
+	var ready = useHookstate(global).ready;
 
 	var playerRef = useRef(null);
 	useEffect(() => {
 		player.registerPlayer(playerRef.current);
 	}, []);
 
+	return <div className='viewer'>
+		<div className={'player posrel ' + (ready.video.available.get() ? '' : 'disabled')}>
+			<div className='outer posabs abscenter'>
+				<video id='player' ref={playerRef} className='fullwidth' />
+			</div>
+		</div>
+		<div className={'controls ' + (ready.timeline.get() ? '' : 'disabled')}>
+			<div className='posabs abscenter'>
+				<Fab
+					size='small'
+					children={<SkipPreviousRoundedIcon />}
+					onClick={() => {
+						player.slide = 0;
+						player.previous();
+					}}
+				/>
+				<Fab
+					className={'playPause ' + (ready.video.playable.get() ? '' : 'disabled')}
+					size='medium'
+					onClick={() => {
+						player.next();
+						player.player.play();
+					}}
+					children={<PlaySkipIconAni />}
+					style={{ '--ani-state': playing.get() ? 'skip' : 'play' } as CSSProperties}
+				/>
+				<Fab size='small' children={<NavigateBeforeRoundedIcon />} onClick={() => player.previous()} />
+				<Fab
+					size='small'
+					children={<NavigateNextRoundedIcon />}
+					onClick={() => {
+						player.next(); // TODO: fix jank here
+						player.next();
+						player.previous();
+					}}
+				/>
+			</div>
+			<div className='posabs abscenterv r0'>
+				<Fab
+					size='small'
+					children={<FullscreenRoundedIcon />}
+					onClick={() => document.body.requestFullscreen()}
+				/>
+			</div>
+		</div>
+	</div>;
+}
+
+function TitleBar() {
+	return <AppBar position='static' color='transparent' elevation={0}>
+		<Toolbar>
+			<PressureIcon />
+			<h1>pressure</h1>
+		</Toolbar>
+	</AppBar>;
+}
+
+export default function Index() {
 	useEffect(() => {
 		var preventDefault = (e: Event) => e.preventDefault();
 		document.addEventListener('gesturestart', preventDefault);
 		document.addEventListener('gesturechange', preventDefault);
 	}, []);
 
-	var ready = useHookstate(global).ready;
-
 	return <>
 		<div className='appGrid posabs a0'>
-			<AppBar position='static' color='transparent' elevation={0}>
-				<Toolbar>
-					<PressureIcon />
-					<h1>pressure</h1>
-				</Toolbar>
-			</AppBar>
-			<div className='settings fullwidth-inputs posrel' children={<SettingsPane />} />
-			<div className='viewer'>
-				<div className={'player posrel ' + (ready.video.available.get() ? '' : 'disabled')}>
-					<div className='outer posabs abscenter'>
-						<video id='player' ref={playerRef} className='fullwidth' />
-					</div>
-				</div>
-				<div className={'controls ' + (ready.timeline.get() ? '' : 'disabled')}>
-					<div className='posabs abscenter'>
-						<Fab
-							size='small'
-							children={<SkipPreviousRoundedIcon />}
-							onClick={() => {
-								player.slide = 0;
-								player.previous();
-							}}
-						/>
-						<Fab
-							className={'playPause ' + (ready.video.playable.get() ? '' : 'disabled')}
-							size='medium'
-							onClick={() => {
-								player.next();
-								player.player.play();
-							}}
-							children={<PlaySkipIconAni />}
-							style={{ '--ani-state': playing.get() ? 'skip' : 'play' } as CSSProperties}
-						/>
-						<Fab size='small' children={<NavigateBeforeRoundedIcon />} onClick={() => player.previous()} />
-						<Fab
-							size='small'
-							children={<NavigateNextRoundedIcon />}
-							onClick={() => {
-								player.next(); // TODO: fix jank here
-								player.next();
-								player.previous();
-							}}
-						/>
-					</div>
-					<div className='posabs abscenterv r0'>
-						<Fab
-							size='small'
-							children={<FullscreenRoundedIcon />}
-							onClick={() => document.body.requestFullscreen()}
-						/>
-					</div>
-				</div>
-			</div>
+			<TitleBar />
+			<SettingsPane />
+			<Player />
 			<Tools />
 			<TimelineEditor />
 		</div>
