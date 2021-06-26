@@ -1,6 +1,6 @@
 import { createState, Downgraded, none, State, useHookstate } from '@hookstate/core';
 import { CSSProperties, ReactNode, Ref, useEffect, useRef, useState } from 'react';
-import { animated, useSpring } from 'react-spring';
+import { animated, SpringRef, SpringValues, useSpring } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 import { useMousetrap } from 'use-mousetrap';
 import { v4 as uuid } from 'uuid';
@@ -153,6 +153,22 @@ var global = createState<globalState>({
 	},
 });
 
+interface project {
+	timeline: timeline;
+}
+
+var project = createState<project>({
+	timeline: {
+		name: '',
+		slides: [],
+		settings: {
+			controlType: 'FullScreen',
+		},
+		framerate: 0,
+		framecount: 0,
+	},
+});
+
 var settings = {
 	'default': {
 		node: <DefaultSettings />,
@@ -169,21 +185,60 @@ function setSetting(name: keyof typeof settings) {
 	global.settings.set(setting);
 }
 
-interface project {
-	timeline: timeline;
+interface selectionPos {
+	x1: number;
+	y1: number;
+	x2: number;
+	y2: number;
+	center: number;
+	startingFrame: number;
+	frameWidth: number;
+	startOffset: number;
+	widthOffset: number;
 }
+var selectionPos: SpringValues<selectionPos>,
+	selectionPosAPI: SpringRef<selectionPos>;
+function select(slides: anySlide[]) {
+	if (slides.length == 0) {
+		global.selection.set({
+			slides: [],
+			active: false,
+			placed: false,
+			hidden: true,
+			type: {
+				left: null,
+				right: null,
+			},
+		});
+		setSetting('default');
+	} else {
+		var left = slides[0];
+		var right = slides[slides.length - 1];
 
-var project = createState<project>({
-	timeline: {
-		name: '',
-		slides: [],
-		settings: {
-			controlType: 'FullScreen',
-		},
-		framerate: 0,
-		framecount: 0,
-	},
-});
+		var [startOffset, widthOffset] = calculateSelectionOffsets(left.type, right.type);
+
+		selectionPosAPI[global.selection.hidden.value ? 'set' : 'start']({
+			y1: 50,
+			y2: 62,
+			startingFrame: left.frame,
+			frameWidth: right.frame - left.frame,
+			center: 0.5,
+			startOffset,
+			widthOffset,
+		});
+		global.selection.set({
+			slides,
+			active: false,
+			placed: true,
+			hidden: false,
+			type: {
+				left: left.type,
+				right: right.type,
+			},
+		});
+		setSetting('slide');
+	}
+}
 
 var zoomToPx = (zoom: number) => (12 - 0.5) * zoom ** (1 / 0.4) + 0.5;
 
@@ -248,31 +303,39 @@ function TimelineKeyframe(props: {
 	// drag keyframe
 	var [startOffset, setStartOffset] = useState(0);
 	var [endOffset, setEndOffset] = useState(0);
-	useDrag(({ xy: [x, _y], first }) => {
+	useDrag(({ xy: [x, _y], first, intentional }) => {
 		var frame = Math.max(0, Math.round(getFrameAtOffset(x - 240, timelineZoom.value)) - 1);
 
 		if (props.slide.type == 'loop') {
-			if (first) {
-				var startFrame = spring.begin.toJSON();
-				var endFrame = spring.frame.toJSON();
-				var grabFrameOffset = frame;
+			if (intentional) {
+				if (first) {
+					var startFrame = spring.begin.toJSON();
+					var endFrame = spring.frame.toJSON();
+					var grabFrameOffset = frame;
 
-				setStartOffset(startFrame - grabFrameOffset);
-				startOffset = startFrame - grabFrameOffset;
+					setStartOffset(startFrame - grabFrameOffset);
+					startOffset = startFrame - grabFrameOffset;
 
-				setEndOffset(endFrame - grabFrameOffset);
-				endOffset = endFrame - grabFrameOffset;
+					setEndOffset(endFrame - grabFrameOffset);
+					endOffset = endFrame - grabFrameOffset;
+				}
+				api.start({ begin: frame + startOffset, frame: frame + endOffset });
+
+				modifySlide({ frame: frame + endOffset });
+				modifySlide({ beginFrame: frame + startOffset });
 			}
-			api.start({ begin: frame + startOffset, frame: frame + endOffset });
-
-			modifySlide({ frame: frame + endOffset });
-			modifySlide({ beginFrame: frame + startOffset });
 		} else {
-			api.start({ frame });
+			if (intentional) {
+				api.start({ frame });
+				modifySlide({ frame });
+			}
 
-			modifySlide({ frame });
+			/**
+			 * Edit <TimelineSelection/> to use global.selection for slide crimping
+			 */
+			select([props.slide]);
 		}
-	}, { domTarget: dragRef, eventOptions: { passive: false } });
+	}, { domTarget: dragRef, eventOptions: { passive: false }, threshold: 10, triggerAllEvents: true });
 
 	if (props.slide.type == 'loop') {
 		// loop start
@@ -335,13 +398,13 @@ function TimelineLabels() {
 	return <div className='labels' children={labels.attach(Downgraded).get()} />;
 }
 
-function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
+function TimelineSelection(props: { selectionDragArea: Ref<ReactNode>; }) {
 	var workingTimeline = useHookstate(global).timeline.workingTimeline;
 	var tool = useHookstate(global).timeline.tool;
 
 	var selection = useHookstate(global).selection;
 
-	var [selectionPos, selectionPosAPI] = useSpring(() => ({
+	[selectionPos, selectionPosAPI] = useSpring(() => ({
 		x1: 0,
 		y1: 0,
 		x2: 0,
@@ -459,51 +522,10 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 					slide.frame >= Math.floor(startingFrame) && slide.frame <= Math.ceil(endingFrame)
 				);
 
-				if (keyframesInSelection.length < 1) {
-					setSetting('default');
-					global.selection.hidden.set(true);
-					return;
-				}
-
-				global.selection.slides.set(keyframesInSelection);
-
-				var left = keyframesInSelection[0];
-				var right = keyframesInSelection[keyframesInSelection.length - 1];
-
-				var [startOffset, widthOffset] = calculateSelectionOffsets(left.type, right.type);
-
-				selectionPosAPI.start({
-					y1: 50,
-					y2: 62,
-					startingFrame: left.frame,
-					frameWidth: right.frame - left.frame,
-					center: 0.5,
-					startOffset,
-					widthOffset,
-				});
-
-				setTimeout(() => {
-					selectionPosAPI.start({
-						y1: 50,
-						y2: 62,
-						startingFrame: left.frame,
-						frameWidth: right.frame - left.frame,
-						center: 0.5,
-						startOffset,
-						widthOffset,
-					});
-				}, 100);
-				setSetting('slide');
-				global.selection.merge({
-					type: {
-						left: left.type,
-						right: right.type,
-					},
-					placed: true,
-				});
+				select(keyframesInSelection);
 			}
 		}
-	}, { domTarget: props.selectionAreaRef, eventOptions: { passive: false } });
+	}, { domTarget: props.selectionDragArea, eventOptions: { passive: false } });
 
 	useMousetrap(['del', 'backspace'], () => {
 		if (!global.selection.placed) return;
@@ -578,7 +600,7 @@ function TimelineEditor() {
 	var proj = useHookstate(project).timeline;
 
 	var timelineRef = useRef(null);
-	var selectionAreaRef = useRef(null);
+	var selectionDragArea = useRef(null);
 	useEffect(() => {
 		timelineRef.current.addEventListener('wheel', (e: WheelEvent) => {
 			if (!e.ctrlKey && !e.altKey) return;
@@ -772,9 +794,9 @@ function TimelineEditor() {
 				className='keyframes'
 				style={{ '--total-frames': proj.framecount.get() } as CSSProperties}
 			>
-				<div className='selectionarea posabs v0' ref={selectionAreaRef} />
+				<div className='selectionarea posabs v0' ref={selectionDragArea} />
 				{workingTimeline.value.map(slide => <TimelineKeyframe slide={slide} key={slide.id} />)}
-				<TimelineSelection selectionAreaRef={selectionAreaRef} />
+				<TimelineSelection selectionDragArea={selectionDragArea} />
 			</div>
 		</div>
 		<div className={'ghostArea posabs a0' + (tool.value != 'cursor' ? ' active' : '')}>
