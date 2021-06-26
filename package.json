@@ -7,6 +7,12 @@
 	"author": "lonkaars <loek@pipeframe.xyz>",
 	"license": "MIT",
 	"private": false,
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"schema": "npx ts-json-schema-generator --path timeline.ts --type timeline > timeline.schema.json"
+	},
 	"dependencies": {
 		"@hookstate/core": "^3.0.8",
 		"@material-ui/core": "^4.11.4",

@@ -34,9 +34,18 @@
 
 .settings .inner .section {
 	margin-top: 16px;
+	user-select: none;
+	transition-property: opacity;
+	transition-duration: 150ms;
+}
+
+.settings .inner .section.disabled {
+	opacity: .4;
+	pointer-events: none;
 }
 
 .settings .inner .section .title {
+	user-select: none;
 	color: var(--c800);
 	display: block;
 }

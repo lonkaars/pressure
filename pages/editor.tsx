@@ -4,6 +4,7 @@ import { animated, useSpring } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 import { useMousetrap } from 'use-mousetrap';
 
+import FadeThroughTransition from '../components/fadethrough';
 import {
 	FullScreenControlsRoundedIcon,
 	MenuBarControlsRoundedIcon,
@@ -812,9 +813,6 @@ function ProjectSettings() {
 	</DialogBox>;
 }
 
-// https://material.io/design/navigation/navigation-transitions.html#peer-transitions
-// https://material-ui.com/components/transitions/#grow
-// https://material-ui.com/components/transitions/#fade
 function DefaultSettings() {
 	var [nextSlideKeybinds, setNextSlideKeybinds] = useState(['Space', 'n', 'Enter']);
 	var [previousSlideKeybinds, setPreviousSlideKeybinds] = useState(['Backspace', 'p']);
@@ -826,7 +824,7 @@ function DefaultSettings() {
 		<ProjectSettings />
 		<h2 className='title posabs h0 t0'>Presentation settings</h2>
 		<div className='scroll posabs h0 b0'>
-			<div className='section'>
+			<div className={'section ' + (global.ready.timeline.value ? '' : 'disabled')}>
 				<span className='title'>Controls</span>
 				<div className='sidebyside'>
 					<span className='body'>Allow remote control during presentation</span>
@@ -885,7 +883,7 @@ function DefaultSettings() {
 					</Select>
 				</FormControl>
 			</div>
-			<div className='section'>
+			<div className={'section ' + (global.ready.timeline.value ? '' : 'disabled')}>
 				<span className='title'>Keybindings</span>
 				<KeybindSelector label='Next slide' value={nextSlideKeybinds} onChange={setNextSlideKeybinds} />
 				<KeybindSelector
@@ -1004,6 +1002,17 @@ function DefaultSettings() {
 	</>;
 }
 
+function KeyframeSettings() {
+	return <>
+		<h2 className='title posabs h0 t0'>Keyframe settings</h2>
+		<div className='scroll posabs h0 b0'>
+			<div className='section'>
+				<span className='title'>Cool</span>
+			</div>
+		</div>
+	</>;
+}
+
 function zoomAroundPoint(newZoom: number, pivot: number) {
 	var timeline = document.querySelector('.timeline .timelineInner');
 	var frame = getFrameAtOffset(pivot, global.timeline.zoom.value);
@@ -1094,9 +1103,15 @@ export default function Index() {
 				</Toolbar>
 			</AppBar>
 			<div className='settings fullwidth-inputs posrel'>
-				<div className='inner posabs a0'>
-					<DefaultSettings />
-				</div>
+				<FadeThroughTransition
+					from={<div className='inner posabs a0'>
+						<DefaultSettings />
+					</div>}
+					to={<div className='inner posabs a0'>
+						<KeyframeSettings />
+					</div>}
+					show={false}
+				/>
 			</div>
 			<div className='viewer'>
 				<div className={'player posrel ' + (ready.video.available.get() ? '' : 'disabled')}>

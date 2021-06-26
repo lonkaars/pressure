@@ -94,7 +94,10 @@
 			"additionalProperties": false,
 			"properties": {
 				"controlType": {
-					"const": "FullScreen",
+					"enum": [
+						"FullScreen",
+						"MenuBar"
+					],
 					"type": "string"
 				}
 			},
@@ -124,10 +127,10 @@
 				}
 			},
 			"required": [
-				"frame",
 				"clickThroughBehaviour",
 				"type",
-				"id"
+				"id",
+				"frame"
 			],
 			"type": "object"
 		},

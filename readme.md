@@ -10,7 +10,9 @@ love, and present it to the world with ease.
 ## roadmap
 
 - [x] working demo
-- [ ] standalone web editor
+- [x] standalone web editor
+	- [ ] keyframe snapping to cursor/needle
+	- [ ] undo/redo timeline
 - [ ] backend in rust
 - [ ] remote control with phone
 - [ ] presenter view
