@@ -514,6 +514,7 @@ function TimelineSelection(props: { selectionAreaRef: Ref<ReactNode>; }) {
 		selection.forEach(slide => global.timeline.workingTimeline.find(s => s.value?.id == slide.id).set(none));
 		global.update.refreshLiveTimeline.value();
 
+		setSetting('default');
 		global.selection.merge({
 			placed: false,
 			hidden: true,
@@ -849,11 +850,13 @@ function DefaultSettings() {
 
 	var proj = useHookstate(project).timeline;
 
+	var ready = useHookstate(global).ready;
+
 	return <>
 		<ProjectSettings />
 		<h2 className='title posabs h0 t0'>Presentation settings</h2>
 		<div className='scroll posabs h0 b0'>
-			<div className={'section ' + (global.ready.timeline.value ? '' : 'disabled')}>
+			<div className={'section ' + (ready.timeline.value ? '' : 'disabled')}>
 				<span className='title'>Controls</span>
 				<div className='sidebyside'>
 					<span className='body'>Allow remote control during presentation</span>
@@ -912,7 +915,7 @@ function DefaultSettings() {
 					</Select>
 				</FormControl>
 			</div>
-			<div className={'section ' + (global.ready.timeline.value ? '' : 'disabled')}>
+			<div className={'section ' + (ready.timeline.value ? '' : 'disabled')}>
 				<span className='title'>Keybindings</span>
 				<KeybindSelector label='Next slide' value={nextSlideKeybinds} onChange={setNextSlideKeybinds} />
 				<KeybindSelector
