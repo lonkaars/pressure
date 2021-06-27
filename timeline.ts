@@ -32,6 +32,11 @@ export class loopSlide extends slide {
 
 export class loopBeginSlide extends slide {
 	type = 'loopBegin' as slideTypes;
+
+	constructor(public parent: loopSlide) {
+		super(parent.beginFrame);
+		this.id = parent.id;
+	}
 }
 
 export var toolToSlide = {

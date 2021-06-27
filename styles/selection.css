@@ -2,8 +2,8 @@
 	--selection-color: var(--gruble);
 	--corner-size: 12px;
 	filter: drop-shadow(0px 0px 16px var(--selection-color));
-	transition-duration: 100ms;
-	transition-property: transform, opacity;
+	transform: scale(calc(0.5 * var(--visibility) + 0.5));
+	opacity: var(--visibility);
 }
 
 .selection .bar.top,
@@ -57,7 +57,3 @@
 	opacity: .15;
 }
 
-.selection.hidden {
-	transform: scale(0.5);
-	opacity: 0;
-}
