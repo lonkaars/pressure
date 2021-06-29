@@ -369,7 +369,7 @@ function TimelineKeyframe(props: {
 	return <animated.div
 		className='frame posabs'
 		style={{
-			'--frame': spring.frame.get(),
+			'--frame': spring.frame,
 			opacity: firstRender ? 0 : 1,
 		} as CSSProperties}
 		id={'slide-' + props.slide.id}
@@ -787,7 +787,7 @@ function TimelineEditor() {
 			}
 		});
 	}, []);
-	// create new slide
+	// place new slide
 	useDrag(({ xy: [rx, ry], initial: [ix, _iy], movement: [ox, _oy], last }) => {
 		if (global.timeline.tool.value == 'cursor') return;
 
