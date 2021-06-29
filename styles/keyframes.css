@@ -56,5 +56,21 @@
 .keyframe.ghost .background { opacity: .2; }
 .keyframe.ghost .outline { opacity: .7; }
 
-#ghost { transform: translate(-16px, -16px); }
+#ghost {
+	transform: translate(-16px, -16px);
+	top: calc(var(--y) * 1px);
+	left: calc(var(--x) * 1px);
+}
+#ghost.placed { left: calc(var(--zoom) * var(--frame) * 1px); }
 
+.keyframeWrapper .loop.ghost {
+	width: calc((var(--frame-end) - var(--frame)) * var(--zoom) * 1px + 26px);
+	transform: translateX(100%);
+}
+.keyframeWrapper .loop.ghost .connector {
+	height: 14px;
+	margin: 0 5px;
+	border-top: 1px dashed var(--gruble);
+	border-bottom: 1px dashed var(--gruble);
+	opacity: .7;
+}
