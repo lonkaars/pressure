@@ -59,14 +59,30 @@
 #ghost {
 	transform: translate(-16px, -16px);
 	top: calc(var(--y) * 1px);
-	left: calc(var(--x) * 1px);
-}
-#ghost.placed { left: calc(var(--zoom) * var(--frame) * 1px); }
+	left: calc(var(--zoom) * var(--frame) * 1px);
 
-.keyframeWrapper .loop.ghost {
-	width: calc((var(--frame-end) - var(--frame)) * var(--zoom) * 1px + 26px);
+	pointer-events: none;
+	line-height: 0;
+	color: var(--gruble);
+	transition-property: opacity;
+	transition-duration: 150ms;
+	opacity: 0;
+}
+.timeline:hover #ghost {
+	opacity: 1;
+}
+
+#ghost .keyframeWrapper .loop.ghost {
+	width: calc((var(--frame-end) - var(--frame)) * var(--zoom) * 1px + 24px);
+
+	transition-property: transform;
+	transition-duration: 100ms;
 	transform: translateX(100%);
 }
+#ghost.placed .keyframeWrapper .loop.ghost {
+	transform: translateX(100%) translateX(10px);
+}
+
 .keyframeWrapper .loop.ghost .connector {
 	height: 14px;
 	margin: 0 5px;

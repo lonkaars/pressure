@@ -378,19 +378,6 @@
 	top: calc((var(--y) - 6) * 1px);
 }
 
-.appGrid .timeline .ghostArea {
-	pointer-events: none;
-	line-height: 0;
-	transition-property: opacity;
-	transition-duration: 150ms;
-	opacity: 0;
-	color: var(--gruble);
-}
-
-.appGrid .timeline:hover .ghostArea.active {
-	opacity: 1;
-}
-
 .appGrid .timeline .keyframes .frame {
 	background-color: transparent;
 	height: 100%;

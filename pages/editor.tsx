@@ -339,10 +339,6 @@ function TimelineKeyframe(props: {
 	}, { domTarget: dragRef, eventOptions: { passive: false }, threshold: 10, triggerAllEvents: true });
 
 	if (props.slide.type == 'loop') {
-		if (props.slide.frame < 30) {
-			console.log(props.slide);
-			console.log(spring.frame.get());
-		}
 		// loop start
 		useDrag(({ xy: [x, _y], intentional }) => {
 			if (intentional) {
@@ -780,7 +776,15 @@ function TimelineEditor() {
 			var rect = timelineRef.current.getBoundingClientRect();
 			var x = e.clientX - rect.left;
 			var y = e.clientY - rect.top;
-			if ((e.buttons & (1 << 0)) == 0) ghostApi.start({ x, y, frame: getFrameAtOffset(x) });
+			var frame = getFrameAtOffset(x);
+			if ((e.buttons & (1 << 0)) == 0) {
+				ghostApi.start({
+					x,
+					y,
+					frame,
+					frameEnd: frame + 5,
+				});
+			}
 		});
 	}, []);
 	// create new slide
@@ -795,6 +799,7 @@ function TimelineEditor() {
 
 			var start = Math.round(getFrameAtOffset(ix - rect.left));
 			var end = start + Math.round(ox / zoomToPx(global.timeline.zoom.value));
+
 			ghostApi.start({ frame: Math.min(start, end), frameEnd: Math.max(start, end), x, y: 60 });
 
 			if (last) {
@@ -804,14 +809,8 @@ function TimelineEditor() {
 				var slide = new loopSlide(Math.max(start, end));
 				slide.beginFrame = Math.min(start, end);
 
-				console.log(slide);
-
 				global.timeline.workingTimeline[global.timeline.workingTimeline.value.length].set(slide);
 
-				keyframeInAnimations[slide.id] = {
-					x: frame,
-					y: 60,
-				};
 				global.update.refreshLiveTimeline.value();
 			}
 		} else {
@@ -869,22 +868,21 @@ function TimelineEditor() {
 					<TimelineKeyframe slide={slide.attach(Downgraded).value} key={slide.id.value} />
 				)}
 				<TimelineSelection selectionDragArea={selectionDragArea} />
+				<animated.div
+					id='ghost'
+					className={'posabs dispinbl ' + (ghostPlaced ? 'placed' : '')}
+					style={{
+						'--y': ghost.y,
+						'--x': ghost.x,
+						'--frame': ghost.frame,
+						'--frame-end': ghost.frameEnd,
+					} as unknown as CSSProperties}
+					children={tool.value == 'loop'
+						? <GhostLoop begin={0} end={0} />
+						: <SlideKeyframe type={tool.value as slideTypes} ghost />}
+				/>
+				{false && <div className={'ghostArea posabs a0' + (tool.value != 'cursor' ? ' active' : '')}></div>}
 			</div>
-		</div>
-		<div className={'ghostArea posabs a0' + (tool.value != 'cursor' ? ' active' : '')}>
-			<animated.div
-				id='ghost'
-				className={'posabs dispinbl ' + (ghostPlaced ? 'placed' : '')}
-				style={{
-					'--y': ghost.y,
-					'--x': ghost.x,
-					'--frame': ghost.frame,
-					'--frame-end': ghost.frameEnd,
-				} as unknown as CSSProperties}
-				children={tool.value == 'loop'
-					? <GhostLoop begin={0} end={0} />
-					: <SlideKeyframe type={tool.value as slideTypes} ghost />}
-			/>
 		</div>
 	</div>;
 }
@@ -1152,12 +1150,20 @@ function zoomAroundPoint(newZoom: number, pivot: number) {
 	global.timeline.zoom.set(newZoom);
 }
 
+var switchToTool = (tool: string) => () => global.ready.timeline.value && global.timeline.tool.set(tool);
+
 function Tools() {
 	var frame = useHookstate(global).timeline.frame;
 	var tool = useHookstate(global).timeline.tool;
 	var timelineZoom = useHookstate(global).timeline.zoom;
 	var ready = useHookstate(global).ready;
 	var framerate = useHookstate(project).timeline.framerate;
+
+	useMousetrap(['v'], switchToTool('cursor'));
+	useMousetrap(['d'], switchToTool('default'));
+	useMousetrap(['l'], switchToTool('loop'));
+	useMousetrap(['e'], switchToTool('delay'));
+	useMousetrap(['s'], switchToTool('speedChange'));
 
 	return <div className='tools'>
 		<div className={'time posrel ' + (ready.timeline.get() ? '' : 'disabled')}>
