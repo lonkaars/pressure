@@ -252,6 +252,13 @@ function getFrameAtOffset(offset: number) {
 	return frame;
 }
 
+function getOffsetAtFrame(frame: number) {
+	var timeline = document.querySelector('.timeline .timelineInner');
+	var currentOffset = timeline.scrollLeft;
+	var offset = zoomToPx(global.timeline.zoom.value) * frame - currentOffset;
+	return offset;
+}
+
 function calculateSelectionOffsets(left: slideTypes, right: slideTypes) {
 	var offsets = {
 		default: { left: -6, right: 6 },
@@ -619,6 +626,29 @@ function GhostLoop(props: {
 	</div>;
 }
 
+function getGhostParams(x: number, y: number) {
+	var frame = getFrameAtOffset(x);
+
+	var springValues = {
+		x,
+		y,
+		frame,
+		frameEnd: 0,
+		offsetWeight: 1,
+	};
+
+	var scrubberX = getOffsetAtFrame(global.timeline.frame.value);
+	if (Math.abs(scrubberX + 0.5 * zoomToPx(global.timeline.zoom.value) - x) < 10) {
+		springValues.x = scrubberX;
+		springValues.frame = global.timeline.frame.value;
+		springValues.offsetWeight = 0;
+	}
+
+	springValues.frameEnd = springValues.frame + 5;
+
+	return springValues;
+}
+
 function TimelineEditor() {
 	var timelineZoom = useHookstate(global).timeline.zoom;
 	var workingTimeline = useHookstate(global).timeline.workingTimeline;
@@ -769,22 +799,18 @@ function TimelineEditor() {
 		y: 0,
 		frame: 0,
 		frameEnd: 0,
+		offsetWeight: 1,
 		config: { mass: 0.5, tension: 500, friction: 20 },
 	}));
 	useEffect(() => {
 		timelineRef.current.addEventListener('mousemove', (e: MouseEvent) => {
+			if ((e.buttons & (1 << 0)) > 0) return;
+
 			var rect = timelineRef.current.getBoundingClientRect();
 			var x = e.clientX - rect.left;
 			var y = e.clientY - rect.top;
-			var frame = getFrameAtOffset(x);
-			if ((e.buttons & (1 << 0)) == 0) {
-				ghostApi.start({
-					x,
-					y,
-					frame,
-					frameEnd: frame + 5,
-				});
-			}
+
+			ghostApi.start(getGhostParams(x, y));
 		});
 	}, []);
 	// place new slide
@@ -814,16 +840,16 @@ function TimelineEditor() {
 				global.update.refreshLiveTimeline.value();
 			}
 		} else {
-			ghostApi.start({ frame: getFrameAtOffset(x), x, y });
+			var ghostParams = getGhostParams(x, y);
+			ghostApi.start(ghostParams);
 			if (last) {
 				var offset = -4; // keyframe offset
-				var frame = getFrameAtOffset(x + offset) - 0.5;
+				var frame = ghostParams.offsetWeight
+					? getFrameAtOffset(ghostParams.x + offset) - 0.5
+					: ghostParams.frame;
 				var slide = new toolToSlide[tool.value](Math.round(frame));
 				global.timeline.workingTimeline[global.timeline.workingTimeline.value.length].set(slide);
-				keyframeInAnimations[slide.id] = {
-					x: frame,
-					y,
-				};
+				keyframeInAnimations[slide.id] = { x: frame, y };
 				global.update.refreshLiveTimeline.value();
 			}
 		}
@@ -876,6 +902,7 @@ function TimelineEditor() {
 						'--x': ghost.x,
 						'--frame': ghost.frame,
 						'--frame-end': ghost.frameEnd,
+						'--offset-weight': ghost.offsetWeight,
 					} as unknown as CSSProperties}
 					children={tool.value == 'loop'
 						? <GhostLoop begin={0} end={0} />

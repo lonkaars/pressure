@@ -57,7 +57,10 @@
 .keyframe.ghost .outline { opacity: .7; }
 
 #ghost {
-	transform: translate(-16px, -16px);
+	--negative-offset-weight: calc(1 - var(--offset-weight));
+	--offset-x: calc(0.5 * var(--zoom) * var(--negative-offset-weight) * 1px - 12px * var(--negative-offset-weight) + -16px * var(--offset-weight));
+	transform: translateX(var(--offset-x)) translateY(-16px);
+
 	top: calc(var(--y) * 1px);
 	left: calc(var(--zoom) * var(--frame) * 1px);
 
