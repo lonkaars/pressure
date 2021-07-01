@@ -626,8 +626,9 @@ function GhostLoop(props: {
 	</div>;
 }
 
-function getGhostParams(x: number, y: number) {
+function getGhostParams(x: number, y: number, ox?: number, oy?: number) {
 	var frame = getFrameAtOffset(x);
+	var frameWidth = zoomToPx(global.timeline.zoom.value);
 
 	var springValues = {
 		x,
@@ -638,13 +639,28 @@ function getGhostParams(x: number, y: number) {
 	};
 
 	var scrubberX = getOffsetAtFrame(global.timeline.frame.value);
-	if (Math.abs(scrubberX + 0.5 * zoomToPx(global.timeline.zoom.value) - x) < 10) {
+	var snap = (c: number) => Math.abs(scrubberX + 0.5 * frameWidth - c) < 10;
+
+	if (snap(x)) {
 		springValues.x = scrubberX;
 		springValues.frame = global.timeline.frame.value;
 		springValues.offsetWeight = 0;
 	}
+	if (typeof ox !== 'undefined' && typeof oy !== 'undefined') {
+		springValues.frameEnd = springValues.frame + ox / frameWidth;
+		if (snap(x + ox)) {
+			springValues.frameEnd = global.timeline.frame.value;
+			springValues.offsetWeight = 0;
+		}
 
-	springValues.frameEnd = springValues.frame + 5;
+		var a = springValues.frame;
+		var b = springValues.frameEnd;
+		springValues.frame = Math.round(Math.min(a, b));
+		springValues.frameEnd = Math.round(Math.max(a, b));
+		springValues.y = 60;
+	} else {
+		springValues.frameEnd = springValues.frame + 5;
+	}
 
 	return springValues;
 }
@@ -716,7 +732,7 @@ function TimelineEditor() {
 
 			var frameWidth = zoomToPx(global.timeline.zoom.value);
 
-			var d = true;
+			var d = false;
 			var a = 0;
 			var ns = [300, 150, 120, 90, 60, 30, 30, 30, 15, 15, 10, 10, 10];
 			var everyN = ns[Math.floor(frameWidth)];
@@ -814,7 +830,7 @@ function TimelineEditor() {
 		});
 	}, []);
 	// place new slide
-	useDrag(({ xy: [rx, ry], initial: [ix, _iy], movement: [ox, _oy], last }) => {
+	useDrag(({ xy: [rx, ry], initial: [ix, iy], movement: [ox, oy], last }) => {
 		if (global.timeline.tool.value == 'cursor') return;
 
 		var rect = timelineRef.current.getBoundingClientRect();
@@ -823,21 +839,20 @@ function TimelineEditor() {
 		if (global.timeline.tool.value == 'loop') {
 			setGhostPlaced(true);
 
-			var start = Math.round(getFrameAtOffset(ix - rect.left));
-			var end = start + Math.round(ox / zoomToPx(global.timeline.zoom.value));
-
-			ghostApi.start({ frame: Math.min(start, end), frameEnd: Math.max(start, end), x, y: 60 });
+			var ghostParams = getGhostParams(ix - rect.left, iy - rect.top, ox, oy);
+			ghostApi.start(ghostParams);
 
 			if (last) {
 				setGhostPlaced(false);
-				ghostApi.start({ frame: 0, frameEnd: 0 });
 
-				var slide = new loopSlide(Math.max(start, end));
-				slide.beginFrame = Math.min(start, end);
+				var slide = new loopSlide(ghostParams.frameEnd);
+				slide.beginFrame = ghostParams.frame;
 
 				global.timeline.workingTimeline[global.timeline.workingTimeline.value.length].set(slide);
 
 				global.update.refreshLiveTimeline.value();
+
+				ghostApi.start(getGhostParams(x, y));
 			}
 		} else {
 			var ghostParams = getGhostParams(x, y);
