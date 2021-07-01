@@ -911,7 +911,8 @@ function TimelineEditor() {
 				<TimelineSelection selectionDragArea={selectionDragArea} />
 				<animated.div
 					id='ghost'
-					className={'posabs dispinbl ' + (ghostPlaced ? 'placed' : '')}
+					className={'posabs dispinbl ' + (ghostPlaced ? 'placed ' : '')
+						+ (global.timeline.tool.value == 'loop' ? 'loop ' : '')}
 					style={{
 						'--y': ghost.y,
 						'--x': ghost.x,

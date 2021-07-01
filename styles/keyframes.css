@@ -71,6 +71,9 @@
 	transition-duration: 150ms;
 	opacity: 0;
 }
+#ghost.loop.placed {
+	--offset-x: -16px;
+}
 .timeline:hover #ghost {
 	opacity: 1;
 }
