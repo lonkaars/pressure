@@ -690,7 +690,6 @@ function getMarkerSpacing() {
 		if (spacing) break;
 		multiply++;
 	}
-	console.log(spacing);
 	return spacing * multiply;
 }
 
@@ -730,6 +729,19 @@ function TimelineEditor() {
 			scrubberSpring.start({ frame: event.detail });
 		});
 	}, []);
+
+	useMousetrap(['.'], () => { // TODO: dry
+		if (!global.ready.timeline.value) return;
+		var frame = Math.min(project.timeline.framecount.value, global.timeline.frame.value + 1);
+		global.timeline.frame.set(frame);
+		scrubberSpring.start({ frame });
+	});
+	useMousetrap([','], () => {
+		if (!global.ready.timeline.value) return;
+		var frame = Math.max(0, global.timeline.frame.value - 1);
+		global.timeline.frame.set(frame);
+		scrubberSpring.start({ frame });
+	});
 
 	useEffect(() => {
 		player.addEventListener('TimedVideoPlayerSlide', (event: CustomEvent) => {
@@ -1311,6 +1323,17 @@ function Player() {
 	useEffect(() => {
 		player.registerPlayer(playerRef.current);
 	}, []);
+
+	useMousetrap(['<'], () => {
+		if (!global.ready.timeline.value) return;
+		player.previous();
+	});
+	useMousetrap(['>'], () => {
+		if (!global.ready.timeline.value) return;
+		player.next(); // TODO: fix jank here
+		player.next();
+		player.previous();
+	});
 
 	return <div className='viewer'>
 		<div className={'player posrel ' + (ready.video.available.get() ? '' : 'disabled')}>
