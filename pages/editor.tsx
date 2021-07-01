@@ -665,6 +665,35 @@ function getGhostParams(x: number, y: number, ox?: number, oy?: number) {
 	return springValues;
 }
 
+function divs(int: number) {
+	var divvable: number[] = [];
+	for (let i = 0; i < int; i++) {
+		if (int % i == 0) {
+			divvable.push(i);
+		}
+	}
+	return divvable;
+}
+
+function getMarkerSpacing() {
+	var zoom = global.timeline.zoom.value;
+	var frameWidth = zoomToPx(zoom);
+	var divvable = divs(Math.round(project.timeline.framerate.value));
+	if (divvable.length == 0) return 30;
+	var minSpacing = 120;
+	var multiply = 1;
+	var spacing: number;
+
+	while (!spacing) {
+		var spacings = divvable.filter(i => (i * frameWidth * multiply) >= minSpacing);
+		spacing = spacings[spacings.length - 1];
+		if (spacing) break;
+		multiply++;
+	}
+	console.log(spacing);
+	return spacing * multiply;
+}
+
 function TimelineEditor() {
 	var timelineZoom = useHookstate(global).timeline.zoom;
 	var workingTimeline = useHookstate(global).timeline.workingTimeline;
@@ -734,8 +763,7 @@ function TimelineEditor() {
 
 			var d = false;
 			var a = 0;
-			var ns = [300, 150, 120, 90, 60, 30, 30, 30, 15, 15, 10, 10, 10];
-			var everyN = ns[Math.floor(frameWidth)];
+			var everyN = getMarkerSpacing();
 			for (var x = -offset; x < canvas.width + offset; x += frameWidth) {
 				ctx.fillStyle = baseColor;
 
