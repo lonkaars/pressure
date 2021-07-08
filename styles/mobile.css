@@ -1,0 +1,58 @@
+.mobile .MuiAppBar-root {
+	background-color: var(--c300);
+	color: var(--fg);
+}
+
+.mobile .MuiAppBar-root h3 {
+	margin-left: 12px;
+	font-weight: 500;
+}
+.mobile h3,
+.MuiDrawer-paper h3 {
+	font-size: 1.25rem;
+}
+
+.mobile {
+	background-color: var(--c200);
+	min-height: 100vh;
+}
+
+.mobile .inner {
+	padding: 16px;
+}
+
+.MuiDrawer-paper {
+	background-color: var(--c400) !important;
+	width: 250px;
+}
+
+.MuiDivider-root {
+	background-color: var(--c600) !important;
+	height: 2px !important;
+}
+
+.MuiDrawer-paper,
+.MuiListItemIcon-root {
+	color: var(--fg) !important;
+}
+
+.MuiDrawer-paper .MuiList-root {
+	height: 100vh;
+	position: relative;
+}
+
+.MuiDrawer-root .MuiListItem-root.Mui-selected * {
+	color: var(--piss) !important;
+}
+
+.MuiDrawer-root .MuiListItem-root.Mui-selected:after {
+	content: '';
+	position: absolute;
+	inset: 0 0 0 0;
+	background-color: var(--piss);
+	opacity: .1;
+	transition: opacity .1s;
+}
+.MuiDrawer-root .MuiListItem-root.Mui-selected:active:after {
+	opacity: .15 !important;
+}

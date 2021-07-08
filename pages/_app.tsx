@@ -7,6 +7,7 @@ import '../styles/editor.css';
 import '../styles/globals.css';
 import '../styles/keybindselector.css';
 import '../styles/keyframes.css';
+import '../styles/mobile.css';
 import '../styles/paper.css';
 import '../styles/presentation.css';
 import '../styles/selection.css';

@@ -38,7 +38,7 @@ export default function KeybindSelector(props: {
 				<Keybind
 					keyName={s}
 					onClick={() => {
-						props.onChange && props.onChange(props.value.filter(v => v != s));
+						props.onChange?.(props.value.filter(v => v != s));
 					}}
 				/>
 			)}
