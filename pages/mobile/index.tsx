@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react';
 
 import AppBar from '@material-ui/core/AppBar';
+import Button from '@material-ui/core/Button';
 import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';
@@ -14,6 +15,7 @@ import AccountCircleRoundedIcon from '@material-ui/icons/AccountCircleRounded';
 import HomeRoundedIcon from '@material-ui/icons/HomeRounded';
 import MenuRoundedIcon from '@material-ui/icons/MenuRounded';
 import SettingsRoundedIcon from '@material-ui/icons/SettingsRounded';
+import { LoginRoundedIcon, QRCodeRoundedIcon } from '../../components/icons';
 
 export type pages = 'home' | 'account' | 'settings';
 export function MobileWrapper(props: {
@@ -69,6 +71,17 @@ export function MobileWrapper(props: {
 
 export default function Mobile() {
 	return <MobileWrapper page='home'>
-		<h2>gert</h2>
+		<Button
+			variant='outlined'
+			color='secondary'
+			startIcon={<QRCodeRoundedIcon />}
+			children='Scan QR code'
+		/>
+		<Button
+			variant='contained'
+			color='secondary'
+			startIcon={<LoginRoundedIcon />}
+			children='Log in'
+		/>
 	</MobileWrapper>;
 }

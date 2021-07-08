@@ -17,8 +17,25 @@
 	min-height: 100vh;
 }
 
-.mobile .inner {
-	padding: 16px;
+.mobile .inner { padding: 16px; }
+.mobile .inner > * { margin-top: 12px; }
+.mobile .inner > *:first-child { margin-top: 8px; }
+
+.mobile .inner .MuiButton-root {
+	width: 100%;
+	color: var(--bg);
+	background-color: var(--piss);
+}
+
+.mobile .inner .MuiButton-root .MuiButton-label {
+	font-size: 1rem;
+}
+
+.mobile .inner .MuiButton-root.MuiButton-outlined {
+	color: var(--piss);
+	background-color: var(--bg);
+	border-width: 2px;
+	border-color: var(--c400);
 }
 
 .MuiDrawer-paper {

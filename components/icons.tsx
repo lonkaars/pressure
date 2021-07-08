@@ -199,7 +199,7 @@ export function SlideKeyframeOutline(props: {
 }
 
 export function FullScreenControlsRoundedIcon() {
-	return <svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+	return <svg width='24' height='24' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'>
 		<path
 			d='M2 7C2 6.44772 2.44772 6 3 6H8C8.55228 6 9 6.44772 9 7V17C9 17.5523 8.55228 18 8 18H3C2.44772 18 2 17.5523 2 17V7Z'
 		/>
@@ -213,11 +213,41 @@ export function FullScreenControlsRoundedIcon() {
 }
 
 export function MenuBarControlsRoundedIcon() {
-	return <svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+	return <svg width='24' height='24' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'>
 		<path
 			fillRule='evenodd'
 			clipRule='evenodd'
 			d='M2 17V7C2 6.44772 2.44772 6 3 6H21C21.5523 6 22 6.44772 22 7V17C22 17.5523 21.5523 18 21 18H3C2.44772 18 2 17.5523 2 17ZM8 15C7.44772 15 7 15.4477 7 16C7 16.5523 7.44772 17 8 17H16C16.5523 17 17 16.5523 17 16C17 15.4477 16.5523 15 16 15H8Z'
+		/>
+	</svg>;
+}
+
+export function QRCodeRoundedIcon() {
+	return <svg width='24' height='24' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'>
+		<path
+			d='M3 9C3 10.1046 3.89543 11 5 11H9C10.1046 11 11 10.1046 11 9V5C11 3.89543 10.1046 3 9 3H5C3.89543 3 3 3.89543 3 5V9ZM5 5H9V9H5V5Z'
+		/>
+		<path
+			d='M3 19C3 20.1046 3.89543 21 5 21H9C10.1046 21 11 20.1046 11 19V15C11 13.8954 10.1046 13 9 13H5C3.89543 13 3 13.8954 3 15V19ZM5 15H9V19H5V15Z'
+		/>
+		<path
+			d='M15 3C13.8954 3 13 3.89543 13 5V9C13 10.1046 13.8954 11 15 11H19C20.1046 11 21 10.1046 21 9V5C21 3.89543 20.1046 3 19 3H15ZM19 9H15V5H19V9Z'
+		/>
+		<path d='M21 19H19V21H21V19Z' />
+		<path d='M15 13H13V15H15V13Z' />
+		<path d='M17 15H15V17H17V15Z' />
+		<path d='M15 17H13V19H15V17Z' />
+		<path d='M17 19H15V21H17V19Z' />
+		<path d='M19 17H17V19H19V17Z' />
+		<path d='M19 13H17V15H19V13Z' />
+		<path d='M21 15H19V17H21V15Z' />
+	</svg>;
+}
+
+export function LoginRoundedIcon() {
+	return <svg width='24' height='24' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'>
+		<path
+			d='M11.7 7.7C11.3134 7.3134 10.6866 7.3134 10.3 7.7V7.7C9.9134 8.0866 9.9134 8.7134 10.3 9.1L12.2 11H3C2.44771 11 2 11.4477 2 12V12C2 12.5523 2.44772 13 3 13H12.2L10.3 14.9C9.9134 15.2866 9.9134 15.9134 10.3 16.3V16.3C10.6866 16.6866 11.3134 16.6866 11.7 16.3L15.2929 12.7071C15.6834 12.3166 15.6834 11.6834 15.2929 11.2929L11.7 7.7ZM20 19H13C12.4477 19 12 19.4477 12 20V20C12 20.5523 12.4477 21 13 21H20C21.1 21 22 20.1 22 19V5C22 3.9 21.1 3 20 3H13C12.4477 3 12 3.44772 12 4V4C12 4.55228 12.4477 5 13 5H20V19Z'
 		/>
 	</svg>;
 }
