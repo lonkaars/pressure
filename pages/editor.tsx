@@ -1,4 +1,5 @@
 import { createState, Downgraded, none, State, useHookstate } from '@hookstate/core';
+import Head from 'next/head';
 import { CSSProperties, ReactNode, Ref, useEffect, useRef, useState } from 'react';
 import { animated, SpringRef, SpringValues, useSpring } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
@@ -1400,6 +1401,39 @@ export default function Index() {
 	}, []);
 
 	return <>
+		<Head>
+			<meta name='apple-mobile-web-app-status-bar-style' content='black-translucent' />
+			<meta name='theme-color' content='#171D33' />
+			<link rel='manifest' href='/editor/manifest.json' />
+
+			<link rel='apple-touch-icon' sizes='512x512' href='/img/icon-editor-ios-512x512.png' />
+			<link rel='apple-touch-icon' sizes='384x384' href='/img/icon-editor-ios-384x384.png' />
+			<link rel='apple-touch-icon' sizes='192x192' href='/img/icon-editor-ios-192x192.png' />
+			<link rel='apple-touch-icon' sizes='180x180' href='/img/icon-editor-ios-180x180.png' />
+			<link rel='apple-touch-icon' sizes='152x152' href='/img/icon-editor-ios-152x152.png' />
+			<link rel='apple-touch-icon' sizes='144x144' href='/img/icon-editor-ios-144x144.png' />
+			<link rel='apple-touch-icon' sizes='128x128' href='/img/icon-editor-ios-128x128.png' />
+			<link rel='apple-touch-icon' sizes='120x120' href='/img/icon-editor-ios-120x120.png' />
+			<link rel='apple-touch-icon' sizes='96x96' href='/img/icon-editor-ios-96x96.png' />
+			<link rel='apple-touch-icon' sizes='72x72' href='/img/icon-editor-ios-72x72.png' />
+		</Head>
+		<style
+			children='
+			html, body {
+				position: fixed;
+				overflow: hidden;
+				width: 100vw;
+				height: 100vh;
+			}
+		'
+		/>
+		<style
+			children='
+			body {
+				background-color: var(--c300);
+			}
+		'
+		/>
 		<div className='appGrid posabs a0'>
 			<TitleBar />
 			<SettingsPane />

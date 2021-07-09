@@ -73,3 +73,15 @@
 .MuiDrawer-root .MuiListItem-root.Mui-selected:active:after {
 	opacity: .15 !important;
 }
+
+.listWrapper .bottomActions {
+	bottom: 24px;
+}
+
+.ios-status-bar {
+	position: fixed;
+	left: 0;
+	right: 0;
+	height: 100px;
+}
+

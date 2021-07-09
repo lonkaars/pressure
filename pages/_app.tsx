@@ -18,8 +18,6 @@ export default function Pressure({ Component, pageProps }) {
 		<Head>
 			<title>pressure</title>
 			<link as='style' href='/font/font.css' />
-			<link rel='manifest' href='/manifest.json' />
-			<meta name='theme-color' content='#171D33' />
 		</Head>
 		<Component {...pageProps} />
 	</>;
