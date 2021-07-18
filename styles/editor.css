@@ -224,10 +224,12 @@
 	opacity: .6;
 }
 
-.appGrid .tools .MuiToggleButtonGroup-root .MuiToggleButton-root {
+.appGrid .settings .MuiToggleButtonGroup-root.toolsSelection .MuiToggleButton-root { border-color: var(--c700); }
+.MuiToggleButtonGroup-root.toolsSelection .MuiToggleButton-root {
 	border-width: 2px;
 	padding: 8px;
 	color: var(--c800);
+	background-color: transparent;
 	border-color: var(--c400);
 	margin-right: -1px;
 	transition-property: opacity, background-color, color, border-color;
@@ -246,22 +248,24 @@
 	border-bottom-color: var(--c600) !important;
 }
 
-.appGrid .tools .MuiToggleButtonGroup-root .MuiToggleButton-root.Mui-selected {
+.MuiToggleButtonGroup-root.toolsSelection .MuiToggleButton-root.Mui-selected {
 	color: var(--gruble);
 	background-color: rgba(93, 233, 174, 0.12);
+}
+.appGrid .tools .MuiToggleButtonGroup-root .MuiToggleButton-root.Mui-selected {
 	border-top-color: #334A5A;
 	border-bottom-color: #334A5A;
 }
 
-.appGrid .tools .MuiToggleButtonGroup-root .MuiToggleButton-root:first-child {
+.MuiToggleButtonGroup-root.toolsSelection .MuiToggleButton-root:first-child {
 	border-radius: 6px 0 0 6px;
 }
 
-.appGrid .tools .MuiToggleButtonGroup-root .MuiToggleButton-root:last-child {
+.MuiToggleButtonGroup-root.toolsSelection .MuiToggleButton-root:last-child {
 	border-radius: 0 6px 6px 0;
 }
 
-.appGrid .tools .MuiToggleButtonGroup-root .MuiToggleButton-root .loopStartEnd {
+.MuiToggleButtonGroup-root.toolsSelection .MuiToggleButton-root .loopStartEnd {
 	display: inline-block;
 	white-space: nowrap;
 	line-height: 0;
@@ -270,8 +274,8 @@
 	width: 36px;
 }
 
-.appGrid .tools .MuiToggleButtonGroup-root .MuiToggleButton-root .loopStartEnd .start { left: -3px; }
-.appGrid .tools .MuiToggleButtonGroup-root .MuiToggleButton-root .loopStartEnd .end { right: -3px; }
+.MuiToggleButtonGroup-root.toolsSelection .MuiToggleButton-root .loopStartEnd .start { left: -3px; }
+.MuiToggleButtonGroup-root.toolsSelection .MuiToggleButton-root .loopStartEnd .end { right: -3px; }
 
 .appGrid .timeline {
 	grid-column: 2;

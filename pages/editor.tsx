@@ -18,6 +18,7 @@ import PlaySkipIconAni from '../components/play-skip';
 import Selection from '../components/selection';
 import timeline, {
 	anySlide,
+	clickThroughBehaviours,
 	loopBeginSlide,
 	loopSlide,
 	presentationSettings,
@@ -1045,8 +1046,6 @@ function DefaultSettings() {
 				<FormControl variant='filled'>
 					<InputLabel>On-screen controls</InputLabel>
 					<Select
-						labelId='demo-simple-select-filled-label'
-						id='demo-simple-select-filled'
 						value={proj.settings.controlType.get()}
 						onChange={e =>
 							proj.settings.controlType.set(e.target.value as presentationSettings['controlType'])}
@@ -1214,12 +1213,77 @@ function DefaultSettings() {
 	</>;
 }
 
+function SlideProperties(props: {
+	type: slideTypes;
+}) {
+	if (props.type == 'default') return null;
+	return <div className='section'>
+		<span className='title'>Properties</span>
+		{{
+			'loop': <>
+				<TextField label='Duration' variant='filled' />
+				<TextField label='Start timestamp' variant='filled' />
+				<TextField label='End timestamp' variant='filled' />
+			</>,
+			'delay': <>
+				<TextField label='Delay duration' variant='filled' />
+			</>,
+			'speedChange': <>
+				<TextField label='New speed' variant='filled' />
+				<TextField label='Factor' variant='filled' />
+			</>,
+		}[props.type]}
+	</div>;
+}
+
 function SlideSettings() {
+	var selection = useHookstate(global).selection;
+	var multipleSlides = selection.slides.get().length > 1;
+	var slideType = selection.slides.get()[0]?.type || '';
+	var clickThroughBehaviour = selection.slides.get()[0]?.clickThroughBehaviour || '';
+
 	return <>
 		<h2 className='title posabs h0 t0'>Slide settings</h2>
 		<div className='scroll posabs h0 b0'>
 			<div className='section'>
-				<span className='title'>Cool</span>
+				<span className='title'>Type</span>
+				<ToggleButtonGroup
+					className={'toolsSelection ' + (multipleSlides ? 'disabled' : '')}
+					color='primary'
+					aria-label='outlined primary button group'
+					value={slideType}
+					exclusive
+					onChange={(_event: any, newTool: string | null) => {
+						if (newTool === null) return;
+					}}
+				>
+					<ToggleButton value='default' children={<SlideKeyframe type='default' />} />
+					<ToggleButton value='delay' children={<SlideKeyframe type='delay' />} />
+					<ToggleButton value='speedChange' children={<SlideKeyframe type='speedChange' />} />
+					<ToggleButton value='loop'>
+						<div className='loopStartEnd'>
+							<span className='posabs start' children={<SlideKeyframe type='loop' />} />
+							<span className='posabs end' children={<SlideKeyframe type='loop' loopEnd />} />
+						</div>
+					</ToggleButton>
+				</ToggleButtonGroup>
+			</div>
+			{!multipleSlides && <SlideProperties type={slideType as slideTypes} />}
+			<div className='section'>
+				<FormControl variant='filled'>
+					<InputLabel>Click through behaviour</InputLabel>
+					<Select
+						onChange={e => {
+							if (selection.slides.value.length != 1) return;
+							selection.slides[0].clickThroughBehaviour.set(e.target.value as clickThroughBehaviours);
+						}}
+						IconComponent={ArrowDropDownRoundedIcon}
+						value={clickThroughBehaviour}
+					>
+						<MenuItem value='ImmediatelySkip' children='Immediately skip' />
+						<MenuItem value='PlayOut' children='Play out' />
+					</Select>
+				</FormControl>
 			</div>
 		</div>
 	</>;
@@ -1257,7 +1321,7 @@ function Tools() {
 			</h2>
 		</div>
 		<ToggleButtonGroup
-			className={ready.timeline.get() ? '' : 'disabled'}
+			className={'toolsSelection ' + (ready.timeline.get() ? '' : 'disabled')}
 			color='primary'
 			aria-label='outlined primary button group'
 			value={tool.get()}

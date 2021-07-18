@@ -1,11 +1,15 @@
 import { v4 as uuid } from 'uuid';
 
-export type slideTypes = 'default' | 'delay' | 'speedChange' | 'loop';
-export var slideTypes = ['default', 'delay', 'speedChange', 'loop'];
+export const slideTypes = ['default', 'delay', 'speedChange', 'loop'] as const;
+export type slideTypes = typeof slideTypes[number];
+
+export const clickThroughBehaviours = ['ImmediatelySkip', 'PlayOut'] as const;
+export type clickThroughBehaviours = typeof clickThroughBehaviours[number];
+
 export type anySlide = slide | delaySlide | speedChangeSlide | loopSlide;
 
 export class slide {
-	clickThroughBehaviour: 'ImmediatelySkip' | 'PlayOut' = 'ImmediatelySkip';
+	clickThroughBehaviour: clickThroughBehaviours = 'ImmediatelySkip';
 	type: slideTypes = 'default';
 	id: string;
 

@@ -41,3 +41,16 @@ h1, h2, h3 {
 	height: 8px;
 }
 
+.MuiInputLabel-root {
+	transition-property: width;
+	transition-duration: 100ms;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+
+	width: calc(100% - 48px);
+}
+
+.MuiInputLabel-root.MuiInputLabel-shrink {
+	width: calc(100% - 0px);
+}
