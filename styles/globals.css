@@ -45,7 +45,8 @@ h1, h2, h3 {
 	transition-property: width;
 	transition-duration: 100ms;
 	white-space: nowrap;
-	overflow: hidden;
+	overflow-x: clip;
+	overflow-y: visible;
 	text-overflow: ellipsis;
 
 	width: calc(100% - 48px);

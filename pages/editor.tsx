@@ -16,6 +16,7 @@ import {
 import KeybindSelector from '../components/keybindselector';
 import PlaySkipIconAni from '../components/play-skip';
 import Selection from '../components/selection';
+import TimecodeInput from '../components/timeinput';
 import timeline, {
 	anySlide,
 	clickThroughBehaviours,
@@ -1217,12 +1218,39 @@ function SlideProperties(props: {
 	type: slideTypes;
 }) {
 	if (props.type == 'default') return null;
+
+	var slide = useHookstate(global).selection.slides[0];
+
+	var [test, setTest] = useState(0);
+
 	return <div className='section'>
 		<span className='title'>Properties</span>
 		{{
 			'loop': <>
-				<TextField label='Duration' variant='filled' />
-				<TextField label='Start timestamp' variant='filled' />
+				<TextField
+					label='Duration'
+					variant='filled'
+					type='number'
+					value={(slide as State<loopSlide>).frame.get() - (slide as State<loopSlide>).beginFrame.get()}
+				/>
+				<TimecodeInput
+					label='Start timestamp'
+					value={(slide as State<loopSlide>).beginFrame.get()}
+					update={newValue => {
+						(slide as State<loopSlide>).frame.set(newValue);
+						global.update.refreshLiveTimeline.value();
+					}}
+					player={player}
+				/>
+				<TimecodeInput
+					label='End timestamp'
+					value={(slide as State<loopSlide>).frame.get()}
+					update={newValue => {
+						(slide as State<loopSlide>).frame.set(newValue);
+						global.update.refreshLiveTimeline.value();
+					}}
+					player={player}
+				/>
 				<TextField label='End timestamp' variant='filled' />
 			</>,
 			'delay': <>
@@ -1276,6 +1304,7 @@ function SlideSettings() {
 						onChange={e => {
 							if (selection.slides.value.length != 1) return;
 							selection.slides[0].clickThroughBehaviour.set(e.target.value as clickThroughBehaviours);
+							global.update.refreshLiveTimeline.value();
 						}}
 						IconComponent={ArrowDropDownRoundedIcon}
 						value={clickThroughBehaviour}
