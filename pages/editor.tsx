@@ -17,6 +17,7 @@ import KeybindSelector from '../components/keybindselector';
 import PlaySkipIconAni from '../components/play-skip';
 import Selection from '../components/selection';
 import TimecodeInput from '../components/timeinput';
+import Project, { LocalVideo } from '../project';
 import timeline, {
 	anySlide,
 	clickThroughBehaviours,
@@ -545,7 +546,7 @@ function TimelineSelection(props: { selectionDragArea: Ref<ReactNode>; }) {
 
 		var sel = global.selection.slides.attach(Downgraded).value
 			.map(s => ({ id: s.id.toString(), type: s.type.toString() }))
-			.filter(s => slideTypes.includes(s.type));
+			.filter(s => slideTypes.includes(s.type as slideTypes));
 		sel.forEach(slide => global.timeline.workingTimeline.find(s => s.value?.id == slide.id).set(none));
 		global.update.refreshLiveTimeline.value();
 
@@ -1141,20 +1142,23 @@ function DefaultSettings() {
 				<input
 					type='file'
 					id='jsonUpload'
-					accept='application/json'
+					accept='.prspr'
 					className='dispnone'
 					onChange={event => {
 						var file = event.target.files[0];
 						if (!file) return;
 						var reader = new FileReader();
 						reader.addEventListener('load', ev => {
-							player.loadSlides(ev.target.result as string);
-							project.timeline.set(player.timeline);
-							global.timeline.workingTimeline.set(player.timeline.slides);
-							global.update.refreshLiveTimeline.value();
-							global.ready.timeline.set(true);
+							var proj = new Project();
+							proj.video = new LocalVideo();
+							proj.video.load(ev.target.result as ArrayBuffer);
+							// player.loadSlides(ev.target.result as string);
+							// project.timeline.set(player.timeline);
+							// global.timeline.workingTimeline.set(player.timeline.slides);
+							// global.update.refreshLiveTimeline.value();
+							// global.ready.timeline.set(true);
 						});
-						reader.readAsText(file);
+						reader.readAsArrayBuffer(file);
 					}}
 				/>
 				<Button
@@ -1169,15 +1173,10 @@ function DefaultSettings() {
 					color='default'
 					children='Download json'
 					onClick={() => {
-						var timeline = project.timeline.attach(Downgraded).value;
-						var data = JSON.stringify(timeline);
-						var blob = new Blob([data], { type: 'application/json' });
-						var a = document.createElement('a');
-						a.href = URL.createObjectURL(blob);
-						a.download = player.timeline.name
-							.toLowerCase()
-							.replace(/\s/g, '-');
-						a.click();
+						var proj = new Project();
+						proj.loadProject(player.timeline);
+						proj.saveProject();
+						proj.downloadProjectFile();
 					}}
 					startIcon={<GetAppRoundedIcon />}
 				/>
@@ -1509,6 +1508,8 @@ export default function Index() {
 			<link rel='apple-touch-icon' sizes='120x120' href='/img/icon-editor-ios-120x120.png' />
 			<link rel='apple-touch-icon' sizes='96x96' href='/img/icon-editor-ios-96x96.png' />
 			<link rel='apple-touch-icon' sizes='72x72' href='/img/icon-editor-ios-72x72.png' />
+
+			<script src='/mediainfo/mediainfo.min.js' />
 		</Head>
 		<style
 			children='
