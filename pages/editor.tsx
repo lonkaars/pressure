@@ -8,6 +8,7 @@ import { v4 as uuid } from 'uuid';
 
 import FadeThroughTransition from '../components/fadethrough';
 import {
+	BracketsRoundedIcon,
 	FullScreenControlsRoundedIcon,
 	MenuBarControlsRoundedIcon,
 	PressureIcon,
@@ -60,7 +61,7 @@ import SettingsRoundedIcon from '@material-ui/icons/SettingsRounded';
 import SkipPreviousRoundedIcon from '@material-ui/icons/SkipPreviousRounded';
 import { mdiCursorDefault } from '@mdi/js';
 
-import CodeRoundedIcon from '@material-ui/icons/CodeRounded';
+import DescriptionRoundedIcon from '@material-ui/icons/DescriptionRounded';
 import GetAppRoundedIcon from '@material-ui/icons/GetAppRounded';
 import VideoLabelRoundedIcon from '@material-ui/icons/VideoLabelRounded';
 
@@ -68,6 +69,7 @@ var keyframeInAnimations: { [key: string]: { x: number; y: number; }; } = {};
 var slideAPIs: { [key: string]: any; }[] = [];
 
 var player = new TimedVideoPlayer();
+var projectFile = new Project();
 
 interface globalState {
 	timeline: {
@@ -1142,23 +1144,20 @@ function DefaultSettings() {
 				<input
 					type='file'
 					id='jsonUpload'
-					accept='.prspr'
+					accept='application/json'
 					className='dispnone'
 					onChange={event => {
 						var file = event.target.files[0];
 						if (!file) return;
 						var reader = new FileReader();
 						reader.addEventListener('load', ev => {
-							var proj = new Project();
-							proj.video = new LocalVideo();
-							proj.video.load(ev.target.result as ArrayBuffer);
-							// player.loadSlides(ev.target.result as string);
-							// project.timeline.set(player.timeline);
-							// global.timeline.workingTimeline.set(player.timeline.slides);
-							// global.update.refreshLiveTimeline.value();
-							// global.ready.timeline.set(true);
+							player.loadSlides(ev.target.result as string);
+							project.timeline.set(player.timeline);
+							global.timeline.workingTimeline.set(player.timeline.slides);
+							global.update.refreshLiveTimeline.value();
+							global.ready.timeline.set(true);
 						});
-						reader.readAsArrayBuffer(file);
+						reader.readAsText(file);
 					}}
 				/>
 				<Button
@@ -1166,7 +1165,64 @@ function DefaultSettings() {
 					color='default'
 					children='Load json'
 					onClick={() => document.getElementById('jsonUpload').click()}
-					startIcon={<CodeRoundedIcon />}
+					startIcon={<BracketsRoundedIcon />}
+				/>
+				<input
+					type='file'
+					id='prsprUpload'
+					accept='.prspr'
+					className='dispnone'
+					onChange={event => {
+						var file = event.target.files[0];
+						if (!file) return;
+						var reader = new FileReader();
+						reader.addEventListener('load', async ev => {
+							await projectFile.openProject(ev.target.result as ArrayBuffer);
+
+							player.loadSlides(JSON.stringify(projectFile.project));
+							project.timeline.set(player.timeline);
+							global.timeline.workingTimeline.set(player.timeline.slides);
+							global.update.refreshLiveTimeline.value();
+							global.ready.timeline.set(true);
+
+							player.loadVideo(
+								'data:' + projectFile.video.mimetype + ';base64,'
+									+ btoa(String.fromCharCode.apply(null, new Uint8Array(projectFile.video.source))),
+							);
+							global.ready.video.available.set(true);
+
+							player.player.addEventListener(
+								'canplaythrough',
+								() => global.ready.video.playable.set(true),
+							);
+
+							player.player.addEventListener('play', () => global.timeline.playing.set(true));
+							player.player.addEventListener('pause', () => global.timeline.playing.set(false));
+						});
+						reader.readAsArrayBuffer(file);
+					}}
+				/>
+				<Button
+					variant='contained'
+					color='default'
+					children='Load .prspr'
+					onClick={() => document.getElementById('prsprUpload').click()}
+					startIcon={<DescriptionRoundedIcon />}
+				/>
+				<Button
+					variant='contained'
+					color='default'
+					children='Download .prspr'
+					startIcon={<DescriptionRoundedIcon />}
+					onClick={async () => {
+						var vidSrc = player.player.src.split(';');
+						projectFile.loadProject(player.timeline);
+						projectFile.video = new LocalVideo();
+						await projectFile.video.load(Uint8Array.from(atob(vidSrc[1].substr(7)), c => c.charCodeAt(0)));
+						projectFile.video.mimetype = vidSrc[0].substr(5);
+						projectFile.saveProject();
+						projectFile.downloadProjectFile();
+					}}
 				/>
 				<Button
 					variant='contained'
@@ -1219,8 +1275,6 @@ function SlideProperties(props: {
 	if (props.type == 'default') return null;
 
 	var slide = useHookstate(global).selection.slides[0];
-
-	var [test, setTest] = useState(0);
 
 	return <div className='section'>
 		<span className='title'>Properties</span>

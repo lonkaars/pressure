@@ -9,15 +9,15 @@ const filext = '.prspr';
 
 export class LocalVideo {
 	source: ArrayBuffer;
-	fileext: string;
-	mimetype: `video/${string}`;
 	type: string;
+	mimetype: string;
 
 	framerate: number;
 	framecount: number;
 
-	constructor() {
+	constructor(video?: ArrayBuffer) {
 		this.type = 'local';
+		if (video) this.load(video);
 	}
 
 	async load(data: ArrayBuffer) {
@@ -38,25 +38,29 @@ export class LocalVideo {
 	}
 
 	save(dir: JSZip) {
-		dir.file('video.' + this.fileext, this.source);
+		dir.file('video', this.source);
+		dir.file('framecount', this.framecount.toString());
+		dir.file('framerate', this.framerate.toString());
+		dir.file('type', this.type);
 	}
 }
 
-export type VideoSources = [LocalVideo];
+export const VideoSourceTypeToClass = {
+	'local': LocalVideo,
+} as const;
+// export type VideoSources = [LocalVideo];
+export type valueof<T> = T[keyof T];
+export type VideoSources = InstanceType<valueof<typeof VideoSourceTypeToClass>>;
 
 export default class {
 	version: string;
 	zip: JSZip;
 	project: TimedVideoPlayer['timeline'];
-	video: VideoSources[number];
+	video: VideoSources;
 
 	constructor() {
 		this.version = '0.1.0';
 		this.zip = new JSZip();
-	}
-
-	loadProjectFile(data: Blob) {
-		this.zip = new JSZip(data);
 	}
 
 	async downloadProjectFile() {
@@ -84,10 +88,24 @@ export default class {
 
 		var source = this.zip.folder('source');
 		this.video.save(source);
+		source.file('mimetype', this.video.mimetype);
 
 		this.zip.file('slides', JSON.stringify(this.project.slides, null, 4));
 	}
 
-	openProject() {
+	async openProject(data: ArrayBuffer) {
+		this.zip = new JSZip();
+		await this.zip.loadAsync(data);
+		this.project = {
+			name: await this.zip.file('meta/name').async('string'),
+			settings: { controlType: await this.zip.file('settings/controlType').async('string') },
+			slides: JSON.parse(await this.zip.file('slides').async('string')),
+			framerate: Number(await this.zip.file('source/framerate').async('string')),
+			framecount: Number(await this.zip.file('source/framecount').async('string')),
+		} as TimedVideoPlayer['timeline'];
+		var type = await this.zip.file('source/type').async('string');
+		if (!VideoSourceTypeToClass.hasOwnProperty(type)) return;
+		this.video = new VideoSourceTypeToClass[type](await this.zip.file('source/video').async('arraybuffer'));
+		this.video.mimetype = await this.zip.file('source/mimetype').async('string');
 	}
 }
