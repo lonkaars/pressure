@@ -146,6 +146,7 @@ var global = createState<globalState>({
 	},
 	update: {
 		refreshLiveTimeline: () => {
+			if (typeof player.timeline === 'undefined') return;
 			player.timeline.slides = Array(...(global.timeline.workingTimeline.value));
 			player.timeline.slides = player.timeline.slides.filter(slide => slide != null);
 			player.timeline.slides.sort((a, b) => a.frame - b.frame);
@@ -1008,26 +1009,7 @@ function ProjectSettings() {
 
 	return <DialogBox open={open.get()} close={close} title='Project settings'>
 		<div className='body fullwidth-inputs form-spacing'>
-			<TextField
-				value={proj.name.get()}
-				onChange={e => proj.name.set(e.target.value)}
-				label='Project name'
-				variant='filled'
-			/>
-			<TextField
-				value={proj.framecount.get()}
-				onChange={e => proj.framecount.set(Math.max(0, Number(e.target.value)))}
-				label='Frame count'
-				variant='filled'
-				type='number'
-			/>
-			<TextField
-				value={proj.framerate.get()}
-				onChange={e => proj.framerate.set(Math.max(0, Number(e.target.value)))}
-				label='Framerate'
-				variant='filled'
-				type='number'
-			/>
+			<span>This is being worked on :tada:</span>
 		</div>
 	</DialogBox>;
 }
@@ -1116,63 +1098,6 @@ function DefaultSettings() {
 				<span className='title'>Cool temporary buttons</span>
 				<input
 					type='file'
-					id='vidUpload'
-					accept='video/*'
-					className='dispnone'
-					onChange={event => {
-						var file = event.target.files[0];
-						if (!file) return;
-						var reader = new FileReader();
-						reader.addEventListener('load', ev => {
-							player.loadVideo(ev.target.result as string);
-							global.ready.video.available.set(true);
-
-							player.player.addEventListener(
-								'canplaythrough',
-								() => global.ready.video.playable.set(true),
-							);
-
-							player.player.addEventListener('play', () => global.timeline.playing.set(true));
-							player.player.addEventListener('pause', () => global.timeline.playing.set(false));
-						});
-						reader.readAsDataURL(file);
-					}}
-				/>
-				<Button
-					variant='contained'
-					color='default'
-					children='Load video'
-					onClick={() => document.getElementById('vidUpload').click()}
-					startIcon={<VideoLabelRoundedIcon />}
-				/>
-				<input
-					type='file'
-					id='jsonUpload'
-					accept='application/json'
-					className='dispnone'
-					onChange={event => {
-						var file = event.target.files[0];
-						if (!file) return;
-						var reader = new FileReader();
-						reader.addEventListener('load', ev => {
-							player.loadSlides(ev.target.result as string);
-							project.timeline.set(player.timeline);
-							global.timeline.workingTimeline.set(player.timeline.slides);
-							global.update.refreshLiveTimeline.value();
-							global.ready.timeline.set(true);
-						});
-						reader.readAsText(file);
-					}}
-				/>
-				<Button
-					variant='contained'
-					color='default'
-					children='Load json'
-					onClick={() => document.getElementById('jsonUpload').click()}
-					startIcon={<BracketsRoundedIcon />}
-				/>
-				<input
-					type='file'
 					id='prsprUpload'
 					accept='.prspr'
 					className='dispnone'
@@ -1231,18 +1156,6 @@ function DefaultSettings() {
 				<Button
 					variant='contained'
 					color='default'
-					children='Download json'
-					onClick={() => {
-						var proj = new Project();
-						proj.loadProject(player.timeline);
-						proj.saveProject();
-						proj.downloadProjectFile();
-					}}
-					startIcon={<GetAppRoundedIcon />}
-				/>
-				<Button
-					variant='contained'
-					color='default'
 					children='New project'
 					onClick={() => {
 						var newProj: timeline = {
@@ -1260,13 +1173,6 @@ function DefaultSettings() {
 						global.dialog.projectSettings.set(true);
 					}}
 					startIcon={<AddRoundedIcon />}
-				/>
-				<Button
-					variant='contained'
-					color='default'
-					children='Project settings'
-					onClick={() => global.dialog.projectSettings.set(true)}
-					startIcon={<SettingsRoundedIcon />}
 				/>
 			</div>
 		</div>
@@ -1554,7 +1460,12 @@ function TitleBar() {
 					onBlur={() => proj.name.set((nameRef.current as HTMLSpanElement).textContent.trim())}
 					children={proj.name.get()}
 				/>
-				<KeyboardArrowDownRoundedIcon />
+				<KeyboardArrowDownRoundedIcon
+					className='cpointer'
+					onClick={() => {
+						global.dialog.projectSettings.set(true);
+					}}
+				/>
 			</div>
 		</Toolbar>
 	</AppBar>;

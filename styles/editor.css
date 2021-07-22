@@ -507,6 +507,7 @@ header .projarea {
 
 header .projarea.disabled {
 	opacity: 0;
+	pointer-events: none;
 }
 
 header .projarea > * {
