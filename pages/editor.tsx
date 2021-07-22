@@ -483,6 +483,7 @@ function TimelineSelection(props: { selectionDragArea: Ref<ReactNode>; }) {
 		if (global.selection.type.left.value) global.selection.type.left.set(null);
 		if (global.selection.type.right.value) global.selection.type.right.set(null);
 		if (global.selection.placed.value) global.selection.placed.set(false);
+		setSetting('default');
 		selectionPosAPI.start({
 			center: 0,
 			startOffset: 0,
@@ -539,6 +540,7 @@ function TimelineSelection(props: { selectionDragArea: Ref<ReactNode>; }) {
 				);
 
 				select(keyframesInSelection);
+				setSetting('slide');
 			}
 		}
 	}, { domTarget: props.selectionDragArea, eventOptions: { passive: false } });
@@ -1269,12 +1271,11 @@ function DefaultSettings() {
 	</>;
 }
 
-function SlideProperties(props: {
-	type: slideTypes;
-}) {
-	if (props.type == 'default') return null;
-
-	var slide = useHookstate(global).selection.slides[0];
+function SlideProperties() {
+	var selection = useHookstate(global).selection.slides;
+	if (selection.length < 1) return null;
+	var slide = selection[0];
+	if (slide.value.type == 'default') return null;
 
 	return <div className='section'>
 		<span className='title'>Properties</span>
@@ -1313,7 +1314,7 @@ function SlideProperties(props: {
 				<TextField label='New speed' variant='filled' />
 				<TextField label='Factor' variant='filled' />
 			</>,
-		}[props.type]}
+		}[slide.value.type]}
 	</div>;
 }
 
@@ -1349,7 +1350,7 @@ function SlideSettings() {
 					</ToggleButton>
 				</ToggleButtonGroup>
 			</div>
-			{!multipleSlides && <SlideProperties type={slideType as slideTypes} />}
+			{!multipleSlides && <SlideProperties />}
 			<div className='section'>
 				<FormControl variant='filled'>
 					<InputLabel>Click through behaviour</InputLabel>
