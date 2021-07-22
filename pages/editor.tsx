@@ -12,6 +12,7 @@ import {
 	FullScreenControlsRoundedIcon,
 	MenuBarControlsRoundedIcon,
 	PressureIcon,
+	SlashIconRounded,
 	SlideKeyframe,
 } from '../components/icons';
 import KeybindSelector from '../components/keybindselector';
@@ -55,6 +56,7 @@ import AddRoundedIcon from '@material-ui/icons/AddRounded';
 import ArrowDropDownRoundedIcon from '@material-ui/icons/ArrowDropDownRounded';
 import CloseIcon from '@material-ui/icons/Close';
 import FullscreenRoundedIcon from '@material-ui/icons/FullscreenRounded';
+import KeyboardArrowDownRoundedIcon from '@material-ui/icons/KeyboardArrowDownRounded';
 import NavigateBeforeRoundedIcon from '@material-ui/icons/NavigateBeforeRounded';
 import NavigateNextRoundedIcon from '@material-ui/icons/NavigateNextRounded';
 import SettingsRoundedIcon from '@material-ui/icons/SettingsRounded';
@@ -1532,10 +1534,28 @@ function Player() {
 }
 
 function TitleBar() {
+	var ready = useHookstate(global).ready;
+	var proj = useHookstate(project).timeline;
+
+	var nameRef = useRef(null);
+
 	return <AppBar position='static' color='transparent' elevation={0}>
 		<Toolbar>
 			<PressureIcon />
 			<h1>pressure</h1>
+			<div className={'posabs abscenter projarea ' + (ready.timeline.get() ? '' : 'disabled')}>
+				<span className='projfolder'>My presentations</span>
+				<SlashIconRounded />
+				<span
+					className='projname'
+					contentEditable
+					spellCheck={false}
+					ref={nameRef}
+					onBlur={() => proj.name.set((nameRef.current as HTMLSpanElement).textContent.trim())}
+					children={proj.name.get()}
+				/>
+				<KeyboardArrowDownRoundedIcon />
+			</div>
 		</Toolbar>
 	</AppBar>;
 }

@@ -266,3 +266,13 @@ export function BracketsRoundedIcon() {
 		/>
 	</svg>;
 }
+
+export function SlashIconRounded() {
+	return <svg width='24' height='24' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'>
+		<path
+			fill-rule='evenodd'
+			clip-rule='evenodd'
+			d='M9.31623 20C8.6687 20 8.21146 19.3656 8.41623 18.7513L13.7838 2.64868C13.9129 2.2613 14.2754 2 14.6838 2C15.3313 2 15.7885 2.63438 15.5838 3.24868L10.2162 19.3513C10.0871 19.7387 9.72457 20 9.31623 20Z'
+		/>
+	</svg>;
+}

@@ -493,3 +493,38 @@
 	transition-duration: 0ms;
 	opacity: 1;
 }
+
+header .projarea .projfolder {
+	color: var(--c700);
+}
+
+header .projarea {
+	line-height: 0;
+	height: 24px;
+	transition-property: opacity;
+	transition-duration: 150ms;
+}
+
+header .projarea.disabled {
+	opacity: 0;
+}
+
+header .projarea > * {
+	vertical-align: middle;
+}
+
+header .projarea .projname {
+	transition-property: background-color;
+	transition-duration: 150ms;
+}
+
+header .projarea .projname:focus {
+	background-color: var(--c100);
+	outline: none;
+}
+
+header .projarea span {
+	padding: 2px 4px;
+	margin: -2px -4px;
+	border-radius: 6px;
+}
