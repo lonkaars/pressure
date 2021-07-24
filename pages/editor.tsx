@@ -18,7 +18,7 @@ import KeybindSelector from '../components/keybindselector';
 import PlaySkipIconAni from '../components/play-skip';
 import Selection from '../components/selection';
 import TimecodeInput from '../components/timeinput';
-import Project, { LocalVideo, VideoSources, VideoSourceType } from '../project';
+import Project, { arrayBufferToBase64, VideoSources, VideoSourceType } from '../project';
 import timeline, {
 	anySlide,
 	clickThroughBehaviours,
@@ -1064,7 +1064,7 @@ function DefaultSettings() {
 				{(() => {
 					if (!projectFile.video) return null;
 					var SourceSettings = VideoSources.find(s => s.type == projectFile.video.type).settings;
-					return <SourceSettings settings={projectFile.video} />;
+					return <SourceSettings settings={projectFile.video} player={player} />;
 				})()}
 			</div>
 			<div className={'section ' + (ready.timeline.value ? '' : 'disabled')}>
@@ -1094,10 +1094,7 @@ function DefaultSettings() {
 							global.update.refreshLiveTimeline.value();
 							global.ready.timeline.set(true);
 
-							player.loadVideo(
-								'data:' + projectFile.video.mimetype + ';base64,'
-									+ btoa(String.fromCharCode.apply(null, new Uint8Array(projectFile.video.source))),
-							);
+							player.loadVideo(arrayBufferToBase64(projectFile.video.source, projectFile.video.mimetype));
 							global.ready.video.available.set(true);
 
 							player.player.addEventListener(
@@ -1124,11 +1121,7 @@ function DefaultSettings() {
 					children='Download .prspr'
 					startIcon={<DescriptionRoundedIcon />}
 					onClick={async () => {
-						var vidSrc = player.player.src.split(';');
 						projectFile.loadProject(player.timeline);
-						projectFile.video = new LocalVideo();
-						await projectFile.video.load(Uint8Array.from(atob(vidSrc[1].substr(7)), c => c.charCodeAt(0)));
-						projectFile.video.mimetype = vidSrc[0].substr(5);
 						projectFile.saveProject();
 						projectFile.downloadProjectFile();
 					}}

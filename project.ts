@@ -1,11 +1,19 @@
 import { MediaInfo as Mediainfo, ResultObject } from 'mediainfo.js/dist/types';
 import JSZip from 'jszip';
+import semver from 'semver';
 import { TimedVideoPlayer } from './pages/present';
 
 import { LocalVideoSettings } from './components/videosourcesettings';
 
 // garbage garbage garbage
 declare var MediaInfo: () => Promise<Mediainfo>;
+
+export function arrayBufferToBase64(buffer: ArrayBuffer, mimetype?: string) {
+	var out = '';
+	if (mimetype) out += 'data:' + mimetype + ';base64,';
+	out += btoa(new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+	return out;
+}
 
 const filext = '.prspr';
 
@@ -111,6 +119,8 @@ export default class {
 	async openProject(data: ArrayBuffer) {
 		this.zip = new JSZip();
 		await this.zip.loadAsync(data);
+
+		this.version = await this.zip.file('meta/version').async('string');
 		this.project = {
 			name: await this.zip.file('meta/name').async('string'),
 			settings: { controlType: await this.zip.file('settings/controlType').async('string') },
@@ -118,11 +128,15 @@ export default class {
 			framerate: Number(await this.zip.file('source/framerate').async('string')),
 			framecount: Number(await this.zip.file('source/framecount').async('string')),
 		} as TimedVideoPlayer['timeline'];
+
 		var type = await this.zip.file('source/type').async('string');
 		var videoSourceType = VideoSources.find(s => s.type == type);
-		if (!videoSourceType) return;
+
 		this.video = new videoSourceType.class(await this.zip.file('source/video').async('arraybuffer'));
 		this.video.mimetype = await this.zip.file('source/mimetype').async('string');
-		this.video.config = JSON.parse(await this.zip.file('source/config').async('string'));
+
+		if (semver.lt('0.1.1', this.version)) {
+			this.video.config = JSON.parse(await this.zip.file('source/config').async('string'));
+		}
 	}
 }

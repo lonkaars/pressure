@@ -1,12 +1,18 @@
 import { useRef } from 'react';
-import { LocalVideo } from '../project';
+import { TimedVideoPlayer } from '../pages/present';
+import { arrayBufferToBase64, LocalVideo } from '../project';
 
 import Button from '@material-ui/core/Button';
 import Switch from '@material-ui/core/Switch';
 
 import { UploadRoundedIcon } from './icons';
 
-export function LocalVideoSettings(props: { settings: LocalVideo; }) {
+type VideoSourceSettings = {
+	settings: LocalVideo;
+	player: TimedVideoPlayer;
+};
+
+export function LocalVideoSettings(props: VideoSourceSettings) {
 	var fileUploadRef = useRef(null);
 
 	return <>
@@ -20,7 +26,10 @@ export function LocalVideoSettings(props: { settings: LocalVideo; }) {
 				if (!file) return;
 				var reader = new FileReader();
 				reader.addEventListener('load', async ev => {
-					props.settings.load(ev.target.result as ArrayBuffer);
+					var video = ev.target.result as ArrayBuffer;
+					props.settings.load(video);
+					props.settings.mimetype = file.type;
+					props.player.loadVideo(arrayBufferToBase64(video, file.type));
 				});
 				reader.readAsArrayBuffer(file);
 			}}
