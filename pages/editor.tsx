@@ -63,7 +63,7 @@ var slideAPIs: { [key: string]: any; }[] = [];
 var player = new TimedVideoPlayer();
 var projectFile = new Project();
 
-interface globalState {
+export interface globalState {
 	timeline: {
 		playing: boolean;
 		frame: number;
@@ -1069,10 +1069,12 @@ function DefaultSettings() {
 					<InputLabel>Video source</InputLabel>
 					<Select
 						value={projectFile.video?.type || ''}
-						onChange={e =>
+						onChange={e => {
 							projectFile.video = new (VideoSources.find(s =>
 								s.type == e.target.value as VideoSourceType
-							).class)()}
+							).class)();
+							rerender();
+						}}
 						IconComponent={ArrowDropDownRoundedIcon}
 					>
 						{VideoSources.map(s => <MenuItem value={s.type} children={s.name} />)}
@@ -1081,7 +1083,7 @@ function DefaultSettings() {
 				{(() => {
 					if (!projectFile.video) return null;
 					var SourceSettings = VideoSources.find(s => s.type == projectFile.video.type).settings;
-					return <SourceSettings settings={projectFile.video} player={player} />;
+					return <SourceSettings settings={projectFile.video} player={player} global={global} />;
 				})()}
 			</div>
 			<div className={'section ' + (ready.timeline.value ? '' : 'disabled')}>
@@ -1149,7 +1151,7 @@ function DefaultSettings() {
 						projectFile.downloadProjectFile();
 					}}
 				/>
-				{false && <Button
+				<Button
 					variant='contained'
 					color='default'
 					children='New project'
@@ -1157,7 +1159,6 @@ function DefaultSettings() {
 						var newProj: timeline = {
 							slides: [],
 							name: 'New project',
-							settings: { controlType: 'FullScreen' },
 							framerate: 0,
 							framecount: 0,
 						};
@@ -1168,7 +1169,7 @@ function DefaultSettings() {
 						global.ready.timeline.set(true);
 					}}
 					startIcon={<AddRoundedIcon />}
-				/>}
+				/>
 			</div>
 		</div>
 	</>;
@@ -1298,6 +1299,8 @@ function Tools() {
 	useMousetrap(['l'], switchToTool('loop'));
 	useMousetrap(['e'], switchToTool('delay'));
 	useMousetrap(['s'], switchToTool('speedChange'));
+
+	// ! TODO: read fps from projectFile
 
 	return <div className='tools'>
 		<div className={'time posrel ' + (ready.timeline.get() ? '' : 'disabled')}>
