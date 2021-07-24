@@ -152,20 +152,7 @@ export class TimedVideoPlayer {
 	}
 
 	loadSlides(jsonString: string) {
-		try {
-			var timeline = JSON.parse(jsonString);
-		} catch (e) {
-			console.log('invalid json object!' + e);
-			return;
-		}
-		var ajv = new Ajv({ allErrors: true });
-		var validate = ajv.compile(timelineSchema);
-		if (!validate(timeline)) {
-			console.log('schema not passed!');
-			return;
-		}
-
-		this.timeline = timeline as timeline;
+		this.timeline = JSON.parse(jsonString) as timeline;
 
 		this.timeline.slides[-1] = {
 			id: '00000000-0000-0000-0000-000000000000',
@@ -214,7 +201,7 @@ export class TimedVideoPlayer {
 export default function Present() {
 	var [dummy, setDummy] = useState(false);
 	var rerender = () => setDummy(!dummy);
-	var [player, setPlayer] = useState(new TimedVideoPlayer());
+	var [player, _setPlayer] = useState(new TimedVideoPlayer());
 
 	useEffect(() => {
 		setInterval(() => {

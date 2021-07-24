@@ -74,14 +74,46 @@ export const VideoSources = [
 export type VideoSourceClass = InstanceType<typeof VideoSources[number]['class']>;
 export type VideoSourceType = typeof VideoSources[number]['type'];
 
+export class PresentationSettings {
+	keybindings: {
+		NextSlide: string[];
+		PreviousSlide: string[];
+		ShowMenu: string[];
+	};
+	controls: {
+		ControlType: 'FullScreen' | 'MenuBar';
+	};
+	remotes: {
+		AllowRemotes: boolean;
+		AllowQRRemotes: boolean;
+	};
+
+	constructor() {
+		this.keybindings = {
+			NextSlide: ['Space', 'n', 'Enter'],
+			PreviousSlide: ['Backspace', 'p'],
+			ShowMenu: ['Escape', 'm'],
+		};
+		this.controls = {
+			ControlType: 'FullScreen',
+		};
+		this.remotes = {
+			AllowRemotes: false,
+			AllowQRRemotes: false,
+		};
+	}
+}
+
 export default class {
-	version: string;
+	version: string = '0.2.0';
+	fileVersion: string;
 	zip: JSZip;
 	project: TimedVideoPlayer['timeline'];
 	video: VideoSourceClass;
+	settings: PresentationSettings;
 
 	constructor() {
-		this.version = '0.1.1';
+		this.settings = new PresentationSettings();
 		this.zip = new JSZip();
 	}
 
@@ -101,12 +133,11 @@ export default class {
 	}
 
 	saveProject() {
+		this.zip = new JSZip();
+
 		var meta = this.zip.folder('meta');
 		meta.file('version', this.version);
 		meta.file('name', this.project.name);
-
-		var settings = this.zip.folder('settings');
-		settings.file('controlType', this.project.settings.controlType);
 
 		var source = this.zip.folder('source');
 		this.video.save(source);
@@ -114,16 +145,16 @@ export default class {
 		source.file('config', JSON.stringify(this.video.config, null, 4));
 
 		this.zip.file('slides', JSON.stringify(this.project.slides, null, 4));
+		this.zip.file('settings', JSON.stringify(this.settings, null, 4));
 	}
 
 	async openProject(data: ArrayBuffer) {
 		this.zip = new JSZip();
 		await this.zip.loadAsync(data);
 
-		this.version = await this.zip.file('meta/version').async('string');
+		this.fileVersion = await this.zip.file('meta/version').async('string');
 		this.project = {
 			name: await this.zip.file('meta/name').async('string'),
-			settings: { controlType: await this.zip.file('settings/controlType').async('string') },
 			slides: JSON.parse(await this.zip.file('slides').async('string')),
 			framerate: Number(await this.zip.file('source/framerate').async('string')),
 			framecount: Number(await this.zip.file('source/framecount').async('string')),
@@ -135,8 +166,12 @@ export default class {
 		this.video = new videoSourceType.class(await this.zip.file('source/video').async('arraybuffer'));
 		this.video.mimetype = await this.zip.file('source/mimetype').async('string');
 
-		if (semver.lt('0.1.1', this.version)) {
+		if (semver.lt('0.1.1', this.fileVersion)) {
 			this.video.config = JSON.parse(await this.zip.file('source/config').async('string'));
+		}
+
+		if (semver.lt('0.2.0', this.fileVersion)) {
+			this.settings = JSON.parse(await this.zip.file('settings').async('string'));
 		}
 	}
 }

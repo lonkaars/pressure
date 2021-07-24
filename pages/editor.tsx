@@ -18,13 +18,12 @@ import KeybindSelector from '../components/keybindselector';
 import PlaySkipIconAni from '../components/play-skip';
 import Selection from '../components/selection';
 import TimecodeInput from '../components/timeinput';
-import Project, { arrayBufferToBase64, VideoSources, VideoSourceType } from '../project';
+import Project, { arrayBufferToBase64, PresentationSettings, VideoSources, VideoSourceType } from '../project';
 import timeline, {
 	anySlide,
 	clickThroughBehaviours,
 	loopBeginSlide,
 	loopSlide,
-	presentationSettings,
 	slide,
 	slideTypes,
 	toolToSlide,
@@ -155,9 +154,6 @@ var project = createState<project>({
 	timeline: {
 		name: '',
 		slides: [],
-		settings: {
-			controlType: 'FullScreen',
-		},
 		framerate: 0,
 		framecount: 0,
 	},
@@ -967,15 +963,10 @@ function TimelineEditor() {
 }
 
 function DefaultSettings() {
-	var [nextSlideKeybinds, setNextSlideKeybinds] = useState(['Space', 'n', 'Enter']);
-	var [previousSlideKeybinds, setPreviousSlideKeybinds] = useState(['Backspace', 'p']);
-	var [showMenuKeybinds, setShowMenuKeybinds] = useState(['Escape', 'm']);
-
-	var [videoSourceType, setVideoSourceType] = useState(VideoSources[0].type);
-
-	var proj = useHookstate(project).timeline;
-
 	var ready = useHookstate(global).ready;
+	var [dummy, setDummy] = useState(false);
+	var rerender = () => setDummy(!dummy);
+
 	return <>
 		<h2 className='title posabs h0 t0'>Presentation settings</h2>
 		<div className='scroll posabs h0 b0'>
@@ -983,14 +974,23 @@ function DefaultSettings() {
 				<span className='title'>Controls</span>
 				<div className='sidebyside'>
 					<span className='body'>Allow remote control during presentation</span>
-					<Switch />
+					<Switch
+						value={projectFile.settings.remotes.AllowRemotes}
+						onChange={() => {
+							projectFile.settings.remotes.AllowRemotes = !projectFile.settings.remotes.AllowRemotes;
+							rerender();
+						}}
+					/>
 				</div>
 				<FormControl variant='filled'>
 					<InputLabel>On-screen controls</InputLabel>
 					<Select
-						value={proj.settings.controlType.get()}
-						onChange={e =>
-							proj.settings.controlType.set(e.target.value as presentationSettings['controlType'])}
+						value={projectFile.settings.controls.ControlType}
+						onChange={e => {
+							projectFile.settings.controls.ControlType = e.target
+								.value as PresentationSettings['controls']['ControlType'];
+							rerender();
+						}}
 						IconComponent={ArrowDropDownRoundedIcon}
 					>
 						<MenuItem value='FullScreen'>
@@ -1038,13 +1038,30 @@ function DefaultSettings() {
 			</div>
 			<div className={'section ' + (ready.timeline.value ? '' : 'disabled')}>
 				<span className='title'>Keybindings</span>
-				<KeybindSelector label='Next slide' value={nextSlideKeybinds} onChange={setNextSlideKeybinds} />
+				<KeybindSelector
+					label='Next slide'
+					value={projectFile.settings.keybindings.NextSlide}
+					onChange={e => {
+						projectFile.settings.keybindings.NextSlide = e;
+						rerender();
+					}}
+				/>
 				<KeybindSelector
 					label='Previous slide'
-					value={previousSlideKeybinds}
-					onChange={setPreviousSlideKeybinds}
+					value={projectFile.settings.keybindings.PreviousSlide}
+					onChange={e => {
+						projectFile.settings.keybindings.PreviousSlide = e;
+						rerender();
+					}}
 				/>
-				<KeybindSelector label='Show menu' value={showMenuKeybinds} onChange={setShowMenuKeybinds} />
+				<KeybindSelector
+					label='Show menu'
+					value={projectFile.settings.keybindings.ShowMenu}
+					onChange={e => {
+						projectFile.settings.keybindings.ShowMenu = e;
+						rerender();
+					}}
+				/>
 			</div>
 			<div className={'section ' + (ready.timeline.value ? '' : 'disabled')}>
 				<span className='title'>Source</span>
@@ -1071,7 +1088,13 @@ function DefaultSettings() {
 				<span className='title'>Remotes</span>
 				<div className='sidebyside'>
 					<span className='body'>Allow anonymous remotes</span>
-					<Switch />
+					<Switch
+						value={projectFile.settings.remotes.AllowQRRemotes}
+						onChange={() => {
+							projectFile.settings.remotes.AllowQRRemotes = !projectFile.settings.remotes.AllowQRRemotes;
+							rerender();
+						}}
+					/>
 				</div>
 			</div>
 			<div className='section'>

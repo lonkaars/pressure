@@ -10,8 +10,7 @@
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
-		"start": "next start",
-		"schema": "npx ts-json-schema-generator --path timeline.ts --type timeline > timeline.schema.json"
+		"start": "next start"
 	},
 	"dependencies": {
 		"@hookstate/core": "^3.0.8",
@@ -36,7 +35,6 @@
 		"react-use-gesture": "^9.1.3",
 		"semver": "^7.3.5",
 		"timecode-boss": "^4.2.3",
-		"ts-json-schema-generator": "^0.93.0",
 		"use-mousetrap": "^1.0.4",
 		"uuid": "^8.3.2"
 	},

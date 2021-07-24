@@ -50,14 +50,9 @@ export var toolToSlide = {
 	loop: loopSlide,
 };
 
-export interface presentationSettings {
-	controlType: 'FullScreen' | 'MenuBar';
-}
-
 export default interface timeline {
 	slides: Array<anySlide>;
 	framecount: number;
 	framerate: number;
 	name: string;
-	settings: presentationSettings;
 }
