@@ -8,18 +8,17 @@ import { v4 as uuid } from 'uuid';
 
 import FadeThroughTransition from '../components/fadethrough';
 import {
-	BracketsRoundedIcon,
 	FullScreenControlsRoundedIcon,
 	MenuBarControlsRoundedIcon,
 	PressureIcon,
-	SlashIconRounded,
+	SlashRoundedIcon,
 	SlideKeyframe,
 } from '../components/icons';
 import KeybindSelector from '../components/keybindselector';
 import PlaySkipIconAni from '../components/play-skip';
 import Selection from '../components/selection';
 import TimecodeInput from '../components/timeinput';
-import Project, { LocalVideo } from '../project';
+import Project, { LocalVideo, VideoSources, VideoSourceType } from '../project';
 import timeline, {
 	anySlide,
 	clickThroughBehaviours,
@@ -34,11 +33,8 @@ import { TimedVideoPlayer } from './present';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import Fab from '@material-ui/core/Fab';
 import FormControl from '@material-ui/core/FormControl';
-import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
@@ -54,18 +50,13 @@ import Icon from '@mdi/react';
 
 import AddRoundedIcon from '@material-ui/icons/AddRounded';
 import ArrowDropDownRoundedIcon from '@material-ui/icons/ArrowDropDownRounded';
-import CloseIcon from '@material-ui/icons/Close';
 import FullscreenRoundedIcon from '@material-ui/icons/FullscreenRounded';
-import KeyboardArrowDownRoundedIcon from '@material-ui/icons/KeyboardArrowDownRounded';
 import NavigateBeforeRoundedIcon from '@material-ui/icons/NavigateBeforeRounded';
 import NavigateNextRoundedIcon from '@material-ui/icons/NavigateNextRounded';
-import SettingsRoundedIcon from '@material-ui/icons/SettingsRounded';
 import SkipPreviousRoundedIcon from '@material-ui/icons/SkipPreviousRounded';
 import { mdiCursorDefault } from '@mdi/js';
 
 import DescriptionRoundedIcon from '@material-ui/icons/DescriptionRounded';
-import GetAppRoundedIcon from '@material-ui/icons/GetAppRounded';
-import VideoLabelRoundedIcon from '@material-ui/icons/VideoLabelRounded';
 
 var keyframeInAnimations: { [key: string]: { x: number; y: number; }; } = {};
 var slideAPIs: { [key: string]: any; }[] = [];
@@ -91,9 +82,6 @@ interface globalState {
 			left: slideTypes | null;
 			right: slideTypes | null;
 		};
-	};
-	dialog: {
-		projectSettings: boolean;
 	};
 	settings: {
 		node: ReactNode;
@@ -129,9 +117,6 @@ var global = createState<globalState>({
 			left: null,
 			right: null,
 		},
-	},
-	dialog: {
-		projectSettings: false,
 	},
 	ready: {
 		timeline: false,
@@ -981,50 +966,17 @@ function TimelineEditor() {
 	</div>;
 }
 
-function DialogBox(props: {
-	open?: boolean;
-	close: () => any;
-	children: ReactNode;
-	title: string;
-}) {
-	return <Dialog open={props.open} onClose={props.close}>
-		<MuiDialogTitle>
-			<span className='title'>{props.title}</span>
-			<IconButton onClick={props.close} children={<CloseIcon />} />
-		</MuiDialogTitle>
-		<div className='inner'>
-			{props.children}
-		</div>
-	</Dialog>;
-}
-
-function ProjectSettings() {
-	var proj = useHookstate(project).timeline;
-	var open = useHookstate(global).dialog.projectSettings;
-
-	function close() {
-		global.update.refreshLiveTimeline.value();
-		open.set(false);
-	}
-
-	return <DialogBox open={open.get()} close={close} title='Project settings'>
-		<div className='body fullwidth-inputs form-spacing'>
-			<span>This is being worked on :tada:</span>
-		</div>
-	</DialogBox>;
-}
-
 function DefaultSettings() {
 	var [nextSlideKeybinds, setNextSlideKeybinds] = useState(['Space', 'n', 'Enter']);
 	var [previousSlideKeybinds, setPreviousSlideKeybinds] = useState(['Backspace', 'p']);
 	var [showMenuKeybinds, setShowMenuKeybinds] = useState(['Escape', 'm']);
 
+	var [videoSourceType, setVideoSourceType] = useState(VideoSources[0].type);
+
 	var proj = useHookstate(project).timeline;
 
 	var ready = useHookstate(global).ready;
-
 	return <>
-		<ProjectSettings />
 		<h2 className='title posabs h0 t0'>Presentation settings</h2>
 		<div className='scroll posabs h0 b0'>
 			<div className={'section ' + (ready.timeline.value ? '' : 'disabled')}>
@@ -1094,6 +1046,34 @@ function DefaultSettings() {
 				/>
 				<KeybindSelector label='Show menu' value={showMenuKeybinds} onChange={setShowMenuKeybinds} />
 			</div>
+			<div className={'section ' + (ready.timeline.value ? '' : 'disabled')}>
+				<span className='title'>Source</span>
+				<FormControl variant='filled'>
+					<InputLabel>Video source</InputLabel>
+					<Select
+						value={projectFile.video?.type || ''}
+						onChange={e =>
+							projectFile.video = new (VideoSources.find(s =>
+								s.type == e.target.value as VideoSourceType
+							).class)()}
+						IconComponent={ArrowDropDownRoundedIcon}
+					>
+						{VideoSources.map(s => <MenuItem value={s.type} children={s.name} />)}
+					</Select>
+				</FormControl>
+				{(() => {
+					if (!projectFile.video) return null;
+					var SourceSettings = VideoSources.find(s => s.type == projectFile.video.type).settings;
+					return <SourceSettings settings={projectFile.video} />;
+				})()}
+			</div>
+			<div className={'section ' + (ready.timeline.value ? '' : 'disabled')}>
+				<span className='title'>Remotes</span>
+				<div className='sidebyside'>
+					<span className='body'>Allow anonymous remotes</span>
+					<Switch />
+				</div>
+			</div>
 			<div className='section'>
 				<span className='title'>Cool temporary buttons</span>
 				<input
@@ -1153,7 +1133,7 @@ function DefaultSettings() {
 						projectFile.downloadProjectFile();
 					}}
 				/>
-				<Button
+				{false && <Button
 					variant='contained'
 					color='default'
 					children='New project'
@@ -1170,10 +1150,9 @@ function DefaultSettings() {
 						global.timeline.workingTimeline.set(player.timeline.slides);
 						global.update.refreshLiveTimeline.value();
 						global.ready.timeline.set(true);
-						global.dialog.projectSettings.set(true);
 					}}
 					startIcon={<AddRoundedIcon />}
-				/>
+				/>}
 			</div>
 		</div>
 	</>;
@@ -1451,7 +1430,7 @@ function TitleBar() {
 			<h1>pressure</h1>
 			<div className={'posabs abscenter projarea ' + (ready.timeline.get() ? '' : 'disabled')}>
 				<span className='projfolder'>My presentations</span>
-				<SlashIconRounded />
+				<SlashRoundedIcon />
 				<span
 					className='projname'
 					contentEditable
@@ -1459,12 +1438,6 @@ function TitleBar() {
 					ref={nameRef}
 					onBlur={() => proj.name.set((nameRef.current as HTMLSpanElement).textContent.trim())}
 					children={proj.name.get()}
-				/>
-				<KeyboardArrowDownRoundedIcon
-					className='cpointer'
-					onClick={() => {
-						global.dialog.projectSettings.set(true);
-					}}
 				/>
 			</div>
 		</Toolbar>

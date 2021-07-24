@@ -267,12 +267,22 @@ export function BracketsRoundedIcon() {
 	</svg>;
 }
 
-export function SlashIconRounded() {
+export function SlashRoundedIcon() {
 	return <svg width='24' height='24' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'>
 		<path
 			fill-rule='evenodd'
 			clip-rule='evenodd'
 			d='M9.31623 20C8.6687 20 8.21146 19.3656 8.41623 18.7513L13.7838 2.64868C13.9129 2.2613 14.2754 2 14.6838 2C15.3313 2 15.7885 2.63438 15.5838 3.24868L10.2162 19.3513C10.0871 19.7387 9.72457 20 9.31623 20Z'
 		/>
+	</svg>;
+}
+
+export function UploadRoundedIcon() {
+	return <svg width='24' height='24' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'>
+		<path
+			d='M6.70711 8.29289L11.2929 3.70711C11.6834 3.31658 12.3166 3.31658 12.7071 3.70711L17.2929 8.29289C17.9229 8.92286 17.4767 10 16.5858 10H7.41421C6.52331 10 6.07714 8.92286 6.70711 8.29289Z'
+		/>
+		<path d='M9 10H15V15C15 15.5523 14.5523 16 14 16H10C9.44772 16 9 15.5523 9 15V10Z' />
+		<rect x='5' y='18' width='14' height='2' rx='1' />
 	</svg>;
 }

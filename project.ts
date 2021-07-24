@@ -2,12 +2,19 @@ import { MediaInfo as Mediainfo, ResultObject } from 'mediainfo.js/dist/types';
 import JSZip from 'jszip';
 import { TimedVideoPlayer } from './pages/present';
 
+import { LocalVideoSettings } from './components/videosourcesettings';
+
 // garbage garbage garbage
 declare var MediaInfo: () => Promise<Mediainfo>;
 
 const filext = '.prspr';
 
-export class LocalVideo {
+interface VideoSource {
+	load: (data: ArrayBuffer) => void;
+	save: (dir: JSZip) => void;
+}
+
+export class LocalVideo implements VideoSource {
 	source: ArrayBuffer;
 	type: string;
 	mimetype: string;
@@ -15,8 +22,15 @@ export class LocalVideo {
 	framerate: number;
 	framecount: number;
 
+	config: {
+		fullyBuffer: boolean;
+	};
+
 	constructor(video?: ArrayBuffer) {
 		this.type = 'local';
+		this.config = {
+			fullyBuffer: false,
+		};
 		if (video) this.load(video);
 	}
 
@@ -45,21 +59,21 @@ export class LocalVideo {
 	}
 }
 
-export const VideoSourceTypeToClass = {
-	'local': LocalVideo,
-} as const;
-// export type VideoSources = [LocalVideo];
-export type valueof<T> = T[keyof T];
-export type VideoSources = InstanceType<valueof<typeof VideoSourceTypeToClass>>;
+export const VideoSources = [
+	{ type: 'local', class: LocalVideo, name: 'Local video', settings: LocalVideoSettings },
+] as const;
+
+export type VideoSourceClass = InstanceType<typeof VideoSources[number]['class']>;
+export type VideoSourceType = typeof VideoSources[number]['type'];
 
 export default class {
 	version: string;
 	zip: JSZip;
 	project: TimedVideoPlayer['timeline'];
-	video: VideoSources;
+	video: VideoSourceClass;
 
 	constructor() {
-		this.version = '0.1.0';
+		this.version = '0.1.1';
 		this.zip = new JSZip();
 	}
 
@@ -89,6 +103,7 @@ export default class {
 		var source = this.zip.folder('source');
 		this.video.save(source);
 		source.file('mimetype', this.video.mimetype);
+		source.file('config', JSON.stringify(this.video.config, null, 4));
 
 		this.zip.file('slides', JSON.stringify(this.project.slides, null, 4));
 	}
@@ -104,8 +119,10 @@ export default class {
 			framecount: Number(await this.zip.file('source/framecount').async('string')),
 		} as TimedVideoPlayer['timeline'];
 		var type = await this.zip.file('source/type').async('string');
-		if (!VideoSourceTypeToClass.hasOwnProperty(type)) return;
-		this.video = new VideoSourceTypeToClass[type](await this.zip.file('source/video').async('arraybuffer'));
+		var videoSourceType = VideoSources.find(s => s.type == type);
+		if (!videoSourceType) return;
+		this.video = new videoSourceType.class(await this.zip.file('source/video').async('arraybuffer'));
 		this.video.mimetype = await this.zip.file('source/mimetype').async('string');
+		this.video.config = JSON.parse(await this.zip.file('source/config').async('string'));
 	}
 }
