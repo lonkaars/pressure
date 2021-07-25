@@ -596,7 +596,7 @@ function GhostLoop(props: {
 	begin: number;
 	end: number;
 }) {
-	return <div className='keyframeWrapper ghost posabs abscenterh'>
+	return <div className='keyframeWrapper ghost posabs'>
 		<div
 			style={{
 				'--begin': props.begin,
