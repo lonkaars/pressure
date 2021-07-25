@@ -19,7 +19,7 @@ import PlaySkipIconAni from '../components/play-skip';
 import Selection from '../components/selection';
 import TimecodeInput from '../components/timeinput';
 import Project, { arrayBufferToBase64, PresentationSettings, VideoSources, VideoSourceType } from '../project';
-import timeline, {
+import {
 	anySlide,
 	clickThroughBehaviours,
 	loopBeginSlide,
@@ -97,6 +97,11 @@ export interface globalState {
 	update: {
 		refreshLiveTimeline: () => void;
 	};
+	dummies: {
+		all: number;
+		timeline: number;
+		tools: number;
+	};
 }
 
 var global = createState<globalState>({
@@ -143,6 +148,11 @@ var global = createState<globalState>({
 			};
 			project.timeline = player.timeline;
 		},
+	},
+	dummies: {
+		all: 0,
+		timeline: 0,
+		tools: 0,
 	},
 });
 
@@ -673,6 +683,9 @@ function getMarkerSpacing() {
 }
 
 function TimelineEditor() {
+	var dummy = useHookstate(global).dummies.timeline;
+	dummy.get();
+
 	var timelineZoom = useHookstate(global).timeline.zoom;
 	var workingTimeline = useHookstate(global).timeline.workingTimeline;
 	var tool = useHookstate(global).timeline.tool;
@@ -1069,7 +1082,11 @@ function DefaultSettings() {
 				{(() => {
 					if (!project.video) return null;
 					var SourceSettings = VideoSources.find(s => s.type == project.video.type).settings;
-					return <SourceSettings settings={project.video} player={player} global={global} />;
+					return <SourceSettings
+						settings={project.video}
+						player={player}
+						global={global}
+					/>;
 				})()}
 			</div>
 			<div className={'section ' + (ready.timeline.value ? '' : 'disabled')}>
@@ -1269,6 +1286,9 @@ function zoomAroundPoint(newZoom: number, pivot: number) {
 var switchToTool = (tool: string) => () => global.ready.timeline.value && global.timeline.tool.set(tool);
 
 function Tools() {
+	var dummy = useHookstate(global).dummies.tools;
+	dummy.get();
+
 	var frame = useHookstate(global).timeline.frame;
 	var tool = useHookstate(global).timeline.tool;
 	var timelineZoom = useHookstate(global).timeline.zoom;
@@ -1441,6 +1461,9 @@ function TitleBar() {
 }
 
 export default function Index() {
+	var dummy = useHookstate(global).dummies.all;
+	dummy.get();
+
 	useEffect(() => {
 		var preventDefault = (e: Event) => e.preventDefault();
 		document.addEventListener('gesturestart', preventDefault);

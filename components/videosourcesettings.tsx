@@ -1,6 +1,6 @@
 import { State } from '@hookstate/core';
 import { useRef, useState } from 'react';
-import { globalState } from '../pages/editor';
+import { globalState, rerenderComponent } from '../pages/editor';
 import { TimedVideoPlayer } from '../pages/present';
 import { arrayBufferToBase64, LocalVideo } from '../project';
 
@@ -34,13 +34,14 @@ export function LocalVideoSettings(props: VideoSourceSettings) {
 				reader.addEventListener('load', ev => {
 					var video = ev.target.result as ArrayBuffer;
 					props.settings.source = video;
-					props.settings.getVideoInfo();
 					props.settings.mimetype = file.type;
 					props.player.loadVideo(arrayBufferToBase64(video, file.type));
 					props.global.update.refreshLiveTimeline.value();
-					props.global.ready.video.set({
-						available: true,
-						playable: true,
+					props.global.ready.video.available.set(true);
+					props.settings.getVideoInfo().then(() => {
+						props.global.ready.video.playable.set(true);
+						props.global.dummies.timeline.set(n => n + 1);
+						props.global.dummies.tools.set(n => n + 1);
 					});
 				});
 				reader.readAsArrayBuffer(file);
