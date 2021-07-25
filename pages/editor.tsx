@@ -1173,11 +1173,8 @@ function DefaultSettings() {
 	</>;
 }
 
-function SlideProperties() {
-	var selection = useHookstate(global).selection.slides;
-	if (selection.length < 1) return null;
-	var slide = selection[0];
-	if (slide.value.type == 'default') return null;
+function SlideProperties(props: { slide: State<anySlide>; }) {
+	if (props.slide.value.type == 'default') return null;
 
 	return <div className='section'>
 		<span className='title'>Properties</span>
@@ -1187,22 +1184,23 @@ function SlideProperties() {
 					label='Duration'
 					variant='filled'
 					type='number'
-					value={(slide as State<loopSlide>).frame.get() - (slide as State<loopSlide>).beginFrame.get()}
+					value={(props.slide as State<loopSlide>).frame.get()
+						- (props.slide as State<loopSlide>).beginFrame.get()}
 				/>
 				<TimecodeInput
 					label='Start timestamp'
-					value={(slide as State<loopSlide>).beginFrame.get()}
+					value={(props.slide as State<loopSlide>).beginFrame.get()}
 					update={newValue => {
-						(slide as State<loopSlide>).frame.set(newValue);
+						(props.slide as State<loopSlide>).frame.set(newValue);
 						global.update.refreshLiveTimeline.value();
 					}}
 					player={player}
 				/>
 				<TimecodeInput
 					label='End timestamp'
-					value={(slide as State<loopSlide>).frame.get()}
+					value={(props.slide as State<loopSlide>).frame.get()}
 					update={newValue => {
-						(slide as State<loopSlide>).frame.set(newValue);
+						(props.slide as State<loopSlide>).frame.set(newValue);
 						global.update.refreshLiveTimeline.value();
 					}}
 					player={player}
@@ -1216,15 +1214,20 @@ function SlideProperties() {
 				<TextField label='New speed' variant='filled' />
 				<TextField label='Factor' variant='filled' />
 			</>,
-		}[slide.value.type]}
+		}[props.slide.value.type]}
 	</div>;
 }
 
 function SlideSettings() {
-	var selection = useHookstate(global).selection;
-	var multipleSlides = selection.slides.get().length > 1;
-	var slideType = selection.slides.get()[0]?.type || '';
-	var clickThroughBehaviour = selection.slides.get()[0]?.clickThroughBehaviour || '';
+	var selection = Array.from(useHookstate(global).selection.slides);
+	selection = selection.map(slide => {
+		if (slide.value.type as slideTypes | 'loopBegin' != 'loopBegin') return slide;
+		return global.timeline.workingTimeline.find(s => s.value.id == slide.value.id && s.value.type == 'loop');
+	}).filter((value, index, arr) => arr.indexOf(arr.find(s => s.value.id == value.value.id)) == index);
+	var multipleSlides = selection.length > 1;
+
+	var slideType = selection.length > 0 ? selection[0].value.type : '';
+	var clickThroughBehaviour = selection.length > 0 ? selection[0].value.clickThroughBehaviour : '';
 
 	return <>
 		<h2 className='title posabs h0 t0'>Slide settings</h2>
@@ -1252,14 +1255,14 @@ function SlideSettings() {
 					</ToggleButton>
 				</ToggleButtonGroup>
 			</div>
-			{!multipleSlides && <SlideProperties />}
+			{selection.length == 1 && <SlideProperties slide={selection[0]} />}
 			<div className='section'>
 				<FormControl variant='filled'>
 					<InputLabel>Click through behaviour</InputLabel>
 					<Select
 						onChange={e => {
-							if (selection.slides.value.length != 1) return;
-							selection.slides[0].clickThroughBehaviour.set(e.target.value as clickThroughBehaviours);
+							if (selection.length != 1) return;
+							selection[0].clickThroughBehaviour.set(e.target.value as clickThroughBehaviours);
 							global.update.refreshLiveTimeline.value();
 						}}
 						IconComponent={ArrowDropDownRoundedIcon}
