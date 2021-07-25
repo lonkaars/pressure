@@ -60,7 +60,7 @@
 	top: 32px;
 	overflow-y: scroll;
 	overflow-x: hidden;
-	border-radius: 4px;
+	border-radius: 6px;
 	margin-right: -16px;
 }
 .settings .inner button {
@@ -87,7 +87,7 @@
 .MuiSlider-thumb.MuiSlider-active { box-shadow: 0px 0px 0px 14px var(--selection-hover-color) !important; }
 
 .MuiFormControl-root {
-	border-radius: 4px;
+	border-radius: 6px;
 	overflow: hidden;
 }
 .MuiSelect-icon,
@@ -529,3 +529,9 @@ header .projarea span {
 	margin: -2px -4px;
 	border-radius: 6px;
 }
+
+.MuiSelect-root, .MuiInputBase-root { border-radius: 6px !important; }
+.MuiInputBase-root { background-color: var(--c600) !important; }
+.MuiSelect-root { background-color: var(--c200) !important; }
+.MuiFormLabel-root { font-weight: 500 !important; }
+

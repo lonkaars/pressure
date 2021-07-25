@@ -5,13 +5,9 @@
 
 .keybind-selector > * { cursor: pointer !important; } 
 
-.keybind-selector .MuiInputBase-root {
-	background-color: var(--c600) !important;
-}
-
 .keybind-selector-inner .keybind {
 	padding: 2px 4px 1px;
-	margin-right: 3px;
+	margin-right: 4px;
 	margin-bottom: 3px;
 	border-radius: 4px;
 	user-select: none;

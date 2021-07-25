@@ -55,3 +55,7 @@ h1, h2, h3 {
 .MuiInputLabel-root.MuiInputLabel-shrink {
 	width: calc(100% - 0px);
 }
+
+.MuiButton-root {
+	border-radius: 6px !important;
+}

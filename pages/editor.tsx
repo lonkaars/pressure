@@ -17,7 +17,7 @@ import {
 import KeybindSelector from '../components/keybindselector';
 import PlaySkipIconAni from '../components/play-skip';
 import Selection from '../components/selection';
-import TimecodeInput from '../components/timeinput';
+import SlideProperties from '../components/slideprops';
 import Project, { arrayBufferToBase64, PresentationSettings, VideoSources, VideoSourceType } from '../project';
 import {
 	anySlide,
@@ -39,7 +39,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import Slider from '@material-ui/core/Slider';
 import Switch from '@material-ui/core/Switch';
-import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import ZoomInRoundedIcon from '@material-ui/icons/ZoomInRounded';
 import ZoomOutRoundedIcon from '@material-ui/icons/ZoomOutRounded';
@@ -205,6 +204,8 @@ function select(slides: anySlide[]) {
 		var right = slides[slides.length - 1];
 
 		var [startOffset, widthOffset] = calculateSelectionOffsets(left.type, right.type);
+
+		// TODO: sometimes has wrong offset when clicking slide
 
 		selectionPosAPI[global.selection.hidden.value ? 'set' : 'start']({
 			y1: 50,
@@ -1173,51 +1174,6 @@ function DefaultSettings() {
 	</>;
 }
 
-function SlideProperties(props: { slide: State<anySlide>; }) {
-	if (props.slide.value.type == 'default') return null;
-
-	return <div className='section'>
-		<span className='title'>Properties</span>
-		{{
-			'loop': <>
-				<TextField
-					label='Duration'
-					variant='filled'
-					type='number'
-					value={(props.slide as State<loopSlide>).frame.get()
-						- (props.slide as State<loopSlide>).beginFrame.get()}
-				/>
-				<TimecodeInput
-					label='Start timestamp'
-					value={(props.slide as State<loopSlide>).beginFrame.get()}
-					update={newValue => {
-						(props.slide as State<loopSlide>).frame.set(newValue);
-						global.update.refreshLiveTimeline.value();
-					}}
-					player={player}
-				/>
-				<TimecodeInput
-					label='End timestamp'
-					value={(props.slide as State<loopSlide>).frame.get()}
-					update={newValue => {
-						(props.slide as State<loopSlide>).frame.set(newValue);
-						global.update.refreshLiveTimeline.value();
-					}}
-					player={player}
-				/>
-				<TextField label='End timestamp' variant='filled' />
-			</>,
-			'delay': <>
-				<TextField label='Delay duration' variant='filled' />
-			</>,
-			'speedChange': <>
-				<TextField label='New speed' variant='filled' />
-				<TextField label='Factor' variant='filled' />
-			</>,
-		}[props.slide.value.type]}
-	</div>;
-}
-
 function SlideSettings() {
 	var selection = Array.from(useHookstate(global).selection.slides);
 	selection = selection.map(slide => {
@@ -1255,8 +1211,13 @@ function SlideSettings() {
 					</ToggleButton>
 				</ToggleButtonGroup>
 			</div>
-			{selection.length == 1 && <SlideProperties slide={selection[0]} />}
+			{selection.length == 1 && <SlideProperties
+				slide={selection[0]}
+				global={global}
+				player={player}
+			/>}
 			<div className='section'>
+				<span className='title'>Behavior</span>
 				<FormControl variant='filled'>
 					<InputLabel>Click through behaviour</InputLabel>
 					<Select
