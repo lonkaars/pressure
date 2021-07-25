@@ -61,7 +61,8 @@ var keyframeInAnimations: { [key: string]: { x: number; y: number; }; } = {};
 var slideAPIs: { [key: string]: any; }[] = [];
 
 var player = new TimedVideoPlayer();
-var projectFile = new Project();
+var project = new Project();
+player.project = project;
 
 export interface globalState {
 	timeline: {
@@ -140,7 +141,7 @@ var global = createState<globalState>({
 				type: 'default',
 				clickThroughBehaviour: 'ImmediatelySkip',
 			};
-			projectFile.timeline = player.timeline;
+			project.timeline = player.timeline;
 		},
 	},
 });
@@ -497,7 +498,7 @@ function TimelineSelection(props: { selectionDragArea: Ref<ReactNode>; }) {
 				selectionPosAPI.start({ visibility: 0 });
 			} else {
 				var endingFrame = startingFrame + frameWidth;
-				var expandedTimeline = new Array(...projectFile.timeline);
+				var expandedTimeline = new Array(...project.timeline);
 				for (let i = 0; i < expandedTimeline.length; i++) {
 					var slide = expandedTimeline[i];
 					if (slide.type != 'loop') continue;
@@ -656,7 +657,7 @@ function divs(int: number) {
 function getMarkerSpacing() {
 	var zoom = global.timeline.zoom.value;
 	var frameWidth = zoomToPx(zoom);
-	var divvable = divs(Math.round(projectFile?.video?.framerate));
+	var divvable = divs(Math.round(project?.video?.framerate));
 	if (divvable.length == 0) return 30;
 	var minSpacing = 120;
 	var multiply = 1;
@@ -709,7 +710,7 @@ function TimelineEditor() {
 
 	useMousetrap(['.'], () => { // TODO: dry
 		if (!global.ready.timeline.value) return;
-		var frame = Math.min(projectFile?.video?.framecount, global.timeline.frame.value + 1);
+		var frame = Math.min(project?.video?.framecount, global.timeline.frame.value + 1);
 		global.timeline.frame.set(frame);
 		scrubberSpring.start({ frame });
 	});
@@ -919,7 +920,7 @@ function TimelineEditor() {
 			</animated.div>
 			<div
 				className='keyframes'
-				style={{ '--total-frames': projectFile?.video?.framecount } as CSSProperties}
+				style={{ '--total-frames': project?.video?.framecount } as CSSProperties}
 			>
 				<div className='selectionarea posabs v0' ref={selectionDragArea} />
 				{workingTimeline.map(slide =>
@@ -960,9 +961,9 @@ function DefaultSettings() {
 				<div className='sidebyside'>
 					<span className='body'>Allow remote control during presentation</span>
 					<Switch
-						value={projectFile.settings.remotes.AllowRemotes}
+						value={project.settings.remotes.AllowRemotes}
 						onChange={() => {
-							projectFile.settings.remotes.AllowRemotes = !projectFile.settings.remotes.AllowRemotes;
+							project.settings.remotes.AllowRemotes = !project.settings.remotes.AllowRemotes;
 							rerender();
 						}}
 					/>
@@ -970,9 +971,9 @@ function DefaultSettings() {
 				<FormControl variant='filled'>
 					<InputLabel>On-screen controls</InputLabel>
 					<Select
-						value={projectFile.settings.controls.ControlType}
+						value={project.settings.controls.ControlType}
 						onChange={e => {
-							projectFile.settings.controls.ControlType = e.target
+							project.settings.controls.ControlType = e.target
 								.value as PresentationSettings['controls']['ControlType'];
 							rerender();
 						}}
@@ -1025,25 +1026,25 @@ function DefaultSettings() {
 				<span className='title'>Keybindings</span>
 				<KeybindSelector
 					label='Next slide'
-					value={projectFile.settings.keybindings.NextSlide}
+					value={project.settings.keybindings.NextSlide}
 					onChange={e => {
-						projectFile.settings.keybindings.NextSlide = e;
+						project.settings.keybindings.NextSlide = e;
 						rerender();
 					}}
 				/>
 				<KeybindSelector
 					label='Previous slide'
-					value={projectFile.settings.keybindings.PreviousSlide}
+					value={project.settings.keybindings.PreviousSlide}
 					onChange={e => {
-						projectFile.settings.keybindings.PreviousSlide = e;
+						project.settings.keybindings.PreviousSlide = e;
 						rerender();
 					}}
 				/>
 				<KeybindSelector
 					label='Show menu'
-					value={projectFile.settings.keybindings.ShowMenu}
+					value={project.settings.keybindings.ShowMenu}
 					onChange={e => {
-						projectFile.settings.keybindings.ShowMenu = e;
+						project.settings.keybindings.ShowMenu = e;
 						rerender();
 					}}
 				/>
@@ -1053,9 +1054,9 @@ function DefaultSettings() {
 				<FormControl variant='filled'>
 					<InputLabel>Video source</InputLabel>
 					<Select
-						value={projectFile.video?.type || ''}
+						value={project.video?.type || ''}
 						onChange={e => {
-							projectFile.video = new (VideoSources.find(s =>
+							project.video = new (VideoSources.find(s =>
 								s.type == e.target.value as VideoSourceType
 							).class)();
 							rerender();
@@ -1066,9 +1067,9 @@ function DefaultSettings() {
 					</Select>
 				</FormControl>
 				{(() => {
-					if (!projectFile.video) return null;
-					var SourceSettings = VideoSources.find(s => s.type == projectFile.video.type).settings;
-					return <SourceSettings settings={projectFile.video} player={player} global={global} />;
+					if (!project.video) return null;
+					var SourceSettings = VideoSources.find(s => s.type == project.video.type).settings;
+					return <SourceSettings settings={project.video} player={player} global={global} />;
 				})()}
 			</div>
 			<div className={'section ' + (ready.timeline.value ? '' : 'disabled')}>
@@ -1076,9 +1077,9 @@ function DefaultSettings() {
 				<div className='sidebyside'>
 					<span className='body'>Allow anonymous remotes</span>
 					<Switch
-						value={projectFile.settings.remotes.AllowQRRemotes}
+						value={project.settings.remotes.AllowQRRemotes}
 						onChange={() => {
-							projectFile.settings.remotes.AllowQRRemotes = !projectFile.settings.remotes.AllowQRRemotes;
+							project.settings.remotes.AllowQRRemotes = !project.settings.remotes.AllowQRRemotes;
 							rerender();
 						}}
 					/>
@@ -1096,15 +1097,15 @@ function DefaultSettings() {
 						if (!file) return;
 						var reader = new FileReader();
 						reader.addEventListener('load', async ev => {
-							await projectFile.openProject(ev.target.result as ArrayBuffer);
+							await project.openProject(ev.target.result as ArrayBuffer);
 
-							player.loadSlides(projectFile.timeline);
-							projectFile.timeline = player.timeline;
+							player.loadSlides(project.timeline);
+							project.timeline = player.timeline;
 							global.timeline.workingTimeline.set(player.timeline);
 							global.update.refreshLiveTimeline.value();
 							global.ready.timeline.set(true);
 
-							player.loadVideo(arrayBufferToBase64(projectFile.video.source, projectFile.video.mimetype));
+							player.loadVideo(arrayBufferToBase64(project.video.source, project.video.mimetype));
 							global.ready.video.available.set(true);
 
 							player.player.addEventListener(
@@ -1131,9 +1132,9 @@ function DefaultSettings() {
 					children='Download .prspr'
 					startIcon={<DescriptionRoundedIcon />}
 					onClick={async () => {
-						projectFile.timeline = player.timeline;
-						projectFile.saveProject();
-						projectFile.downloadProjectFile();
+						project.timeline = player.timeline;
+						project.saveProject();
+						project.downloadProjectFile();
 					}}
 				/>
 				<Button
@@ -1142,8 +1143,8 @@ function DefaultSettings() {
 					children='New project'
 					onClick={() => {
 						player.loadSlides([]);
-						projectFile.timeline = player.timeline;
-						projectFile.name = 'New project';
+						project.timeline = player.timeline;
+						project.name = 'New project';
 						global.timeline.workingTimeline.set(player.timeline);
 						global.update.refreshLiveTimeline.value();
 						global.ready.timeline.set(true);
@@ -1279,11 +1280,9 @@ function Tools() {
 	useMousetrap(['e'], switchToTool('delay'));
 	useMousetrap(['s'], switchToTool('speedChange'));
 
-	// ! TODO: read fps from projectFile
-
 	return <div className='tools'>
 		<div className={'time posrel ' + (ready.timeline.get() ? '' : 'disabled')}>
-			<span className='framerate numbers posabs l0 t0'>@{projectFile?.video?.framerate}fps</span>
+			<span className='framerate numbers posabs l0 t0'>@{project?.video?.framerate}fps</span>
 			<h2 className='timecode numbers posabs r0 t0'>
 				{player.frameToTimestampString(frame.get(), false)}
 			</h2>
@@ -1433,8 +1432,8 @@ function TitleBar() {
 					contentEditable
 					spellCheck={false}
 					ref={nameRef}
-					onBlur={() => projectFile.name = (nameRef.current as HTMLSpanElement).textContent.trim()}
-					children={projectFile.name}
+					onBlur={() => project.name = (nameRef.current as HTMLSpanElement).textContent.trim()}
+					children={project.name}
 				/>
 			</div>
 		</Toolbar>

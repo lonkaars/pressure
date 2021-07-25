@@ -33,7 +33,8 @@ export function LocalVideoSettings(props: VideoSourceSettings) {
 				var reader = new FileReader();
 				reader.addEventListener('load', ev => {
 					var video = ev.target.result as ArrayBuffer;
-					props.settings.load(video);
+					props.settings.source = video;
+					props.settings.getVideoInfo();
 					props.settings.mimetype = file.type;
 					props.player.loadVideo(arrayBufferToBase64(video, file.type));
 					props.global.update.refreshLiveTimeline.value();
