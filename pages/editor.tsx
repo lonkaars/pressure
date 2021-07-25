@@ -1217,7 +1217,7 @@ function SlideSettings() {
 				player={player}
 			/>}
 			<div className='section'>
-				<span className='title'>Behavior</span>
+				<span className='title'>Click through behavior</span>
 				<FormControl variant='filled'>
 					<InputLabel>Click through behaviour</InputLabel>
 					<Select

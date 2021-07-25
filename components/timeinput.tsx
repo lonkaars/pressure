@@ -6,8 +6,10 @@ export default function TimecodeInput(props: {
 	update: (newValue: number) => void;
 	player: TimedVideoPlayer;
 	label: string;
+	className?: string;
 }) {
 	return <TextField
+		className={'time-input ' + (props.className || '')}
 		variant='filled'
 		label={props.label}
 		value={props.player.frameToTimestampString(props.value, false)}

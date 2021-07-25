@@ -531,7 +531,8 @@ header .projarea span {
 }
 
 .MuiSelect-root, .MuiInputBase-root { border-radius: 6px !important; }
-.MuiInputBase-root { background-color: var(--c600) !important; }
-.MuiSelect-root { background-color: var(--c200) !important; }
+.MuiInputBase-root { background-color: var(--c500) !important; }
+.MuiSelect-root { background-color: var(--c300) !important; }
 .MuiFormLabel-root { font-weight: 500 !important; }
+.MuiInputAdornment-root p { color: var(--c800) !important; }
 
