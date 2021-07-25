@@ -50,9 +50,5 @@ export var toolToSlide = {
 	loop: loopSlide,
 };
 
-export default interface timeline {
-	slides: Array<anySlide>;
-	framecount: number;
-	framerate: number;
-	name: string;
-}
+type timeline = Array<anySlide>;
+export default timeline;

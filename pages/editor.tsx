@@ -131,31 +131,17 @@ var global = createState<globalState>({
 	update: {
 		refreshLiveTimeline: () => {
 			if (typeof player.timeline === 'undefined') return;
-			player.timeline.slides = Array(...(global.timeline.workingTimeline.value));
-			player.timeline.slides = player.timeline.slides.filter(slide => slide != null);
-			player.timeline.slides.sort((a, b) => a.frame - b.frame);
-			player.timeline.slides[-1] = { // TODO: dry
+			player.timeline = Array(...(global.timeline.workingTimeline.value));
+			player.timeline = player.timeline.filter(slide => slide != null);
+			player.timeline.sort((a, b) => a.frame - b.frame);
+			player.timeline[-1] = { // TODO: dry
 				id: '00000000-0000-0000-0000-000000000000',
 				frame: 0,
 				type: 'default',
 				clickThroughBehaviour: 'ImmediatelySkip',
 			};
-			project.timeline.slides.set(player.timeline.slides);
-			player.timeline = project.timeline.attach(Downgraded).value;
+			projectFile.timeline = player.timeline;
 		},
-	},
-});
-
-interface project {
-	timeline: timeline;
-}
-
-var project = createState<project>({
-	timeline: {
-		name: '',
-		slides: [],
-		framerate: 0,
-		framecount: 0,
 	},
 });
 
@@ -511,7 +497,7 @@ function TimelineSelection(props: { selectionDragArea: Ref<ReactNode>; }) {
 				selectionPosAPI.start({ visibility: 0 });
 			} else {
 				var endingFrame = startingFrame + frameWidth;
-				var expandedTimeline = new Array(...project.timeline.slides.value);
+				var expandedTimeline = new Array(...projectFile.timeline);
 				for (let i = 0; i < expandedTimeline.length; i++) {
 					var slide = expandedTimeline[i];
 					if (slide.type != 'loop') continue;
@@ -670,7 +656,7 @@ function divs(int: number) {
 function getMarkerSpacing() {
 	var zoom = global.timeline.zoom.value;
 	var frameWidth = zoomToPx(zoom);
-	var divvable = divs(Math.round(project.timeline.framerate.value));
+	var divvable = divs(Math.round(projectFile?.video?.framerate));
 	if (divvable.length == 0) return 30;
 	var minSpacing = 120;
 	var multiply = 1;
@@ -693,7 +679,6 @@ function TimelineEditor() {
 	var mouseX = 0;
 
 	var ready = useHookstate(global).ready;
-	var proj = useHookstate(project).timeline;
 
 	var timelineRef = useRef(null);
 	var selectionDragArea = useRef(null);
@@ -724,7 +709,7 @@ function TimelineEditor() {
 
 	useMousetrap(['.'], () => { // TODO: dry
 		if (!global.ready.timeline.value) return;
-		var frame = Math.min(project.timeline.framecount.value, global.timeline.frame.value + 1);
+		var frame = Math.min(projectFile?.video?.framecount, global.timeline.frame.value + 1);
 		global.timeline.frame.set(frame);
 		scrubberSpring.start({ frame });
 	});
@@ -934,7 +919,7 @@ function TimelineEditor() {
 			</animated.div>
 			<div
 				className='keyframes'
-				style={{ '--total-frames': proj.framecount.get() } as CSSProperties}
+				style={{ '--total-frames': projectFile?.video?.framecount } as CSSProperties}
 			>
 				<div className='selectionarea posabs v0' ref={selectionDragArea} />
 				{workingTimeline.map(slide =>
@@ -1113,9 +1098,9 @@ function DefaultSettings() {
 						reader.addEventListener('load', async ev => {
 							await projectFile.openProject(ev.target.result as ArrayBuffer);
 
-							player.loadSlides(JSON.stringify(projectFile.project));
-							project.timeline.set(player.timeline);
-							global.timeline.workingTimeline.set(player.timeline.slides);
+							player.loadSlides(projectFile.timeline);
+							projectFile.timeline = player.timeline;
+							global.timeline.workingTimeline.set(player.timeline);
 							global.update.refreshLiveTimeline.value();
 							global.ready.timeline.set(true);
 
@@ -1146,7 +1131,7 @@ function DefaultSettings() {
 					children='Download .prspr'
 					startIcon={<DescriptionRoundedIcon />}
 					onClick={async () => {
-						projectFile.loadProject(player.timeline);
+						projectFile.timeline = player.timeline;
 						projectFile.saveProject();
 						projectFile.downloadProjectFile();
 					}}
@@ -1156,15 +1141,10 @@ function DefaultSettings() {
 					color='default'
 					children='New project'
 					onClick={() => {
-						var newProj: timeline = {
-							slides: [],
-							name: 'New project',
-							framerate: 0,
-							framecount: 0,
-						};
-						player.loadSlides(JSON.stringify(newProj));
-						project.timeline.set(player.timeline);
-						global.timeline.workingTimeline.set(player.timeline.slides);
+						player.loadSlides([]);
+						projectFile.timeline = player.timeline;
+						projectFile.name = 'New project';
+						global.timeline.workingTimeline.set(player.timeline);
 						global.update.refreshLiveTimeline.value();
 						global.ready.timeline.set(true);
 					}}
@@ -1292,7 +1272,6 @@ function Tools() {
 	var tool = useHookstate(global).timeline.tool;
 	var timelineZoom = useHookstate(global).timeline.zoom;
 	var ready = useHookstate(global).ready;
-	var framerate = useHookstate(project).timeline.framerate;
 
 	useMousetrap(['v'], switchToTool('cursor'));
 	useMousetrap(['d'], switchToTool('default'));
@@ -1304,7 +1283,7 @@ function Tools() {
 
 	return <div className='tools'>
 		<div className={'time posrel ' + (ready.timeline.get() ? '' : 'disabled')}>
-			<span className='framerate numbers posabs l0 t0'>@{framerate.get()}fps</span>
+			<span className='framerate numbers posabs l0 t0'>@{projectFile?.video?.framerate}fps</span>
 			<h2 className='timecode numbers posabs r0 t0'>
 				{player.frameToTimestampString(frame.get(), false)}
 			</h2>
@@ -1439,7 +1418,6 @@ function Player() {
 
 function TitleBar() {
 	var ready = useHookstate(global).ready;
-	var proj = useHookstate(project).timeline;
 
 	var nameRef = useRef(null);
 
@@ -1455,8 +1433,8 @@ function TitleBar() {
 					contentEditable
 					spellCheck={false}
 					ref={nameRef}
-					onBlur={() => proj.name.set((nameRef.current as HTMLSpanElement).textContent.trim())}
-					children={proj.name.get()}
+					onBlur={() => projectFile.name = (nameRef.current as HTMLSpanElement).textContent.trim()}
+					children={projectFile.name}
 				/>
 			</div>
 		</Toolbar>

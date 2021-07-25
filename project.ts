@@ -1,7 +1,7 @@
 import { MediaInfo as Mediainfo, ResultObject } from 'mediainfo.js/dist/types';
 import JSZip from 'jszip';
 import semver from 'semver';
-import { TimedVideoPlayer } from './pages/present';
+import timeline from './timeline';
 
 import { LocalVideoSettings } from './components/videosourcesettings';
 
@@ -18,7 +18,7 @@ export function arrayBufferToBase64(buffer: ArrayBuffer, mimetype?: string) {
 const filext = '.prspr';
 
 interface VideoSource {
-	load: (data: ArrayBuffer) => void;
+	load: (dir: JSZip) => void;
 	save: (dir: JSZip) => void;
 }
 
@@ -34,16 +34,14 @@ export class LocalVideo implements VideoSource {
 		fullyBuffer: boolean;
 	};
 
-	constructor(video?: ArrayBuffer) {
+	constructor() {
 		this.type = 'local';
 		this.config = {
 			fullyBuffer: false,
 		};
-		if (video) this.load(video);
 	}
 
-	async load(data: ArrayBuffer) {
-		this.source = data;
+	async getVideoInfo() {
 		var mediainfo = await MediaInfo();
 		var result = await mediainfo.analyzeData(
 			() => this.source.byteLength,
@@ -57,6 +55,12 @@ export class LocalVideo implements VideoSource {
 
 		this.framecount = Number(meta.FrameCount);
 		this.framerate = Number(meta.FrameRate);
+	}
+
+	async load(dir: JSZip) {
+		this.source = await dir.file('video').async('arraybuffer');
+		this.framerate = Number(await dir.file('framerate').async('string'));
+		this.framecount = Number(await dir.file('framecount').async('string'));
 	}
 
 	save(dir: JSZip) {
@@ -108,7 +112,8 @@ export default class {
 	version: string = '0.2.0';
 	fileVersion: string;
 	zip: JSZip;
-	project: TimedVideoPlayer['timeline'];
+	timeline: timeline;
+	name: string;
 	video: VideoSourceClass;
 	settings: PresentationSettings;
 
@@ -122,14 +127,10 @@ export default class {
 		var blob = new Blob([zip], { type: 'application/octet-stream' });
 		var a = document.createElement('a');
 		a.href = URL.createObjectURL(blob);
-		a.download = this.project.name
+		a.download = this.name
 			.toLowerCase()
 			.replace(/\s/g, '-') + filext;
 		a.click();
-	}
-
-	loadProject(project: TimedVideoPlayer['timeline']) {
-		this.project = project;
 	}
 
 	saveProject() {
@@ -137,14 +138,14 @@ export default class {
 
 		var meta = this.zip.folder('meta');
 		meta.file('version', this.version);
-		meta.file('name', this.project.name);
+		meta.file('name', this.name);
 
 		var source = this.zip.folder('source');
 		this.video.save(source);
 		source.file('mimetype', this.video.mimetype);
 		source.file('config', JSON.stringify(this.video.config, null, 4));
 
-		this.zip.file('slides', JSON.stringify(this.project.slides, null, 4));
+		this.zip.file('slides', JSON.stringify(this.timeline, null, 4));
 		this.zip.file('settings', JSON.stringify(this.settings, null, 4));
 	}
 
@@ -153,18 +154,16 @@ export default class {
 		await this.zip.loadAsync(data);
 
 		this.fileVersion = await this.zip.file('meta/version').async('string');
-		this.project = {
-			name: await this.zip.file('meta/name').async('string'),
-			slides: JSON.parse(await this.zip.file('slides').async('string')),
-			framerate: Number(await this.zip.file('source/framerate').async('string')),
-			framecount: Number(await this.zip.file('source/framecount').async('string')),
-		} as TimedVideoPlayer['timeline'];
+		this.timeline = JSON.parse(await this.zip.file('slides').async('string'));
+		this.name = await this.zip.file('meta/name').async('string');
 
-		var type = await this.zip.file('source/type').async('string');
+		var source = this.zip.folder('source');
+		var type = await source.file('type').async('string');
 		var videoSourceType = VideoSources.find(s => s.type == type);
 
-		this.video = new videoSourceType.class(await this.zip.file('source/video').async('arraybuffer'));
-		this.video.mimetype = await this.zip.file('source/mimetype').async('string');
+		this.video = new videoSourceType.class();
+		await this.video.load(source);
+		this.video.mimetype = await source.file('mimetype').async('string');
 
 		if (semver.lt('0.1.1', this.fileVersion)) {
 			this.video.config = JSON.parse(await this.zip.file('source/config').async('string'));

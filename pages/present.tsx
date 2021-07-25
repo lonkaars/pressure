@@ -1,9 +1,8 @@
 import Button from '@material-ui/core/Button';
-import Ajv from 'ajv';
 import { useEffect, useState } from 'react';
 import Timecode from 'timecode-boss';
+import Project from '../project';
 import timeline, { delaySlide, loopSlide, slide, speedChangeSlide } from '../timeline';
-import * as timelineSchema from '../timeline.schema.json';
 
 import ExitToAppRoundedIcon from '@material-ui/icons/ExitToAppRounded';
 import PlayArrowRoundedIcon from '@material-ui/icons/PlayArrowRounded';
@@ -21,6 +20,7 @@ export class TimedVideoPlayer {
 	video: string;
 	registeredEventListeners: boolean;
 	frame: number;
+	project: Project;
 
 	constructor() {
 		this.slide = -1;
@@ -30,7 +30,7 @@ export class TimedVideoPlayer {
 	}
 
 	frameToTimestampString(frame: number, trim: boolean = true) {
-		var timecodeString = new Timecode(frame, this.timeline?.framerate).toString();
+		var timecodeString = new Timecode(frame, this.project?.video?.framerate).toString();
 		if (trim) timecodeString = timecodeString.replace(/^(00:)+/, '');
 		timecodeString = timecodeString.replace(';', '.')
 			.replace(/(:)(\d+?)$/, '.$2')
@@ -40,11 +40,11 @@ export class TimedVideoPlayer {
 	}
 
 	timestampToFrame(timestamp: number): number {
-		return Math.ceil((timestamp * 1e3) / (1e3 / this.timeline?.framerate));
+		return Math.ceil(timestamp * this.project?.video?.framerate);
 	}
 
 	frameToTimestamp(frame: number): number {
-		return frame / this.timeline?.framerate;
+		return frame / this.project?.video?.framerate;
 	}
 
 	registerPlayer(player: HTMLVideoElement) {
@@ -69,11 +69,11 @@ export class TimedVideoPlayer {
 
 	getPlaybackSpeed(slide: number) {
 		for (var i = slide; i > -1; i--) {
-			var previousSlide = this.timeline.slides[i];
+			var previousSlide = this.timeline[i];
 			if (previousSlide.type != 'speedChange') {
 				continue;
 			}
-			return this.timeline?.framerate / (previousSlide as speedChangeSlide).newFramerate;
+			return this.project?.video?.framerate / (previousSlide as speedChangeSlide).newFramerate;
 		}
 		return 1;
 	}
@@ -87,7 +87,7 @@ export class TimedVideoPlayer {
 			case 'delay': {
 				this.player.playbackRate = 0;
 				this.slide++;
-				var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.timeline.slides[this.slide] });
+				var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.timeline[this.slide] });
 				this.dispatchEvent(event);
 				setTimeout(() => {
 					this.player.playbackRate = this.getPlaybackSpeed(this.slide - 1);
@@ -96,9 +96,9 @@ export class TimedVideoPlayer {
 			}
 			case 'speedChange': {
 				this.slide++;
-				var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.timeline.slides[this.slide] });
+				var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.timeline[this.slide] });
 				this.dispatchEvent(event);
-				this.player.playbackRate = this.timeline?.framerate / (slide as speedChangeSlide).newFramerate;
+				this.player.playbackRate = this.project?.video?.framerate / (slide as speedChangeSlide).newFramerate;
 				break;
 			}
 			default: {
@@ -134,13 +134,13 @@ export class TimedVideoPlayer {
 			var event = new CustomEvent('TimedVideoPlayerOnFrame', { detail: this.frame });
 			this.dispatchEvent(event);
 
-			var slide = this.timeline.slides[this.slide];
+			var slide = this.timeline[this.slide];
 			if (!slide) return;
 
 			if (this.frame >= slide.frame) {
 				this.handleSlide(slide);
 			}
-		}, 1e3 / (this.precision * this.timeline?.framerate));
+		}, 1e3 / (this.precision * this.project?.video?.framerate));
 
 		this.registeredEventListeners = true;
 	}
@@ -151,10 +151,10 @@ export class TimedVideoPlayer {
 		this.registerEventListeners();
 	}
 
-	loadSlides(jsonString: string) {
-		this.timeline = JSON.parse(jsonString) as timeline;
+	loadSlides(timeline: timeline) {
+		this.timeline = timeline;
 
-		this.timeline.slides[-1] = {
+		this.timeline[-1] = {
 			id: '00000000-0000-0000-0000-000000000000',
 			frame: 0,
 			type: 'default',
@@ -165,7 +165,7 @@ export class TimedVideoPlayer {
 	}
 
 	skip() {
-		var slide = this.timeline.slides[this.slide - 1];
+		var slide = this.timeline[this.slide - 1];
 		if (slide.clickThroughBehaviour == 'ImmediatelySkip') this.jumpToSlide(slide);
 	}
 
@@ -174,7 +174,7 @@ export class TimedVideoPlayer {
 
 		this.slide++;
 
-		var slide = this.timeline.slides[this.slide];
+		var slide = this.timeline[this.slide];
 		var event = new CustomEvent('TimedVideoPlayerSlide', { detail: slide });
 		this.dispatchEvent(event);
 
@@ -188,7 +188,7 @@ export class TimedVideoPlayer {
 
 		this.slide = Math.max(this.slide - 1, -1);
 
-		var slide = this.timeline.slides[this.slide];
+		var slide = this.timeline[this.slide];
 		if (!slide) return;
 
 		var event = new CustomEvent('TimedVideoPlayerSlide', { detail: slide });
@@ -255,7 +255,7 @@ export default function Present() {
 			<div className='info sidebyside posabs h0 b0'>
 				<div className='timetitle floatb'>
 					<h3 className='time numbers nobr' id='time'>14:00:41</h3>
-					<h1 className='title nobr'>{player.timeline?.name || '???'}</h1>
+					<h1 className='title nobr'>{player.project?.name || '???'}</h1>
 				</div>
 				<div className='buttons floatb'>
 					<div className='inner center'>
@@ -336,7 +336,7 @@ export default function Present() {
 				</div>
 				<div className='slide posrel floatb'>
 					<h3 className='time numbers nobr posrel'>
-						slide {player.slide + 1}/{player.timeline?.slides.length || 0}
+						slide {player.slide + 1}/{player.timeline?.length || 0}
 					</h3>
 				</div>
 			</div>
