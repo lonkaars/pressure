@@ -1,6 +1,6 @@
 import { State } from '@hookstate/core';
 import { useRef, useState } from 'react';
-import { globalState, rerenderComponent } from '../pages/editor';
+import { globalState } from '../pages/editor';
 import { TimedVideoPlayer } from '../pages/present';
 import { arrayBufferToBase64, LocalVideo } from '../project';
 

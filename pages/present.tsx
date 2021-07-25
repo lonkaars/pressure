@@ -9,9 +9,6 @@ import PlayArrowRoundedIcon from '@material-ui/icons/PlayArrowRounded';
 import SettingsRemoteRoundedIcon from '@material-ui/icons/SettingsRemoteRounded';
 import SettingsRoundedIcon from '@material-ui/icons/SettingsRounded';
 
-import CodeRoundedIcon from '@material-ui/icons/CodeRounded';
-import MovieRoundedIcon from '@material-ui/icons/MovieRounded';
-
 export class TimedVideoPlayer {
 	slide: number;
 	timeline: timeline;
@@ -274,51 +271,6 @@ export default function Present() {
 							onClick={() => {
 								document.getElementById('menu').classList.remove('active');
 							}}
-						/>
-						<input
-							type='file'
-							id='vidUpload'
-							accept='video/*'
-							className='dispnone'
-							onChange={event => {
-								var file = event.target.files[0];
-								if (!file) return;
-								var reader = new FileReader();
-								reader.addEventListener('load', ev => {
-									player.loadVideo(ev.target.result as string);
-								});
-								reader.readAsDataURL(file);
-							}}
-						/>
-						<input
-							type='file'
-							id='jsonUpload'
-							accept='application/json'
-							className='dispnone'
-							onChange={event => {
-								var file = event.target.files[0];
-								if (!file) return;
-								var reader = new FileReader();
-								reader.addEventListener('load', ev => {
-									player.loadSlides(ev.target.result as string);
-									rerender();
-								});
-								reader.readAsText(file);
-							}}
-						/>
-						<Button
-							variant='contained'
-							color='default'
-							children='Load video'
-							startIcon={<MovieRoundedIcon />}
-							onClick={() => document.getElementById('vidUpload').click()}
-						/>
-						<Button
-							variant='contained'
-							color='default'
-							children='Load json'
-							startIcon={<CodeRoundedIcon />}
-							onClick={() => document.getElementById('jsonUpload').click()}
 						/>
 						{false && <Button
 							variant='contained'
