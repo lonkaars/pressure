@@ -727,18 +727,18 @@ function TimelineEditor() {
 		});
 	}, []);
 
-	useMousetrap(['.'], () => { // TODO: dry
+	function addToTimelineFrame(delta: number) {
 		if (!global.ready.timeline.value) return;
-		var frame = Math.min(project?.video?.framecount, global.timeline.frame.value + 1);
+		var frame = Math.max(0, global.timeline.frame.value + delta);
 		global.timeline.frame.set(frame);
 		scrubberSpring.start({ frame });
-	});
-	useMousetrap([','], () => {
-		if (!global.ready.timeline.value) return;
-		var frame = Math.max(0, global.timeline.frame.value - 1);
-		global.timeline.frame.set(frame);
-		scrubberSpring.start({ frame });
-	});
+		if (player.player) {
+			var time = player.frameToTimestamp(frame);
+			if (isFinite(time)) player.player.currentTime = time;
+		}
+	}
+	useMousetrap(['.'], () => addToTimelineFrame(1));
+	useMousetrap([','], () => addToTimelineFrame(-1));
 
 	useEffect(() => {
 		player.addEventListener('TimedVideoPlayerSlide', (event: CustomEvent) => {

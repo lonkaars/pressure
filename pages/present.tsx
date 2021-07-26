@@ -42,7 +42,7 @@ export class TimedVideoPlayer {
 	}
 
 	frameToTimestamp(frame: number): number {
-		return frame / this.project?.video?.framerate;
+		return (frame + 1) / this.project?.video?.framerate;
 	}
 
 	registerPlayer(player: HTMLVideoElement) {
