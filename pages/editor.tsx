@@ -1184,7 +1184,7 @@ function SlideSettings() {
 	selection = selection.map(slide => {
 		if (slide.value.type as slideTypes | 'loopBegin' != 'loopBegin') return slide;
 		return global.timeline.workingTimeline.find(s => s.value.id == slide.value.id && s.value.type == 'loop');
-	}).filter((value, index, arr) => arr.indexOf(arr.find(s => s.value.id == value.value.id)) == index);
+	}).filter((value, index, arr) => arr.indexOf(arr.find(s => s?.value.id == value?.value.id)) == index);
 	var multipleSlides = selection.length > 1;
 
 	var slideType = selection.length > 0 ? selection[0].value.type : '';
