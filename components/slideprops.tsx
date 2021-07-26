@@ -8,7 +8,7 @@ import TextField from '@material-ui/core/TextField';
 import TimecodeInput from '../components/timeinput';
 import { globalState, slideAPIprops } from '../pages/editor';
 import { TimedVideoPlayer } from '../pages/present';
-import { anySlide, delaySlide, loopSlide } from '../timeline';
+import { anySlide, delaySlide, loopBeginSlide, loopSlide, speedChangeSlide } from '../timeline';
 
 interface SlidePropertiesPropsType {
 	slide: State<anySlide>;
@@ -18,33 +18,35 @@ interface SlidePropertiesPropsType {
 	select: (slides: anySlide[]) => void;
 }
 
-function SlideTimestamp(props: SlidePropertiesPropsType) {
-	return <TimecodeInput
-		label='Timestamp'
-		value={props.slide.frame.get()}
-		update={(newValue: number) => {
-			props.slide.frame.set(newValue);
-			props.api.start({ frame: newValue });
-			props.select([props.slide.attach(Downgraded).value]);
-			props.global.update.refreshLiveTimeline.value();
-		}}
-		player={props.player}
-	/>;
-}
-
 export default function SlideProperties(props: SlidePropertiesPropsType) {
-	function updateProp<slideType extends anySlide>(key: keyof slideType) {
+	function updateProp<slideType extends anySlide>(key: keyof slideType, springKey?: keyof slideAPIprops) {
 		return (newValue: any) => { // TODO: better typing here
 			props.slide[key as keyof State<anySlide>].set(newValue);
+			var sel = [props.slide.attach(Downgraded).value];
+			if (springKey) props.api.start({ [springKey]: newValue });
+			if (sel[0].type == 'loop') {
+				sel.push(new loopBeginSlide(sel[0] as loopSlide));
+				sel.reverse();
+			}
+			props.select(sel);
 			props.global.update.refreshLiveTimeline.value();
 		};
+	}
+
+	function SlideTimestamp() {
+		return <TimecodeInput
+			label='Timestamp'
+			value={props.slide.frame.get()}
+			update={updateProp('frame', 'frame')}
+			player={props.player}
+		/>;
 	}
 
 	return <div className='section'>
 		<span className='title'>Properties</span>
 		{{
 			'default': <>
-				<SlideTimestamp {...props} />
+				<SlideTimestamp />
 			</>,
 			'loop': <>
 				<TextField
@@ -58,18 +60,18 @@ export default function SlideProperties(props: SlidePropertiesPropsType) {
 				<TimecodeInput
 					label='Start timestamp'
 					value={(props.slide as State<loopSlide>).beginFrame.get()}
-					update={updateProp<loopSlide>('beginFrame')}
+					update={updateProp<loopSlide>('beginFrame', 'begin')}
 					player={props.player}
 				/>
 				<TimecodeInput
 					label='End timestamp'
 					value={(props.slide as State<loopSlide>).frame.get()}
-					update={updateProp<loopSlide>('frame')}
+					update={updateProp<loopSlide>('frame', 'frame')}
 					player={props.player}
 				/>
 			</>,
 			'delay': <>
-				<SlideTimestamp {...props} />
+				<SlideTimestamp />
 				<div className='spacer' />
 				<TextField
 					variant='filled'
@@ -82,7 +84,7 @@ export default function SlideProperties(props: SlidePropertiesPropsType) {
 				/>
 			</>,
 			'speedChange': <>
-				<SlideTimestamp {...props} />
+				<SlideTimestamp />
 				<div className='spacer' />
 				<TextField
 					variant='filled'
@@ -90,8 +92,8 @@ export default function SlideProperties(props: SlidePropertiesPropsType) {
 					type='number'
 					InputLabelProps={{ shrink: true }}
 					InputProps={{ endAdornment: <InputAdornment position='end' children='fps' /> }}
-					value={(props.slide as State<delaySlide>).delay.get()}
-					onChange={event => updateProp<delaySlide>('delay')(Number(event.target.value))}
+					value={(props.slide as State<speedChangeSlide>).newFramerate.get()}
+					onChange={event => updateProp<speedChangeSlide>('newFramerate')(Number(event.target.value))}
 				/>
 				<div className='spacer' />
 				<TextField
