@@ -1,9 +1,10 @@
 import Button from '@material-ui/core/Button';
 import { useEffect, useState } from 'react';
 import Timecode from 'timecode-boss';
-import Project from '../project';
+import Project, { arrayBufferToBase64 } from '../project';
 import timeline, { delaySlide, loopSlide, slide, speedChangeSlide } from '../timeline';
 
+import DescriptionRoundedIcon from '@material-ui/icons/DescriptionRounded';
 import ExitToAppRoundedIcon from '@material-ui/icons/ExitToAppRounded';
 import PlayArrowRoundedIcon from '@material-ui/icons/PlayArrowRounded';
 import SettingsRemoteRoundedIcon from '@material-ui/icons/SettingsRemoteRounded';
@@ -199,6 +200,8 @@ export default function Present() {
 	var [dummy, setDummy] = useState(false);
 	var rerender = () => setDummy(!dummy);
 	var [player, _setPlayer] = useState(new TimedVideoPlayer());
+	var [project, _setProject] = useState(new Project());
+	player.project = project;
 
 	useEffect(() => {
 		setInterval(() => {
@@ -231,6 +234,7 @@ export default function Present() {
 				className='control menu'
 				onClick={() => {
 					document.getElementById('menu').classList.add('active');
+					rerender();
 				}}
 			/>
 			<div
@@ -271,6 +275,33 @@ export default function Present() {
 							onClick={() => {
 								document.getElementById('menu').classList.remove('active');
 							}}
+						/>
+						<input
+							type='file'
+							id='prsprUpload'
+							accept='.prspr'
+							className='dispnone'
+							onChange={event => {
+								var file = event.target.files[0];
+								if (!file) return;
+								var reader = new FileReader();
+								reader.addEventListener('load', async ev => {
+									await project.openProject(ev.target.result as ArrayBuffer);
+
+									player.loadSlides(project.timeline);
+									player.loadVideo(arrayBufferToBase64(project.video.source, project.video.mimetype));
+
+									rerender();
+								});
+								reader.readAsArrayBuffer(file);
+							}}
+						/>
+						<Button
+							variant='contained'
+							color='default'
+							children='Load .prspr'
+							onClick={() => document.getElementById('prsprUpload').click()}
+							startIcon={<DescriptionRoundedIcon />}
 						/>
 						{false && <Button
 							variant='contained'
