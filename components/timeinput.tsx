@@ -22,5 +22,12 @@ export default function TimecodeInput(props: {
 			if (e.key == 'ArrowUp') props.update(props.value + mod);
 			if (e.key == 'ArrowDown') props.update(props.value - mod);
 		}}
+		onWheel={e => {
+			var mod = 1;
+			if (e.shiftKey) mod = 10;
+
+			if (e.deltaY < 0) props.update(props.value + mod);
+			if (e.deltaY > 0) props.update(props.value - mod);
+		}}
 	/>;
 }

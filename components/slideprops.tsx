@@ -1,34 +1,38 @@
 import { State } from '@hookstate/core';
+import { Downgraded } from '@hookstate/core';
+import { SpringRef } from 'react-spring';
 
 import InputAdornment from '@material-ui/core/InputAdornment';
 import TextField from '@material-ui/core/TextField';
 
 import TimecodeInput from '../components/timeinput';
-import { globalState } from '../pages/editor';
+import { globalState, slideAPIprops } from '../pages/editor';
 import { TimedVideoPlayer } from '../pages/present';
-import { anySlide, delaySlide, loopSlide, slide, speedChangeSlide } from '../timeline';
+import { anySlide, delaySlide, loopSlide } from '../timeline';
 
-function SlideTimestamp(props: {
+interface SlidePropertiesPropsType {
 	slide: State<anySlide>;
 	global: State<globalState>;
 	player: TimedVideoPlayer;
-}) {
+	api: SpringRef<slideAPIprops>;
+	select: (slides: anySlide[]) => void;
+}
+
+function SlideTimestamp(props: SlidePropertiesPropsType) {
 	return <TimecodeInput
 		label='Timestamp'
 		value={props.slide.frame.get()}
 		update={(newValue: number) => {
 			props.slide.frame.set(newValue);
+			props.api.start({ frame: newValue });
+			props.select([props.slide.attach(Downgraded).value]);
 			props.global.update.refreshLiveTimeline.value();
 		}}
 		player={props.player}
 	/>;
 }
 
-export default function SlideProperties(props: {
-	slide: State<anySlide>;
-	global: State<globalState>;
-	player: TimedVideoPlayer;
-}) {
+export default function SlideProperties(props: SlidePropertiesPropsType) {
 	function updateProp<slideType extends anySlide>(key: keyof slideType) {
 		return (newValue: any) => { // TODO: better typing here
 			props.slide[key as keyof State<anySlide>].set(newValue);

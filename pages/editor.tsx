@@ -57,7 +57,12 @@ import { mdiCursorDefault } from '@mdi/js';
 import DescriptionRoundedIcon from '@material-ui/icons/DescriptionRounded';
 
 var keyframeInAnimations: { [key: string]: { x: number; y: number; }; } = {};
-var slideAPIs: { [key: string]: any; }[] = [];
+export interface slideAPIprops {
+	frame: number;
+	begin: number;
+	y: number;
+}
+var slideAPIs: { [key: string]: SpringRef<slideAPIprops>; }[] = [];
 
 var player = new TimedVideoPlayer();
 var project = new Project();
@@ -276,7 +281,7 @@ function TimelineKeyframe(props: {
 
 	var [firstRender, setFirstRender] = useState(true);
 
-	var [spring, api] = useSpring(() => ({
+	var [spring, api] = useSpring<slideAPIprops>(() => ({
 		frame: props.slide.frame,
 		begin: (props.slide as loopSlide).beginFrame || 0,
 		y: 44,
@@ -1215,6 +1220,8 @@ function SlideSettings() {
 				slide={selection[0]}
 				global={global}
 				player={player}
+				api={slideAPIs[selection[0].id.value]}
+				select={select}
 			/>}
 			<div className='section'>
 				<span className='title'>Click through behavior</span>
@@ -1266,7 +1273,8 @@ function Tools() {
 
 	return <div className='tools'>
 		<div className={'time posrel ' + (ready.timeline.get() ? '' : 'disabled')}>
-			<span className='framerate numbers posabs l0 t0'>@{project?.video?.framerate}fps</span>
+			{typeof project?.video?.framerate !== 'undefined'
+				&& <span className='framerate numbers posabs l0 t0'>@{project?.video?.framerate}fps</span>}
 			<h2 className='timecode numbers posabs r0 t0'>
 				{player.frameToTimestampString(frame.get(), false)}
 			</h2>
