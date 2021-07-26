@@ -105,6 +105,12 @@ export default function SlideProperties(props: SlidePropertiesPropsType) {
 					variant='filled'
 					type='number'
 					label='Factor'
+					value={(props.slide as State<speedChangeSlide>).newFramerate.get()
+						/ props.player.project.video.framerate}
+					onChange={event =>
+						updateProp<speedChangeSlide>('newFramerate')(
+							Number(event.target.value) * props.player.project.video.framerate,
+						)}
 				/>
 			</>,
 		}[props.slide.value.type]}

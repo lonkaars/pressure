@@ -71,7 +71,7 @@ export class TimedVideoPlayer {
 			if (previousSlide.type != 'speedChange') {
 				continue;
 			}
-			return this.project?.video?.framerate / (previousSlide as speedChangeSlide).newFramerate;
+			return (previousSlide as speedChangeSlide).newFramerate / this.project?.video?.framerate;
 		}
 		return 1;
 	}
@@ -96,7 +96,7 @@ export class TimedVideoPlayer {
 				this.slide++;
 				var event = new CustomEvent('TimedVideoPlayerSlide', { detail: this.timeline[this.slide] });
 				this.dispatchEvent(event);
-				this.player.playbackRate = this.project?.video?.framerate / (slide as speedChangeSlide).newFramerate;
+				this.player.playbackRate = (slide as speedChangeSlide).newFramerate / this.project?.video?.framerate;
 				break;
 			}
 			default: {
