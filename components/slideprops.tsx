@@ -55,6 +55,11 @@ export default function SlideProperties(props: SlidePropertiesPropsType) {
 					type='number'
 					value={(props.slide as State<loopSlide>).frame.get()
 						- (props.slide as State<loopSlide>).beginFrame.get()}
+					onChange={e => {
+						var len = Number(e.target.value);
+						var frame = (props.slide as State<loopSlide>).beginFrame.get() + len;
+						updateProp<loopSlide>('frame', 'frame')(frame);
+					}}
 				/>
 				<div className='spacer' />
 				<TimecodeInput
