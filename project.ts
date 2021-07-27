@@ -165,11 +165,11 @@ export default class {
 		await this.video.load(source);
 		this.video.mimetype = await source.file('mimetype').async('string');
 
-		if (semver.lt('0.1.1', this.fileVersion)) {
+		if (semver.lte('0.1.1', this.fileVersion)) {
 			this.video.config = JSON.parse(await this.zip.file('source/config').async('string'));
 		}
 
-		if (semver.lt('0.2.0', this.fileVersion)) {
+		if (semver.lte('0.2.0', this.fileVersion)) {
 			this.settings = JSON.parse(await this.zip.file('settings').async('string'));
 		}
 	}
