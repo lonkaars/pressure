@@ -86,7 +86,7 @@
 	top: calc(var(--y) * 1px);
 	left: calc(var(--x) * 1px);
 
-	transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%) rotate(calc(var(--vertical) * 90deg));
 	pointer-events: none;
 }
 
