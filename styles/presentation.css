@@ -77,3 +77,16 @@
 #menu .info .buttons .inner .MuiButton-root { margin: 8px; }
 #menu .info .buttons .inner { margin: -8px; }
 
+.menuBar {
+	position: absolute;
+	width: 200px;
+	height: 50px;
+	background-color: #ffff00;
+
+	top: calc(var(--y) * 1px);
+	left: calc(var(--x) * 1px);
+
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+}
+

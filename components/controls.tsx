@@ -1,4 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { CSSProperties, useEffect, useRef } from 'react';
+import { animated, useSpring } from 'react-spring';
+// import { useDrag } from 'react-use-gesture';
 
 interface controlsPropsType {
 	next: () => void;
@@ -14,11 +16,20 @@ export function FullScreenControls({ next, previous, menu }: controlsPropsType) 
 	</div>;
 }
 
+var menuBarPosApi: SpringRef<{ x: number; y: number; }>;
 export function MenuBarControls({ next, previous, menu }: controlsPropsType) {
 	var canvasRef = useRef(null);
 
+	var [menuBarSpring, api] = useSpring(() => ({
+		x: 0,
+		y: 0,
+		config: { mass: 1.6, tension: 300, friction: 20 },
+	}));
+
+	menuBarPosApi = api;
+
 	var options = {
-		margin: 24, // screen margin
+		margin: 48, // screen margin
 		friction: 0.2, // friction
 		edgeForce: 0.4, // force outside margin (inwards to edges)
 		centerForce: 0.4, // force inside margin (outwards to edges)
@@ -140,13 +151,12 @@ export function MenuBarControls({ next, previous, menu }: controlsPropsType) {
 				physicsObject.velocity[1] += offset[1];
 			}
 
-			ctx.fillStyle = '#ff00ff';
-			ctx.fillRect(physicsObject.position[0], physicsObject.position[1], 10, 10);
-
-			physicsObject.position[0] += physicsObject.velocity[0];
-			physicsObject.position[1] += physicsObject.velocity[1];
 			physicsObject.velocity[0] *= 1 - options.friction;
 			physicsObject.velocity[1] *= 1 - options.friction;
+			physicsObject.position[0] += physicsObject.velocity[0];
+			physicsObject.position[1] += physicsObject.velocity[1];
+
+			menuBarPosApi.start({ x: physicsObject.position[0], y: physicsObject.position[1] });
 
 			requestAnimationFrame(draw);
 		}
@@ -166,7 +176,13 @@ export function MenuBarControls({ next, previous, menu }: controlsPropsType) {
 	}, []);
 	return <div className='fullscreenControls posabs a0'>
 		<canvas ref={canvasRef} />
-		<div className='menuBar'>
-		</div>
+		<animated.div
+			className='menuBar'
+			style={{
+				'--x': menuBarSpring.x,
+				'--y': menuBarSpring.y,
+			} as CSSProperties}
+		>
+		</animated.div>
 	</div>;
 }
