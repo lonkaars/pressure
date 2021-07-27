@@ -1,6 +1,7 @@
 import Button from '@material-ui/core/Button';
 import { useEffect, useState } from 'react';
 import Timecode from 'timecode-boss';
+import { FullScreenControls, MenuBarControls } from '../components/controls';
 import Project, { arrayBufferToBase64 } from '../project';
 import timeline, { delaySlide, loopSlide, slide, speedChangeSlide } from '../timeline';
 
@@ -203,10 +204,18 @@ export default function Present() {
 	var [project, _setProject] = useState(new Project());
 	player.project = project;
 
+	var controlType = project.settings?.controls?.ControlType;
+	var [menu, setMenu] = useState(true);
+
+	var Controls = {
+		'FullScreen': FullScreenControls,
+		'MenuBar': MenuBarControls,
+	}[controlType] || (() => null);
+
+	var [time, setTime] = useState('');
+
 	useEffect(() => {
-		setInterval(() => {
-			document.getElementById('time').innerText = new Date().toLocaleTimeString();
-		}, 500);
+		setInterval(() => setTime(new Date().toLocaleTimeString()), 500);
 	}, []);
 
 	useEffect(() => {
@@ -222,40 +231,26 @@ export default function Present() {
 				</div>
 			</div>
 		</div>
-		<div className='fullscreenControls posabs a0'>
-			<div
-				className='control previous'
-				onClick={() => {
-					player.previous();
-					rerender();
-				}}
-			/>
-			<div
-				className='control menu'
-				onClick={() => {
-					document.getElementById('menu').classList.add('active');
-					rerender();
-				}}
-			/>
-			<div
-				className='control next'
-				onClick={() => {
-					player.next();
-					player.player.play();
-					rerender();
-				}}
-			/>
-		</div>
-		<div className='menu posabs a0' id='menu'>
+		<MenuBarControls
+			next={() => {
+				player.next();
+				player.player.play();
+				rerender();
+			}}
+			previous={() => {
+				player.previous();
+				rerender();
+			}}
+			menu={() => setMenu(true)}
+		/>
+		<div className={'menu posabs a0 ' + (menu ? 'active ' : '')} id='menu'>
 			<div
 				className='background posabs a0'
-				onClick={() => {
-					document.getElementById('menu').classList.remove('active');
-				}}
+				onClick={() => setMenu(false)}
 			/>
 			<div className='info sidebyside posabs h0 b0'>
 				<div className='timetitle floatb'>
-					<h3 className='time numbers nobr' id='time'>14:00:41</h3>
+					<h3 className='time numbers nobr'>{time}</h3>
 					<h1 className='title nobr'>{player.project?.name || '???'}</h1>
 				</div>
 				<div className='buttons floatb'>
