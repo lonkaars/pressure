@@ -1,6 +1,11 @@
-import { CSSProperties, useEffect } from 'react';
+import Button from '@material-ui/core/Button';
+import { CSSProperties, useEffect, useRef } from 'react';
 import { animated, SpringRef, useSpring } from 'react-spring';
-// import { useDrag } from 'react-use-gesture';
+import { useDrag } from 'react-use-gesture';
+
+import MenuRoundedIcon from '@material-ui/icons/MenuRounded';
+import NavigateBeforeRoundedIcon from '@material-ui/icons/NavigateBeforeRounded';
+import NavigateNextRoundedIcon from '@material-ui/icons/NavigateNextRounded';
 
 interface controlsPropsType {
 	next: () => void;
@@ -22,40 +27,46 @@ interface menuBarSpringProps {
 	vertical: number;
 }
 var menuBarPosApi: SpringRef<menuBarSpringProps>;
+var mouseX = 0;
+var mouseY = 0;
+var windowWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
+var windowHeight = typeof window !== 'undefined' ? window.innerHeight : 0;
+var mouseDown = false;
+var positionHistory: [number, number][] = [];
+var slopeAverage: [number, number][] = [];
+var options = {
+	margin: 48, // screen margin
+	friction: 0.2, // friction
+	edgeForce: 0.4, // force outside margin (inwards to edges)
+	centerForce: 0.4, // force inside margin (outwards to edges)
+	maxForce: 10, // limit force to not go over this value
+	doneTolerance: 0.5, // if movement per frame goes below this value the animation is considered done
+	releaseSlopeAverageCount: 3,
+};
+
 export function MenuBarControls({ next, previous, menu }: controlsPropsType) {
+	var menuBarRef = useRef(null);
 	var [menuBarSpring, api] = useSpring(() => ({
-		x: 0,
+		x: windowWidth / 2,
 		y: 0,
 		vertical: 0,
 		config: { mass: 1.6, tension: 300, friction: 20 },
 	}));
 
+	useDrag(({ xy: [x, y], last }) => {
+		mouseX = x;
+		mouseY = y;
+		mouseDown = true;
+		if (last) mouseDown = false;
+	}, { domTarget: menuBarRef, eventOptions: { passive: false }, threshold: 10 });
+
 	menuBarPosApi = api;
-
-	var options = {
-		margin: 48, // screen margin
-		friction: 0.2, // friction
-		edgeForce: 0.4, // force outside margin (inwards to edges)
-		centerForce: 0.4, // force inside margin (outwards to edges)
-		maxForce: 10, // limit force to not go over this value
-		doneTolerance: 0.5, // if movement per frame goes below this value the animation is considered done
-		releaseSlopeAverageCount: 3,
-	};
-
-	var positionHistory: [number, number][] = [];
-	var slopeAverage: [number, number][] = [];
 
 	useEffect(() => {
 		var physicsObject = {
 			velocity: [0, 0],
-			position: [0, 0],
+			position: [windowWidth / 2, windowHeight],
 		};
-
-		var mouseX = 0;
-		var mouseY = 0;
-		var windowWidth = 0;
-		var windowHeight = 0;
-		var mouseDown = false;
 
 		function draw() {
 			positionHistory.push([mouseX, mouseY]);
@@ -169,21 +180,20 @@ export function MenuBarControls({ next, previous, menu }: controlsPropsType) {
 			requestAnimationFrame(draw);
 		}
 		draw();
+	}, []);
 
+	useEffect(() => {
 		function onresize() {
 			windowWidth = window.innerWidth;
 			windowHeight = window.innerHeight;
 		}
 		onresize();
 		window.addEventListener('resize', onresize);
-		window.addEventListener('mousemove', e => {
-			mouseX = e.clientX;
-			mouseY = e.clientY;
-			mouseDown = (e.buttons & (1 << 0)) > 0;
-		});
 	}, []);
+
 	return <div className='fullscreenControls posabs a0'>
 		<animated.div
+			ref={menuBarRef}
 			className='menuBar'
 			style={{
 				'--x': menuBarSpring.x,
@@ -191,6 +201,11 @@ export function MenuBarControls({ next, previous, menu }: controlsPropsType) {
 				'--vertical': menuBarSpring.vertical,
 			} as CSSProperties}
 		>
+			<Button children={<MenuRoundedIcon />} onClick={menu} />
+			<div className='spacing big' />
+			<Button children={<NavigateBeforeRoundedIcon />} onClick={previous} />
+			<div className='spacing small' />
+			<Button className='big' children={<NavigateNextRoundedIcon />} onClick={next} />
 		</animated.div>
 	</div>;
 }

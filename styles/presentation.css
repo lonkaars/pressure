@@ -79,14 +79,38 @@
 
 .menuBar {
 	position: absolute;
-	width: 200px;
-	height: 50px;
-	background-color: #ffff00;
+	padding: 8px;
+	background-color: var(--c300);
+	border-radius: 16px;
+	white-space: nowrap;
+	box-shadow: 0px 12px 16px 0px rgba(0, 0, 0, 0.25);
 
 	top: calc(var(--y) * 1px);
 	left: calc(var(--x) * 1px);
 
 	transform: translate(-50%, -50%) rotate(calc(var(--vertical) * 90deg));
-	pointer-events: none;
 }
+
+.menuBar .MuiButton-root .MuiButton-label {
+	transform: rotate(calc(var(--vertical) * -90deg))
+}
+
+.menuBar .MuiButton-root:hover { background-color: var(--c400); }
+.menuBar .MuiButton-root {
+	background-color: var(--c400);
+	padding: 8px;
+	border-radius: 8px !important;
+	overflow: hidden;
+	color: var(--fg);
+	min-width: 0;
+}
+
+.menuBar .MuiButton-root.big {
+	background-color: var(--blue);
+	width: 80px;
+}
+
+.menuBar .spacing { display: inline-block; }
+.menuBar .spacing.big { width: 16px; }
+.menuBar .spacing.small { width: 8px; }
 

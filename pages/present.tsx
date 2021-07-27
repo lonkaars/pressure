@@ -231,7 +231,7 @@ export default function Present() {
 				</div>
 			</div>
 		</div>
-		<MenuBarControls
+		<Controls
 			next={() => {
 				player.next();
 				player.player.play();
