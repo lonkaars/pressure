@@ -43,6 +43,8 @@ var options = {
 	doneTolerance: 0.5, // if movement per frame goes below this value the animation is considered done
 	releaseSlopeAverageCount: 3,
 };
+var lastDrag = 0;
+var preventDragClick = (fn: () => void) => Date.now() > lastDrag + 10 && fn();
 
 export function MenuBarControls({ next, previous, menu }: controlsPropsType) {
 	var menuBarRef = useRef(null);
@@ -57,7 +59,10 @@ export function MenuBarControls({ next, previous, menu }: controlsPropsType) {
 		mouseX = x;
 		mouseY = y;
 		mouseDown = true;
-		if (last) mouseDown = false;
+		if (last) {
+			mouseDown = false;
+			lastDrag = Date.now();
+		}
 	}, { domTarget: menuBarRef, eventOptions: { passive: false }, threshold: 10 });
 
 	menuBarPosApi = api;
@@ -201,11 +206,21 @@ export function MenuBarControls({ next, previous, menu }: controlsPropsType) {
 				'--vertical': menuBarSpring.vertical,
 			} as CSSProperties}
 		>
-			<Button children={<MenuRoundedIcon />} onClick={menu} />
+			<Button
+				children={<MenuRoundedIcon />}
+				onClick={() => preventDragClick(menu)}
+			/>
 			<div className='spacing big' />
-			<Button children={<NavigateBeforeRoundedIcon />} onClick={previous} />
+			<Button
+				children={<NavigateBeforeRoundedIcon />}
+				onClick={() => preventDragClick(previous)}
+			/>
 			<div className='spacing small' />
-			<Button className='big' children={<NavigateNextRoundedIcon />} onClick={next} />
+			<Button
+				className='big'
+				children={<NavigateNextRoundedIcon />}
+				onClick={() => preventDragClick(next)}
+			/>
 		</animated.div>
 	</div>;
 }
