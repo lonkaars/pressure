@@ -16,6 +16,7 @@ import {
 } from '../components/icons';
 import KeybindSelector from '../components/keybindselector';
 import PlaySkipIconAni from '../components/play-skip';
+import { NoScroll, StatusBarOverscrollColor } from '../components/pwatools';
 import Selection from '../components/selection';
 import SlideProperties from '../components/slideprops';
 import Project, { arrayBufferToBase64, PresentationSettings, VideoSources, VideoSourceType } from '../project';
@@ -1444,8 +1445,8 @@ export default function Index() {
 
 	return <>
 		<Head>
-			<meta name='apple-mobile-web-app-status-bar-style' content='black-translucent' />
-			<meta name='theme-color' content='#171D33' />
+			<NoScroll />
+			<StatusBarOverscrollColor />
 			<link rel='manifest' href='/editor/manifest.json' />
 
 			<link rel='apple-touch-icon' sizes='512x512' href='/img/icon-editor-ios-512x512.png' />
@@ -1461,23 +1462,6 @@ export default function Index() {
 
 			<script src='/mediainfo/mediainfo.min.js' />
 		</Head>
-		<style
-			children='
-			html, body {
-				position: fixed;
-				overflow: hidden;
-				width: 100vw;
-				height: 100vh;
-			}
-		'
-		/>
-		<style
-			children='
-			body {
-				background-color: var(--c300);
-			}
-		'
-		/>
 		<div className='appGrid posabs a0'>
 			<TitleBar />
 			<SettingsPane />

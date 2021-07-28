@@ -2,6 +2,7 @@ import Button from '@material-ui/core/Button';
 import { useEffect, useState } from 'react';
 import Timecode from 'timecode-boss';
 import { FullScreenControls, MenuBarControls } from '../components/controls';
+import { NoScroll, StatusBarOverscrollColor } from '../components/pwatools';
 import Project, { arrayBufferToBase64 } from '../project';
 import timeline, { delaySlide, loopSlide, slide, speedChangeSlide } from '../timeline';
 
@@ -224,6 +225,8 @@ export default function Present() {
 	}, []);
 
 	return <div className='presentation posfix a0 h100vh'>
+		<NoScroll />
+		<StatusBarOverscrollColor color='#01010d' />
 		<div className='slideWrapper abscenterv posrel'>
 			<div className='slide posrel'>
 				<div className='innner posabs a0'>
