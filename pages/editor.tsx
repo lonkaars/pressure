@@ -1444,9 +1444,9 @@ export default function Index() {
 	}, []);
 
 	return <>
+		<NoScroll />
+		<StatusBarOverscrollColor />
 		<Head>
-			<NoScroll />
-			<StatusBarOverscrollColor />
 			<link rel='manifest' href='/editor/manifest.json' />
 
 			<link rel='apple-touch-icon' sizes='512x512' href='/img/icon-editor-ios-512x512.png' />

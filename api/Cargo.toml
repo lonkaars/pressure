@@ -1,0 +1,21 @@
+[package]
+name = "pressure-api"
+version = "0.1.0"
+authors = ["lonkaars <loek@pipeframe.xyz>"]
+edition = "2018"
+
+[dependencies]
+rocket = "0.5.0-rc.1"
+tokio = "1.9.0"
+log = "0.4.6"
+
+[dependencies.mongodb]
+version = "2.0.0-beta.2"
+default-features = false
+features = ["tokio-runtime"]
+
+[dependencies.simple_logger]
+version = "1.12.0"
+default-features = false
+features = ["color"]
+
