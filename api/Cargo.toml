@@ -5,9 +5,11 @@ authors = ["lonkaars <loek@pipeframe.xyz>"]
 edition = "2018"
 
 [dependencies]
-rocket = "0.5.0-rc.1"
 tokio = "1.9.0"
 log = "0.4.6"
+dotenv = "0.14.1"
+actix-rt = "1.1.1"
+actix-web = "2.0"
 
 [dependencies.mongodb]
 version = "2.0.0-beta.2"

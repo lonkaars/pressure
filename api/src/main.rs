@@ -1,31 +1,30 @@
 extern crate log;
-extern crate mongodb;
 extern crate simple_logger;
 extern crate tokio;
 
-use mongodb::{bson::doc, options::ClientOptions, Client};
+use actix_web::{web, App, HttpServer};
 use simple_logger::SimpleLogger;
+use std::io::Result;
+use std::sync::*;
 
-#[tokio::main]
-async fn main() -> mongodb::error::Result<()> {
+mod db;
+mod routes;
+
+fn init_log() {
 	SimpleLogger::new().init().unwrap();
 	log::set_max_level(log::LevelFilter::Info);
+}
 
-	let mut client_options = ClientOptions::parse("mongodb://localhost:27017").await?;
-
-	client_options.app_name = Some("pressure-api".to_string());
-
-	let client = Client::with_options(client_options)?;
-
-	client
-		.database("admin")
-		.run_command(doc! {"ping": 1}, None)
-		.await?;
-	log::info!("connected to mongodb");
-
-	for db_name in client.list_database_names(None, None).await? {
-		log::info!("{}", db_name);
-	}
-
-	Ok(())
+#[actix_rt::main]
+async fn main() -> Result<()> {
+	init_log();
+	let client = web::Data::new(Mutex::new(db::init()));
+	HttpServer::new(move || {
+		App::new()
+			.app_data(client.clone())
+			.service(web::scope("/").configure(routes::export_routes))
+	})
+	.bind("127.0.0.1:8080")?
+	.run()
+	.await
 }
