@@ -18,7 +18,7 @@ fn init_log() {
 #[actix_rt::main]
 async fn main() -> Result<()> {
 	init_log();
-	let client = web::Data::new(Mutex::new(db::init()));
+	let client = web::Data::new(Mutex::new(db::init().await.unwrap()));
 	HttpServer::new(move || {
 		App::new()
 			.app_data(client.clone())

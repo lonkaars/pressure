@@ -1,3 +1,4 @@
+use dotenv::dotenv;
 use mongodb::{error::Error, options::ClientOptions, Client};
 use std::env;
 
@@ -10,6 +11,7 @@ pub struct User {
 }
 
 pub async fn init() -> Result<Client, Error> {
+	dotenv().ok();
 	let host = env::var("MONGO_HOST").expect("MONGO_HOST is not set");
 	let port = env::var("MONGO_PORT").expect("MONGO_PORT is not set");
 
@@ -17,6 +19,5 @@ pub async fn init() -> Result<Client, Error> {
 
 	client_options.app_name = Some("pressure-api".to_string());
 
-	let client = Client::with_options(client_options)?;
-	Ok(client)
+	return Client::with_options(client_options);
 }
